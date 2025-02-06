@@ -1,24 +1,24 @@
 <p align="center">
-  <img src="./logo.png" />
+  <img src="./logo.png" alt="Qurve Logo" />
 </p>
 
 # Qurve
 
-An attempt to create a flexible, performant charting library for React that renders to Canvas. Inspired by visx and recharts flexiblity and composability, powered by the Canvas API.
+An experimental attempt to create a flexible and high-performance charting library for React, rendering entirely on Canvas. Inspired by the flexibility and composability of visx and Recharts, powered by the Canvas API.
 
-## To Do
+## To-Do
+
+### Primitives
 - [ ] Line Chart
 - [ ] Bar Chart
 - [ ] Area Chart
 - [ ] Scatter Plot
 - [ ] Pie/Donut Chart
-- [ ] Treemap
-- [ ] Choropleth Map
 
-## Common Components
+### Components
 - [ ] Axes (Linear, Band, Time)
 - [ ] Grid Lines
 - [ ] Legends
 - [ ] Tooltips
-- [ ] Brush/Pan/Zoom
+- [ ] Brush, Pan & Zoom
 - [ ] Annotations
