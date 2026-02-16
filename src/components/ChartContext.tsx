@@ -27,7 +27,7 @@ export const ChartProvider: React.FC<{
       const context = canvas.getContext('2d', {
         alpha: false,
         antialias: true,
-      });
+      }) as CanvasRenderingContext2D | null;
       
       if (context) {
         // Устанавливаем размеры с учетом DPR
