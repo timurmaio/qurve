@@ -11,18 +11,22 @@ type LineProps = {
 };
 
 export const Line: React.FC<LineProps> = ({ x1, y1, x2, y2, color = '#000', lineWidth = 1 }) => {
-  const { ctx } = useChartContext();
+  const { ctx, dpr, registerRender } = useChartContext();
 
   useEffect(() => {
-    if (ctx) {
+    if (!ctx) return;
+
+    const render = () => {
       ctx.beginPath();
       ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
+      ctx.lineWidth = lineWidth * dpr;
       ctx.moveTo(x1, y1);
       ctx.lineTo(x2, y2);
       ctx.stroke();
-    }
-  }, [ctx, x1, y1, x2, y2, color, lineWidth]);
+    };
+
+    return registerRender(render);
+  }, [ctx, dpr, x1, y1, x2, y2, color, lineWidth, registerRender]);
 
   return null;
 };
