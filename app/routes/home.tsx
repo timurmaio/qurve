@@ -2,6 +2,7 @@ import { ChartProvider } from "../../src/components/ChartContext";
 import { Line } from "../../src/components/Line";
 import { LinePath } from "../../src/components/LinePath";
 import { Circle } from "../../src/components/Circle";
+import { Benchmarks } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
 
@@ -171,6 +172,10 @@ export default function Home() {
               <CircleExample />
             </div>
           </Section>
+
+          <div className="my-20">
+            <Benchmarks />
+          </div>
         </main>
 
         <footer className="mt-24 pt-8 border-t border-[#eaeaea]">
