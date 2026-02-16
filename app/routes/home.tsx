@@ -3,6 +3,9 @@ import { Line } from "../../src/components/Line";
 import { LinePath } from "../../src/components/LinePath";
 import { Circle } from "../../src/components/Circle";
 import { Benchmarks } from "../../src/components/Benchmarks";
+import { YScale, XScale } from "../../src/components/scales";
+import { Axis } from "../../src/components/axis";
+import { LineSeries } from "../../src/components/series/LineSeries";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
 
@@ -128,6 +131,46 @@ function CircleExample() {
   );
 }
 
+function ChartWithScales() {
+  const width = 600;
+  const height = 300;
+  const padding = 50;
+
+  const filteredData = useMemo(() => {
+    return appleStock.slice(0, 50);
+  }, []);
+
+  const minPrice = Math.min(...filteredData.map((d) => d.close));
+  const maxPrice = Math.max(...filteredData.map((d) => d.close));
+
+  return (
+    <ChartProvider width={width} height={height}>
+      <YScale 
+        name="y" 
+        domain={[minPrice * 0.95, maxPrice * 1.05]} 
+        range={[height - padding, padding]}
+        nice
+      />
+      <XScale 
+        name="x" 
+        domain={[0, filteredData.length - 1]} 
+        range={[padding, width - padding]}
+        nice
+      />
+      
+      <LineSeries 
+        data={filteredData} 
+        color="#3b82f6"
+        lineWidth={2}
+        showDots={false}
+      />
+      
+      <Axis position="left" scaleName="y" tickCount={5} tickFormat={(v) => `$${v.toFixed(0)}`} />
+      <Axis position="bottom" scaleName="x" tickCount={5} tickFormat={(v) => `Day ${v}`} />
+    </ChartProvider>
+  );
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] px-8 py-16">
@@ -170,6 +213,16 @@ export default function Home() {
             </p>
             <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
               <CircleExample />
+            </div>
+          </Section>
+
+          <Section title="Scales + Axis — система координат">
+            <p className="text-[#555] mb-8 leading-relaxed max-w-xl">
+              Компоненты YScale и XScale создают шкалы, которые автоматически 
+              преобразуют данные в координаты. Axis рисует оси с засечками и подписями.
+            </p>
+            <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <ChartWithScales />
             </div>
           </Section>
 

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useRef, useEffect, useState, useCallback } from 'react';
+import { ScaleProvider } from './scales/ScaleContext';
 
 type ChartContextType = {
   ctx: CanvasRenderingContext2D | null;
@@ -88,21 +89,23 @@ export const ChartProvider: React.FC<{
   }, [ctx, width, height, dpr, children]);
 
   return (
-    <ChartContext.Provider value={{ 
-      ctx, 
-      width,
-      height,
-      dpr,
-      canvas: canvasRef.current,
-      registerRender,
-    }}>
-      <canvas
-        ref={canvasRef}
-        style={{
-          display: 'block',
-        }}
-      />
-      {children}
-    </ChartContext.Provider>
+    <ScaleProvider>
+      <ChartContext.Provider value={{ 
+        ctx, 
+        width,
+        height,
+        dpr,
+        canvas: canvasRef.current,
+        registerRender,
+      }}>
+        <canvas
+          ref={canvasRef}
+          style={{
+            display: 'block',
+          }}
+        />
+        {children}
+      </ChartContext.Provider>
+    </ScaleProvider>
   );
 };
