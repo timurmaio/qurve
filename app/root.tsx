@@ -10,6 +10,16 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 
+export const meta: Route.MetaFunction = () => {
+  return [
+    { title: "Qurve — High-Performance Canvas Charts for React" },
+    { name: "description", content: "A fast, lightweight charting library for React. Built on Canvas for exceptional performance with large datasets." },
+    { name: "keywords", content: "charts, canvas, react, data visualization, graphing, performance" },
+    { property: "og:title", content: "Qurve — High-Performance Canvas Charts" },
+    { property: "og:description", content: "A fast, lightweight charting library for React built on Canvas" },
+  ];
+};
+
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {

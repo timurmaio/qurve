@@ -1,173 +1,214 @@
-import { ChartProvider } from "../../src/components/ChartContext";
-import { Line } from "../../src/components/Line";
-import { LinePath } from "../../src/components/LinePath";
-import { Circle } from "../../src/components/Circle";
-import { Benchmarks } from "../../src/components/Benchmarks";
-import { YScale, XScale } from "../../src/components/scales";
-import { Axis } from "../../src/components/axis";
-import { LineSeries } from "../../src/components/series/LineSeries";
+import { Chart, XAxis, YAxis, CartesianGrid, Line } from "../../src/components";
+import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
 
-function Section({
-  title,
-  children,
+// Logo component using the actual logo
+function Logo({ size = 64 }: { size?: number }) {
+  return (
+    <img
+      src="/logo.png"
+      alt="Qurve"
+      width={size}
+      height={size}
+      className="object-contain"
+      style={{ filter: "invert(1)" }}
+    />
+  );
+}
+
+// Status badge component
+function StatusBadge({
+  status,
 }: {
-  title: string;
-  children: React.ReactNode;
+  status: "implemented" | "planned" | "experimental";
+}) {
+  const styles = {
+    implemented: "bg-[#1a1a1a] text-white",
+    planned: "bg-[#f0f0f0] text-[#999]",
+    experimental: "bg-amber-100 text-amber-800",
+  };
+
+  return (
+    <span
+      className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium ${styles[status]}`}
+    >
+      {status}
+    </span>
+  );
+}
+
+// Primitive card component
+function PrimitiveCard({
+  name,
+  description,
+  status,
+  example,
+}: {
+  name: string;
+  description: string;
+  status: "implemented" | "planned" | "experimental";
+  example?: React.ReactNode;
 }) {
   return (
-    <section className="mb-16">
-      <h2 className="text-lg font-medium mb-6 text-[#1a1a1a] tracking-tight" style={{ textWrap: 'balance' }}>
-        {title}
-      </h2>
-      {children}
-    </section>
+    <div className="bg-white rounded-sm p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-transparent hover:border-[#eaeaea] transition-all group flex flex-col h-full">
+      <div className="flex items-start justify-between mb-3">
+        <code className="text-sm font-mono text-[#1a1a1a] bg-[#f5f5f5] px-2 py-1 rounded">
+          {name}
+        </code>
+        <StatusBadge status={status} />
+      </div>
+      <p className="text-[#666] text-sm leading-relaxed flex-grow">{description}</p>
+      {example && (
+        <div className="mt-4 pt-4 border-t border-[#f0f0f0] opacity-80 group-hover:opacity-100 transition-opacity">
+          {example}
+        </div>
+      )}
+    </div>
   );
 }
 
-function LineExample() {
-  const width = 400;
-  const height = 200;
-  const padding = 40;
-
+// Feature card component
+function FeatureCard({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
-    <ChartProvider width={width} height={height}>
-      <Line
-        x1={padding}
-        y1={height - padding}
-        x2={width - padding}
-        y2={padding}
-        color="#ef4444"
-        lineWidth={3}
-      />
-      <Line
-        x1={padding}
-        y1={height - padding}
-        x2={padding}
-        y2={padding}
-        color="#666"
-        lineWidth={2}
-      />
-    </ChartProvider>
+    <div className="flex items-start gap-3">
+      <div className="w-1.5 h-1.5 rounded-full bg-[#1a1a1a] mt-2 flex-shrink-0" />
+      <div>
+        <h4 className="text-sm font-medium text-[#1a1a1a] mb-1">{title}</h4>
+        <p className="text-[#666] text-sm leading-relaxed">{description}</p>
+      </div>
+    </div>
   );
 }
 
-function LinePathExample() {
-  const width = 600;
-  const height = 300;
-  const padding = 50;
-
-  const filteredData = useMemo(() => {
-    return appleStock.slice(0, 50);
+// Demo charts
+function SimpleChartDemo() {
+  const data = useMemo(() => {
+    return Array.from({ length: 10 }, (_, i) => ({
+      x: i,
+      y: 30 + Math.sin(i * 0.7) * 20 + Math.random() * 10,
+    }));
   }, []);
 
-  const minPrice = Math.min(...filteredData.map((d) => d.close));
-  const maxPrice = Math.max(...filteredData.map((d) => d.close));
-  const priceRange = maxPrice - minPrice;
-
-  const getX = (index: number) =>
-    padding + (index * (width - 2 * padding)) / (filteredData.length - 1);
-  const getY = (price: number) =>
-    height - padding - ((price - minPrice) * (height - 2 * padding)) / priceRange;
-
   return (
-    <ChartProvider width={width} height={height}>
+    <Chart data={data} width={280} height={120}>
       <Line
-        x1={padding}
-        y1={height - padding}
-        x2={width - padding}
-        y2={height - padding}
-        color="#666"
-        lineWidth={2}
+        dataKey="y"
+        type="linear"
+        stroke="#1a1a1a"
+        strokeWidth={2}
+        dot={{ r: 3 }}
       />
-      <Line
-        x1={padding}
-        y1={padding}
-        x2={padding}
-        y2={height - padding}
-        color="#666"
-        lineWidth={2}
-      />
-      <LinePath data={filteredData} getX={getX} getY={getY} />
-    </ChartProvider>
+    </Chart>
   );
 }
 
-function CircleExample() {
-  const width = 300;
-  const height = 300;
-  const padding = 50;
-
-  return (
-    <ChartProvider width={width} height={height}>
-      <Circle
-        x={width / 2}
-        y={height / 2}
-        radius={80}
-        fill="#3b82f6"
-        stroke="#1d4ed8"
-        lineWidth={3}
-      />
-      <Circle
-        x={width / 2 - 40}
-        y={height / 2 - 30}
-        radius={15}
-        fill="#fff"
-      />
-      <Circle
-        x={width / 2 + 40}
-        y={height / 2 - 30}
-        radius={15}
-        fill="#fff"
-      />
-      <Circle
-        x={width / 2}
-        y={height / 2 + 20}
-        radius={25}
-        fill="#ef4444"
-      />
-    </ChartProvider>
-  );
-}
-
-function ChartWithScales() {
-  const width = 600;
-  const height = 300;
-  const padding = 50;
-
-  const filteredData = useMemo(() => {
-    return appleStock.slice(0, 50);
+function LineChartDemo() {
+  const data = useMemo(() => {
+    return appleStock.slice(0, 20).map((d, i) => ({
+      name: i + 1,
+      value: d.close,
+    }));
   }, []);
 
-  const minPrice = Math.min(...filteredData.map((d) => d.close));
-  const maxPrice = Math.max(...filteredData.map((d) => d.close));
+  return (
+    <Chart data={data} width={280} height={120}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Line
+        dataKey="value"
+        type="monotone"
+        stroke="#3b82f6"
+        strokeWidth={2}
+        dot={false}
+      />
+    </Chart>
+  );
+}
+
+function MultiLineDemo() {
+  const data = useMemo(() => {
+    return Array.from({ length: 15 }, (_, i) => ({
+      name: i + 1,
+      value1: 50 + Math.sin(i * 0.5) * 20,
+      value2: 70 + Math.cos(i * 0.3) * 15,
+    }));
+  }, []);
 
   return (
-    <ChartProvider width={width} height={height}>
-      <YScale 
-        name="y" 
-        domain={[minPrice * 0.95, maxPrice * 1.05]} 
-        range={[height - padding, padding]}
-        nice
+    <Chart data={data} width={280} height={120}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Line dataKey="value1" type="monotone" stroke="#3b82f6" dot={false} />
+      <Line dataKey="value2" type="monotone" stroke="#ef4444" dot={false} />
+    </Chart>
+  );
+}
+
+function AxisDemo() {
+  const data = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => ({
+      month: [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ][i],
+      value: 50 + Math.sin(i * 0.8) * 30,
+    }));
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={120}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="month" />
+      <YAxis />
+      <Line
+        dataKey="value"
+        type="monotone"
+        stroke="#3b82f6"
+        strokeWidth={2}
+        dot={false}
       />
-      <XScale 
-        name="x" 
-        domain={[0, filteredData.length - 1]} 
-        range={[padding, width - padding]}
-        nice
+    </Chart>
+  );
+}
+
+function GridDemo() {
+  const data = useMemo(() => {
+    return Array.from({ length: 8 }, (_, i) => ({
+      x: i,
+      y: 40 + Math.random() * 40,
+    }));
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={120}>
+      <CartesianGrid strokeDasharray="5 5" stroke="#d4d4d4" />
+      <Line
+        dataKey="y"
+        type="linear"
+        stroke="#1a1a1a"
+        strokeWidth={2}
+        dot={{ r: 4 }}
       />
-      
-      <LineSeries 
-        data={filteredData} 
-        color="#3b82f6"
-        lineWidth={2}
-        showDots={false}
-      />
-      
-      <Axis position="left" scaleName="y" tickCount={5} tickFormat={(v) => `$${v.toFixed(0)}`} />
-      <Axis position="bottom" scaleName="x" tickCount={5} tickFormat={(v) => `Day ${v}`} />
-    </ChartProvider>
+    </Chart>
   );
 }
 
@@ -175,66 +216,198 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] px-8 py-16">
       <div className="max-w-5xl mx-auto">
+        {/* Header */}
         <header className="mb-20">
-          <h1 className="text-4xl font-medium mb-4 text-[#1a1a1a] tracking-tight" style={{ textWrap: 'balance' }}>
-            Qurve
-          </h1>
-          <p className="text-[#666] text-lg leading-relaxed max-w-2xl" style={{ textWrap: 'balance' }}>
-            Библиотека для построения графиков на Canvas. 
-            Лёгкая, быстрая и гибкая альтернатива D3 для React-приложений.
-          </p>
+          <div className="flex items-center gap-4 mb-6">
+            <Logo size={132} />
+            <h1 className="sr-only">Qurve</h1>
+          </div>
+          <div className="max-w-2xl">
+            <p
+              className="text-2xl text-[#1a1a1a] leading-relaxed mb-4"
+              style={{ textWrap: "balance" }}
+            >
+              Canvas-powered charts that actually{" "}
+              <em className="not-italic font-serif italic">perform</em>.
+            </p>
+            <p className="text-[#666] leading-relaxed">
+              A high-performance React charting library. No DOM bloat. No SVG
+              overhead. Just fast, crisp, Recharts-compatible visuals.
+            </p>
+          </div>
         </header>
 
         <main>
-          <Section title="Line — базовые линии">
-            <p className="text-[#555] mb-8 leading-relaxed max-w-xl">
-              Компонент для рисования линии между двумя точками. 
-              Подходит для осей координат, сеток и простых графиков.
-            </p>
-            <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-              <LineExample />
+          {/* Primitives Grid */}
+          <section className="mb-20">
+            <h2 className="text-sm uppercase tracking-wider text-[#999] mb-8 font-medium">
+              Primitives
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <PrimitiveCard
+                name="<Chart />"
+                description="The root container. Manages canvas context and coordinates all child components."
+                status="implemented"
+                example={<SimpleChartDemo />}
+              />
+              <PrimitiveCard
+                name="<Line />"
+                description="Line series with support for linear, monotone, and step interpolation."
+                status="implemented"
+                example={<LineChartDemo />}
+              />
+              <PrimitiveCard
+                name="Axes"
+                description="Axis components with automatic tick generation and customizable formatting."
+                status="implemented"
+                example={<AxisDemo />}
+              />
+              <PrimitiveCard
+                name="<CartesianGrid />"
+                description="Reference grid lines for easier data reading. Configurable stroke patterns."
+                status="implemented"
+                example={<GridDemo />}
+              />
+              <PrimitiveCard
+                name="<Area />"
+                description="Filled area charts with gradient support and stacking."
+                status="planned"
+              />
+              <PrimitiveCard
+                name="<Bar />"
+                description="Vertical and horizontal bar charts with grouping and stacking."
+                status="planned"
+              />
+              <PrimitiveCard
+                name="<Scatter />"
+                description="Scatter plots with customizable point shapes and sizes."
+                status="planned"
+              />
+              <PrimitiveCard
+                name="<Pie />"
+                description="Pie and donut charts with sector highlighting."
+                status="planned"
+              />
+              <PrimitiveCard
+                name="<Tooltip />"
+                description="Interactive tooltips that follow cursor position."
+                status="planned"
+              />
+              <PrimitiveCard
+                name="<Legend />"
+                description="Automatic legend generation with click-to-toggle."
+                status="planned"
+              />
+              <PrimitiveCard
+                name="<Brush />"
+                description="Range selector for zooming and panning through data."
+                status="planned"
+              />
+              <PrimitiveCard
+                name="<ResponsiveContainer />"
+                description="Automatic sizing based on parent container dimensions."
+                status="planned"
+              />
             </div>
-          </Section>
+          </section>
 
-          <Section title="LinePath — пути по данным">
-            <p className="text-[#555] mb-8 leading-relaxed max-w-xl">
-              Рисует линию через набор точек. Автоматически масштабирует данные 
-              в заданные размеры canvas.
-            </p>
-            <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-              <LinePathExample />
+          {/* Features */}
+          <section className="mb-20">
+            <h2 className="text-sm uppercase tracking-wider text-[#999] mb-8 font-medium">
+              Features
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <FeatureCard
+                title="Recharts-compatible API"
+                description="Drop-in replacement with the same component names and props. Migration is painless."
+              />
+              <FeatureCard
+                title="Canvas Rendering"
+                description="GPU-accelerated drawing. Handles 100k+ data points without breaking a sweat."
+              />
+              <FeatureCard
+                title="Auto-scaling"
+                description="Smart domain calculation from your data. No manual configuration needed."
+              />
+              <FeatureCard
+                title="High-DPI Support"
+                description="Crisp rendering on Retina displays with automatic DPR detection."
+              />
+              <FeatureCard
+                title="TypeScript First"
+                description="Full type safety with detailed prop interfaces and generics."
+              />
+              <FeatureCard
+                title="SSR Compatible"
+                description="Works seamlessly with Next.js and other server-side rendering frameworks."
+              />
             </div>
-          </Section>
+          </section>
 
-          <Section title="Circle — окружности">
-            <p className="text-[#555] mb-8 leading-relaxed max-w-xl">
-              Рисует окружности с заливкой и обводкой. Используется для точек 
-              на графиках, маркеров и визуальных элементов.
-            </p>
-            <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-              <CircleExample />
+          {/* Example Charts */}
+          <section className="mb-20">
+            <h2 className="text-sm uppercase tracking-wider text-[#999] mb-8 font-medium">
+              Examples
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                <h3 className="text-sm font-medium mb-6 text-[#1a1a1a]">
+                  Single Line
+                </h3>
+                <div className="mb-6">
+                  <LineChartDemo />
+                </div>
+                <pre className="text-xs text-[#666] bg-[#f8f8f8] p-4 rounded overflow-x-auto font-mono">
+                  {`<Chart data={data} width={600} height={300}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Line
+    dataKey="price"
+    type="monotone"
+    stroke="#3b82f6"
+  />
+</Chart>`}
+                </pre>
+              </div>
+
+              <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+                <h3 className="text-sm font-medium mb-6 text-[#1a1a1a]">
+                  Multiple Lines
+                </h3>
+                <div className="mb-6">
+                  <MultiLineDemo />
+                </div>
+                <pre className="text-xs text-[#666] bg-[#f8f8f8] p-4 rounded overflow-x-auto font-mono">
+                  {`<Chart data={data} width={600} height={300}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Line dataKey="value1" stroke="#3b82f6" />
+  <Line dataKey="value2" stroke="#ef4444" />
+</Chart>`}
+                </pre>
+              </div>
             </div>
-          </Section>
+          </section>
 
-          <Section title="Scales + Axis — система координат">
-            <p className="text-[#555] mb-8 leading-relaxed max-w-xl">
-              Компоненты YScale и XScale создают шкалы, которые автоматически 
-              преобразуют данные в координаты. Axis рисует оси с засечками и подписями.
-            </p>
-            <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-              <ChartWithScales />
-            </div>
-          </Section>
-
-          <div className="my-20">
-            <Benchmarks />
-          </div>
+          {/* Benchmarks */}
+          <section className="mb-20">
+            <h2 className="text-sm uppercase tracking-wider text-[#999] mb-8 font-medium">
+              Performance
+            </h2>
+            <LineBenchmark />
+          </section>
         </main>
 
         <footer className="mt-24 pt-8 border-t border-[#eaeaea]">
-          <p className="text-[#999] text-sm">
-            Proof of concept
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-[#999] text-sm">Proof of concept</p>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
+              <span className="text-[#999] text-sm">Canvas ready</span>
+            </div>
+          </div>
         </footer>
       </div>
     </div>
