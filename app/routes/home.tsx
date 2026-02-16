@@ -3,17 +3,19 @@ import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
 
-// Logo component using the actual logo
-function Logo({ size = 64 }: { size?: number }) {
+// Logo component — uses original dark logo with mix-blend-mode for clean rendering
+function Logo({ size = 48 }: { size?: number }) {
   return (
-    <img
-      src="/logo.png"
-      alt="Qurve"
-      width={size}
-      height={size}
-      className="object-contain"
-      style={{ filter: "invert(1)" }}
-    />
+    <div className="overflow-hidden rounded-lg" style={{ width: size, height: size * 0.43 }}>
+      <img
+        src="/logo.png"
+        alt="Qurve"
+        width={size}
+        height={size * 0.43}
+        className="object-contain"
+        style={{ filter: "invert(1)" }}
+      />
+    </div>
   );
 }
 
@@ -25,7 +27,7 @@ function StatusBadge({
 }) {
   const styles = {
     implemented: "bg-[#1a1a1a] text-white",
-    planned: "bg-[#f0f0f0] text-[#999]",
+    planned: "bg-[#e8e8e8] text-[#666] border border-[#d4d4d4]",
     experimental: "bg-amber-100 text-amber-800",
   };
 
@@ -51,7 +53,7 @@ function PrimitiveCard({
   example?: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-sm p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-transparent hover:border-[#eaeaea] transition-all group flex flex-col h-full">
+    <div className="bg-white rounded-lg p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-transparent hover:border-[#e0e0e0] hover:-translate-y-px transition-all group flex flex-col h-full">
       <div className="flex items-start justify-between mb-3">
         <code className="text-sm font-mono text-[#1a1a1a] bg-[#f5f5f5] px-2 py-1 rounded">
           {name}
@@ -68,7 +70,7 @@ function PrimitiveCard({
   );
 }
 
-// Feature card component
+// Feature card component — border-left accent
 function FeatureCard({
   title,
   description,
@@ -77,15 +79,24 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="w-1.5 h-1.5 rounded-full bg-[#1a1a1a] mt-2 flex-shrink-0" />
-      <div>
-        <h4 className="text-sm font-medium text-[#1a1a1a] mb-1">{title}</h4>
-        <p className="text-[#666] text-sm leading-relaxed">{description}</p>
-      </div>
+    <div className="border-l-2 border-[#1a1a1a] pl-4">
+      <h4 className="text-sm font-medium text-[#1a1a1a] mb-1">{title}</h4>
+      <p className="text-[#666] text-sm leading-relaxed">{description}</p>
     </div>
   );
 }
+
+// Planned primitives data
+const PLANNED_PRIMITIVES = [
+  { name: "Area", description: "Filled area charts with gradient support" },
+  { name: "Bar", description: "Vertical and horizontal bar charts" },
+  { name: "Scatter", description: "Scatter plots with customizable points" },
+  { name: "Pie", description: "Pie and donut charts" },
+  { name: "Tooltip", description: "Interactive cursor-following tooltips" },
+  { name: "Legend", description: "Auto-generated legends with toggle" },
+  { name: "Brush", description: "Range selector for zoom and pan" },
+  { name: "ResponsiveContainer", description: "Auto-sizing to parent" },
+];
 
 // Demo charts
 function SimpleChartDemo() {
@@ -214,12 +225,12 @@ function GridDemo() {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#fafafa] px-8 py-16">
+    <div className="min-h-screen bg-[#fafafa] px-4 sm:px-8 py-16">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <header className="mb-20">
+        <header className="mb-24">
           <div className="flex items-center gap-4 mb-6">
-            <Logo size={132} />
+            <Logo size={56} />
             <h1 className="sr-only">Qurve</h1>
           </div>
           <div className="max-w-2xl">
@@ -230,20 +241,27 @@ export default function Home() {
               Canvas-powered charts that actually{" "}
               <em className="not-italic font-serif italic">perform</em>.
             </p>
-            <p className="text-[#666] leading-relaxed">
+            <p className="text-[#666] leading-relaxed mb-8">
               A high-performance React charting library. No DOM bloat. No SVG
               overhead. Just fast, crisp, Recharts-compatible visuals.
             </p>
+            {/* CTA */}
+            <div className="flex items-center gap-4">
+              <code className="text-sm font-mono bg-[#1a1a1a] text-white px-4 py-2.5 rounded-lg select-all">
+                npm install qurve
+              </code>
+              <span className="text-[#999] text-sm">or check the source below</span>
+            </div>
           </div>
         </header>
 
         <main>
-          {/* Primitives Grid */}
-          <section className="mb-20">
+          {/* Primitives — Implemented */}
+          <section className="mb-16">
             <h2 className="text-sm uppercase tracking-wider text-[#999] mb-8 font-medium">
               Primitives
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <PrimitiveCard
                 name="<Chart />"
                 description="The root container. Manages canvas context and coordinates all child components."
@@ -268,46 +286,24 @@ export default function Home() {
                 status="implemented"
                 example={<GridDemo />}
               />
-              <PrimitiveCard
-                name="<Area />"
-                description="Filled area charts with gradient support and stacking."
-                status="planned"
-              />
-              <PrimitiveCard
-                name="<Bar />"
-                description="Vertical and horizontal bar charts with grouping and stacking."
-                status="planned"
-              />
-              <PrimitiveCard
-                name="<Scatter />"
-                description="Scatter plots with customizable point shapes and sizes."
-                status="planned"
-              />
-              <PrimitiveCard
-                name="<Pie />"
-                description="Pie and donut charts with sector highlighting."
-                status="planned"
-              />
-              <PrimitiveCard
-                name="<Tooltip />"
-                description="Interactive tooltips that follow cursor position."
-                status="planned"
-              />
-              <PrimitiveCard
-                name="<Legend />"
-                description="Automatic legend generation with click-to-toggle."
-                status="planned"
-              />
-              <PrimitiveCard
-                name="<Brush />"
-                description="Range selector for zooming and panning through data."
-                status="planned"
-              />
-              <PrimitiveCard
-                name="<ResponsiveContainer />"
-                description="Automatic sizing based on parent container dimensions."
-                status="planned"
-              />
+            </div>
+          </section>
+
+          {/* Planned Primitives — compact list */}
+          <section className="mb-20">
+            <h2 className="text-sm uppercase tracking-wider text-[#999] mb-4 font-medium">
+              Planned
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {PLANNED_PRIMITIVES.map((p) => (
+                <span
+                  key={p.name}
+                  className="text-sm font-mono text-[#666] bg-white px-3 py-1.5 rounded-lg border border-[#e8e8e8] hover:border-[#d0d0d0] transition-colors"
+                  title={p.description}
+                >
+                  {"<"}{p.name}{" />"}
+                </span>
+              ))}
             </div>
           </section>
 
@@ -316,7 +312,7 @@ export default function Home() {
             <h2 className="text-sm uppercase tracking-wider text-[#999] mb-8 font-medium">
               Features
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-lg p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
               <FeatureCard
                 title="Recharts-compatible API"
                 description="Drop-in replacement with the same component names and props. Migration is painless."
@@ -350,14 +346,14 @@ export default function Home() {
               Examples
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-lg p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                 <h3 className="text-sm font-medium mb-6 text-[#1a1a1a]">
                   Single Line
                 </h3>
                 <div className="mb-6">
                   <LineChartDemo />
                 </div>
-                <pre className="text-xs text-[#666] bg-[#f8f8f8] p-4 rounded overflow-x-auto font-mono">
+                <pre className="text-xs text-[#666] bg-[#f8f8f8] p-4 rounded-lg overflow-x-auto font-mono">
                   {`<Chart data={data} width={600} height={300}>
   <CartesianGrid strokeDasharray="3 3" />
   <XAxis dataKey="name" />
@@ -371,14 +367,14 @@ export default function Home() {
                 </pre>
               </div>
 
-              <div className="bg-white rounded-sm p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <div className="bg-white rounded-lg p-8 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                 <h3 className="text-sm font-medium mb-6 text-[#1a1a1a]">
                   Multiple Lines
                 </h3>
                 <div className="mb-6">
                   <MultiLineDemo />
                 </div>
-                <pre className="text-xs text-[#666] bg-[#f8f8f8] p-4 rounded overflow-x-auto font-mono">
+                <pre className="text-xs text-[#666] bg-[#f8f8f8] p-4 rounded-lg overflow-x-auto font-mono">
                   {`<Chart data={data} width={600} height={300}>
   <CartesianGrid strokeDasharray="3 3" />
   <XAxis dataKey="name" />
