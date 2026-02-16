@@ -7,10 +7,13 @@ export function createLinearScale(options: LinearScaleOptions): LinearScale {
   let range = [...initialRange];
 
   const scale = ((value: number) => {
+    if (!domain || domain.length < 2 || !range || range.length < 2) return 0;
+    
     const [d0, d1] = domain;
     const [r0, r1] = range;
     
-    if (d1 === d0) return r0;
+    if (d0 === undefined || d1 === undefined) return r0 ?? 0;
+    if (d1 === d0) return r0 ?? 0;
     
     const ratio = (value - d0) / (d1 - d0);
     return r0 + ratio * (r1 - r0);
@@ -20,9 +23,12 @@ export function createLinearScale(options: LinearScaleOptions): LinearScale {
   scale.range = () => [...range] as [number, number];
   
   scale.invert = (pixel: number) => {
+    if (!domain || domain.length < 2 || !range || range.length < 2) return 0;
+    
     const [d0, d1] = domain;
     const [r0, r1] = range;
     
+    if (d0 === undefined || d1 === undefined) return d0 ?? 0;
     if (r1 === r0) return d0;
     
     const ratio = (pixel - r0) / (r1 - r0);
@@ -30,8 +36,13 @@ export function createLinearScale(options: LinearScaleOptions): LinearScale {
   };
 
   scale.ticks = (count: number) => {
+    if (!domain || domain.length < 2) return [];
+    
     const [d0, d1] = domain;
+    if (d0 === undefined || d1 === undefined || isNaN(d0) || isNaN(d1)) return [];
+    
     const step = (d1 - d0) / count;
+    if (!isFinite(step) || step === 0) return [d0];
     
     if (step === 0) return [d0];
     
@@ -66,7 +77,11 @@ export function createLinearScale(options: LinearScaleOptions): LinearScale {
   };
 
   scale.nice = (count = 10) => {
+    if (!domain || domain.length < 2) return scale;
+    
     const [d0, d1] = domain;
+    if (d0 === undefined || d1 === undefined) return scale;
+    
     const step = (d1 - d0) / count;
     const magnitude = Math.floor(Math.log10(Math.abs(step)));
     const stepMagnitude = Math.pow(10, magnitude);
