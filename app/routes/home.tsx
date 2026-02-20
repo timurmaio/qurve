@@ -1,4 +1,4 @@
-import { Chart, XAxis, YAxis, CartesianGrid, Line, Tooltip } from "../../src/components";
+import { Chart, XAxis, YAxis, CartesianGrid, Line, Tooltip } from "qurve";
 import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
@@ -6,7 +6,10 @@ import { appleStock } from "../../src/mock";
 // Logo component — uses original dark logo with mix-blend-mode for clean rendering
 function Logo({ size = 48 }: { size?: number }) {
   return (
-    <div className="overflow-hidden rounded-lg" style={{ width: size, height: size * 0.43 }}>
+    <div
+      className="overflow-hidden rounded-lg bg-white border border-[#e6e6e6] shadow-[0_6px_16px_rgba(0,0,0,0.08)] rotate-[-3deg] sm:rotate-[-4deg] hover:rotate-[-2deg] transition-transform duration-300 ease-out"
+      style={{ width: size, height: size * 0.43 }}
+    >
       <img
         src="/logo.png"
         alt="Qurve"
@@ -26,7 +29,7 @@ function StatusBadge({
   status: "implemented" | "planned" | "experimental";
 }) {
   const styles = {
-    implemented: "bg-[#1a1a1a] text-white",
+    implemented: "bg-[#1a1a1a] text-white font-mono tracking-[0.18em]",
     planned: "bg-[#e8e8e8] text-[#666] border border-[#d4d4d4]",
     experimental: "bg-amber-100 text-amber-800",
   };
@@ -255,8 +258,10 @@ export default function Home() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <header className="mb-24">
-          <div className="flex items-center gap-4 mb-6">
-            <Logo size={56} />
+          <div className="flex items-end gap-4 mb-6">
+            <div className="translate-y-1 sm:translate-y-2">
+              <Logo size={72} />
+            </div>
             <h1 className="sr-only">Qurve</h1>
           </div>
           <div className="max-w-2xl">
