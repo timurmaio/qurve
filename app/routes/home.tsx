@@ -1,4 +1,4 @@
-import { Chart, XAxis, YAxis, CartesianGrid, Line } from "../../src/components";
+import { Chart, XAxis, YAxis, CartesianGrid, Line, Tooltip } from "../../src/components";
 import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
@@ -92,7 +92,6 @@ const PLANNED_PRIMITIVES = [
   { name: "Bar", description: "Vertical and horizontal bar charts" },
   { name: "Scatter", description: "Scatter plots with customizable points" },
   { name: "Pie", description: "Pie and donut charts" },
-  { name: "Tooltip", description: "Interactive cursor-following tooltips" },
   { name: "Legend", description: "Auto-generated legends with toggle" },
   { name: "Brush", description: "Range selector for zoom and pan" },
   { name: "ResponsiveContainer", description: "Auto-sizing to parent" },
@@ -223,6 +222,33 @@ function GridDemo() {
   );
 }
 
+function TooltipDemo() {
+  const data = useMemo(() => {
+    return appleStock.slice(0, 30).map((d, i) => ({
+      date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      price: d.close,
+    }));
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={120}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="date" />
+      <YAxis />
+      <Line
+        dataKey="price"
+        type="monotone"
+        stroke="#3b82f6"
+        strokeWidth={2}
+        dot={false}
+        activeDot={{ r: 6 }}
+        name="Price"
+      />
+      <Tooltip />
+    </Chart>
+  );
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] px-4 sm:px-8 py-16">
@@ -285,6 +311,12 @@ export default function Home() {
                 description="Reference grid lines for easier data reading. Configurable stroke patterns."
                 status="implemented"
                 example={<GridDemo />}
+              />
+              <PrimitiveCard
+                name="<Tooltip />"
+                description="Interactive tooltips with crosshair cursor and value display on hover."
+                status="implemented"
+                example={<TooltipDemo />}
               />
             </div>
           </section>

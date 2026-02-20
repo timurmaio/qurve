@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { useChartContext } from '../chart/chartContext';
+import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
+import { drawYAxis } from '../chart/core/drawAxis';
 
 export interface YAxisProps {
   dataKey?: DataKey;
@@ -34,7 +35,9 @@ export function YAxis({
   axisLine = true,
   width: axisWidth = 60,
 }: YAxisProps) {
-  const { setYAxis, margin, innerWidth, innerHeight, getYScale, registerRender, ctx } = useChartContext();
+  const { margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { registerRender, ctx } = useChartRenderContext();
+  const { setYAxis, getYScale } = useChartScaleContext();
 
   useEffect(() => {
     const key = dataKey ?? ((d: Record<string, unknown>, i: number) => {
@@ -63,59 +66,25 @@ export function YAxis({
     if (!domainMethod || typeof domainMethod !== 'function') return;
     
     const [min, max] = domainMethod.call(scale);
-    
-    const tickValues: number[] = [];
-    const step = (max - min) / (tickCount - 1);
-    for (let i = 0; i < tickCount; i++) {
-      tickValues.push(min + step * i);
-    }
-
-    const x = position === 'left' ? margin.left : margin.left + innerWidth;
-    const y = margin.top;
 
     const render = () => {
       if (!ctx) return;
-      
-      ctx.save();
-      ctx.strokeStyle = stroke;
-      ctx.fillStyle = stroke;
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = position === 'left' ? 'right' : 'left';
-      ctx.textBaseline = 'middle';
 
-      if (axisLine) {
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y + innerHeight);
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      if (tickLine || tick) {
-        tickValues.forEach((tickValue) => {
-          const yPos = y + scale(tickValue);
-
-          if (tickLine) {
-            ctx.beginPath();
-            ctx.moveTo(x, yPos);
-            ctx.lineTo(x + (position === 'left' ? 6 : -6), yPos);
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-
-          if (tick) {
-            const label = tickFormatter ? tickFormatter(tickValue) : String(tickValue.toFixed(0));
-            
-            ctx.fillText(
-              label, 
-              x + (position === 'left' ? -8 : 8), 
-              yPos
-            );
-          }
-        });
-      }
-
-      ctx.restore();
+      drawYAxis({
+        ctx,
+        scale,
+        domain: [min, max],
+        margin,
+        innerWidth,
+        innerHeight,
+        position,
+        stroke,
+        tick,
+        tickLine,
+        axisLine,
+        tickCount,
+        tickFormatter,
+      });
     };
 
     return registerRender(render);

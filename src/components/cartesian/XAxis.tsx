@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { useChartContext } from '../chart/chartContext';
+import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
+import { drawXAxis } from '../chart/core/drawAxis';
 
 export interface XAxisProps {
   dataKey?: DataKey;
@@ -32,7 +33,9 @@ export function XAxis({
   tickLine = true,
   axisLine = true,
 }: XAxisProps) {
-  const { setXAxis, margin, innerWidth, innerHeight, getXScale, registerRender, ctx } = useChartContext();
+  const { margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { registerRender, ctx } = useChartRenderContext();
+  const { setXAxis, getXScale } = useChartScaleContext();
 
   useEffect(() => {
     setXAxis({
@@ -56,59 +59,25 @@ export function XAxis({
     if (!domainMethod || typeof domainMethod !== 'function') return;
     
     const [min, max] = domainMethod.call(scale);
-    const tickValues: number[] = [];
-    const step = (max - min) / (tickCount - 1);
-    for (let i = 0; i < tickCount; i++) {
-      tickValues.push(min + step * i);
-    }
-
-    const y = position === 'top' ? margin.top : margin.top + innerHeight;
-    const x = margin.left;
 
     const render = () => {
       if (!ctx) return;
-      
-      ctx.save();
-      ctx.strokeStyle = stroke;
-      ctx.fillStyle = stroke;
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = position === 'top' ? 'bottom' : 'top';
 
-      if (axisLine) {
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + innerWidth, y);
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      }
-
-      if (tickLine || tick) {
-        tickValues.forEach((tickValue) => {
-          const xPos = x + scale(tickValue);
-
-          if (tickLine) {
-            ctx.beginPath();
-            ctx.moveTo(xPos, y);
-            ctx.lineTo(xPos, y + (position === 'top' ? 6 : -6));
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-
-          if (tick) {
-            let label: string;
-            if (tickFormatter) {
-              label = tickFormatter(tickValue);
-            } else {
-              label = String(tickValue);
-            }
-            
-            ctx.fillText(label, xPos, y + (position === 'top' ? -8 : 8));
-          }
-        });
-      }
-
-      ctx.restore();
+      drawXAxis({
+        ctx,
+        scale,
+        domain: [min, max],
+        margin,
+        innerWidth,
+        innerHeight,
+        position,
+        stroke,
+        tick,
+        tickLine,
+        axisLine,
+        tickCount,
+        tickFormatter,
+      });
     };
 
     return registerRender(render);
