@@ -1,7 +1,7 @@
 {
   "name": "qurve",
   "version": "0.1.0",
-  "description": "High-performance canvas chart primitives for React",
+  "description": "High-performance React charting library built on Canvas API",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.mjs",
