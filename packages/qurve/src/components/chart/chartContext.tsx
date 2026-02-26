@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect, type Context } from 'react';
+import { createContext, useContext, useReducer, useCallback, useMemo, useRef, useEffect, useSyncExternalStore, type Context } from 'react';
 
 export type ChartData = Record<string, unknown>[];
 export type DataKey = string | ((data: Record<string, unknown>, index: number) => number | string);
@@ -187,25 +187,90 @@ export interface ChartProps {
   children: React.ReactNode;
 }
 
-export function Chart({
-  data,
-  width = 600,
-  height = 300,
-  margin: marginProp = { top: 0, right: 0, bottom: 0, left: 0 },
-  children,
-}: ChartProps) {
-  const [xAxis, setXAxis] = useState<AxisConfig | null>(null);
-  const [yAxis, setYAxis] = useState<AxisConfig | null>(null);
+interface ChartState {
+  xAxis: AxisConfig | null;
+  yAxis: AxisConfig | null;
+  ctx: CanvasRenderingContext2D | null;
+  hoveredIndex: number | null;
+  barSeriesVersion: number;
+  areaSeriesVersion: number;
+  legendVersion: number;
+}
+
+type ChartAction =
+  | { type: 'setXAxis'; payload: AxisConfig | null }
+  | { type: 'setYAxis'; payload: AxisConfig | null }
+  | { type: 'setCtx'; payload: CanvasRenderingContext2D | null }
+  | { type: 'setHoveredIndex'; payload: number | null }
+  | { type: 'bumpBarSeriesVersion' }
+  | { type: 'bumpAreaSeriesVersion' }
+  | { type: 'bumpLegendVersion' };
+
+const initialChartState: ChartState = {
+  xAxis: null,
+  yAxis: null,
+  ctx: null,
+  hoveredIndex: null,
+  barSeriesVersion: 0,
+  areaSeriesVersion: 0,
+  legendVersion: 0,
+};
+
+function chartReducer(state: ChartState, action: ChartAction): ChartState {
+  switch (action.type) {
+    case 'setXAxis':
+      return { ...state, xAxis: action.payload };
+    case 'setYAxis':
+      return { ...state, yAxis: action.payload };
+    case 'setCtx':
+      return { ...state, ctx: action.payload };
+    case 'setHoveredIndex':
+      return { ...state, hoveredIndex: action.payload };
+    case 'bumpBarSeriesVersion':
+      return { ...state, barSeriesVersion: state.barSeriesVersion + 1 };
+    case 'bumpAreaSeriesVersion':
+      return { ...state, areaSeriesVersion: state.areaSeriesVersion + 1 };
+    case 'bumpLegendVersion':
+      return { ...state, legendVersion: state.legendVersion + 1 };
+    default:
+      return state;
+  }
+}
+
+function subscribeToDpr(onStoreChange: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  const handler = () => onStoreChange();
+  window.addEventListener('resize', handler);
+  return () => {
+    window.removeEventListener('resize', handler);
+  };
+}
+
+function getDprSnapshot(): number {
+  return typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+}
+
+function getDprServerSnapshot(): number {
+  return 1;
+}
+
+function useDevicePixelRatio(): number {
+  return useSyncExternalStore(subscribeToDpr, getDprSnapshot, getDprServerSnapshot);
+}
+
+function useChartModel(params: {
+  data: ChartData;
+  width: number;
+  height: number;
+  marginProp: { top?: number; right?: number; bottom?: number; left?: number };
+}) {
+  const { data, width, height, marginProp } = params;
+  const [state, dispatch] = useReducer(chartReducer, initialChartState);
+  const { xAxis, yAxis, ctx, hoveredIndex, barSeriesVersion, areaSeriesVersion, legendVersion } = state;
+  const dpr = useDevicePixelRatio();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderFnsRef = useRef<Set<() => void>>(new Set());
-  const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
-  const [dpr, setDpr] = useState(1);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [barSeriesVersion, setBarSeriesVersion] = useState(0);
-  const [areaSeriesVersion, setAreaSeriesVersion] = useState(0);
-  const [legendVersion, setLegendVersion] = useState(0);
-  
-  // Mouse event subscribers
   const mouseSubscribersRef = useRef<Set<(mouseX: number, mouseY: number) => void>>(new Set());
   const animationFrameRef = useRef<number | null>(null);
   const tooltipSeriesRef = useRef<Map<symbol, (index: number) => TooltipPayloadItem | null>>(new Map());
@@ -213,25 +278,6 @@ export function Chart({
   const areaSeriesRef = useRef<Map<symbol, AreaSeriesRegistration>>(new Map());
   const legendItemsRef = useRef<Map<symbol, LegendItemRegistration>>(new Map());
   const seriesVisibilityRef = useRef<Map<symbol, boolean>>(new Map());
-
-  useEffect(() => {
-    setDpr(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
-  }, []);
-
-  useEffect(() => {
-    const updateDpr = () => setDpr(window.devicePixelRatio || 1);
-    
-    // Listen for actual DPR changes via resolution media query
-    try {
-      const mediaQuery = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
-      mediaQuery.addEventListener?.('change', updateDpr);
-      return () => mediaQuery.removeEventListener?.('change', updateDpr);
-    } catch {
-      // Fallback for browsers that don't support resolution media queries
-      window.addEventListener('resize', updateDpr);
-      return () => window.removeEventListener('resize', updateDpr);
-    }
-  }, []);
 
   const margin = useMemo(() => ({
     top: marginProp.top ?? 0,
@@ -245,7 +291,7 @@ export function Chart({
 
   const requestRender = useCallback(() => {
     if (animationFrameRef.current) return;
-    
+
     animationFrameRef.current = requestAnimationFrame(() => {
       animationFrameRef.current = null;
       if (ctx && canvasRef.current) {
@@ -273,7 +319,6 @@ export function Chart({
     };
   }, [requestRender]);
 
-  // Centralized mouse event handling
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !ctx) return;
@@ -283,7 +328,6 @@ export function Chart({
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
-      // Notify all subscribers
       mouseSubscribersRef.current.forEach(callback => {
         try {
           callback(mouseX, mouseY);
@@ -294,7 +338,7 @@ export function Chart({
     };
 
     const handleMouseLeave = () => {
-      setHoveredIndex(null);
+      dispatch({ type: 'setHoveredIndex', payload: null });
     };
 
     canvas.addEventListener('mousemove', handleMouseMove, { passive: true });
@@ -338,11 +382,11 @@ export function Chart({
 
   const registerBarSeries = useCallback((registration: BarSeriesRegistration) => {
     barSeriesRef.current.set(registration.id, registration);
-    setBarSeriesVersion((version) => version + 1);
+    dispatch({ type: 'bumpBarSeriesVersion' });
 
     return () => {
       barSeriesRef.current.delete(registration.id);
-      setBarSeriesVersion((version) => version + 1);
+      dispatch({ type: 'bumpBarSeriesVersion' });
     };
   }, []);
 
@@ -352,11 +396,11 @@ export function Chart({
 
   const registerAreaSeries = useCallback((registration: AreaSeriesRegistration) => {
     areaSeriesRef.current.set(registration.id, registration);
-    setAreaSeriesVersion((version) => version + 1);
+    dispatch({ type: 'bumpAreaSeriesVersion' });
 
     return () => {
       areaSeriesRef.current.delete(registration.id);
-      setAreaSeriesVersion((version) => version + 1);
+      dispatch({ type: 'bumpAreaSeriesVersion' });
     };
   }, []);
 
@@ -369,12 +413,12 @@ export function Chart({
     if (!seriesVisibilityRef.current.has(item.id)) {
       seriesVisibilityRef.current.set(item.id, true);
     }
-    setLegendVersion((version) => version + 1);
+    dispatch({ type: 'bumpLegendVersion' });
 
     return () => {
       legendItemsRef.current.delete(item.id);
       seriesVisibilityRef.current.delete(item.id);
-      setLegendVersion((version) => version + 1);
+      dispatch({ type: 'bumpLegendVersion' });
     };
   }, []);
 
@@ -388,7 +432,7 @@ export function Chart({
 
   const setSeriesVisible = useCallback((id: symbol, visible: boolean) => {
     seriesVisibilityRef.current.set(id, visible);
-    setLegendVersion((version) => version + 1);
+    dispatch({ type: 'bumpLegendVersion' });
     requestRender();
   }, [requestRender]);
 
@@ -396,7 +440,6 @@ export function Chart({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set canvas buffer to match DPR (for crisp rendering)
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     canvas.style.width = `${width}px`;
@@ -404,14 +447,13 @@ export function Chart({
 
     const context = canvas.getContext('2d');
     if (context) {
-      setCtx(context);
+      dispatch({ type: 'setCtx', payload: context });
     }
 
-    // Cleanup on unmount
     return () => {
       if (context) {
         context.clearRect(0, 0, canvas.width, canvas.height);
-        setCtx(null);
+        dispatch({ type: 'setCtx', payload: null });
       }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -420,7 +462,6 @@ export function Chart({
     };
   }, [width, height, dpr]);
 
-  // Main render effect - only re-run when canvas context or size changes
   useEffect(() => {
     if (!ctx) return;
 
@@ -435,7 +476,6 @@ export function Chart({
 
         ctx.save();
         ctx.scale(dpr, dpr);
-
         renderFnsRef.current.forEach(fn => fn());
         ctx.restore();
       } catch (error) {
@@ -516,10 +556,15 @@ export function Chart({
     return createLinearScale({ domain: applyDomainPadding(domain, yAxis?.padding, 'y'), range });
   }, [data, innerHeight, yAxis]);
 
-  // Stable setter functions - don't need to be in dependencies
-  const setXAxisStable = useCallback((config: AxisConfig | null) => setXAxis(config), []);
-  const setYAxisStable = useCallback((config: AxisConfig | null) => setYAxis(config), []);
-  const setHoveredIndexStable = useCallback((index: number | null) => setHoveredIndex(index), []);
+  const setXAxisStable = useCallback((config: AxisConfig | null) => {
+    dispatch({ type: 'setXAxis', payload: config });
+  }, []);
+  const setYAxisStable = useCallback((config: AxisConfig | null) => {
+    dispatch({ type: 'setYAxis', payload: config });
+  }, []);
+  const setHoveredIndexStable = useCallback((index: number | null) => {
+    dispatch({ type: 'setHoveredIndex', payload: index });
+  }, []);
 
   const layoutValue = useMemo<ChartLayoutContextValue>(() => ({
     data,
@@ -580,6 +625,32 @@ export function Chart({
     isSeriesVisible,
     setSeriesVisible,
   ]);
+
+  return {
+    canvasRef,
+    layoutValue,
+    renderValue,
+    scaleValue,
+    interactionValue,
+    seriesValue,
+  };
+}
+
+export function Chart({
+  data,
+  width = 600,
+  height = 300,
+  margin: marginProp = { top: 0, right: 0, bottom: 0, left: 0 },
+  children,
+}: ChartProps) {
+  const {
+    canvasRef,
+    layoutValue,
+    renderValue,
+    scaleValue,
+    interactionValue,
+    seriesValue,
+  } = useChartModel({ data, width, height, marginProp });
 
   return (
     <ChartLayoutContext.Provider value={layoutValue}>
