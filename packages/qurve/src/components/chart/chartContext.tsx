@@ -29,6 +29,18 @@ export interface ChartScaleContextValue {
   getYScale: (dataKey?: DataKey) => ReturnType<typeof createLinearScale>;
 }
 
+export interface BarSeriesRegistration {
+  id: symbol;
+  stackId?: string | number;
+  getValue: (item: Record<string, unknown>, index: number) => number;
+}
+
+export interface ChartSeriesContextValue {
+  registerBarSeries: (registration: BarSeriesRegistration) => () => void;
+  getBarSeriesRegistrations: () => BarSeriesRegistration[];
+  barSeriesVersion: number;
+}
+
 export interface ChartInteractionContextValue {
   hoveredIndex: number | null;
   setHoveredIndex: (index: number | null) => void;
@@ -41,13 +53,15 @@ export type ChartContextValue =
   ChartLayoutContextValue &
   ChartRenderContextValue &
   ChartScaleContextValue &
-  ChartInteractionContextValue;
+  ChartInteractionContextValue &
+  ChartSeriesContextValue;
 
 export interface TooltipPayloadItem {
   dataKey: string;
   name: string;
   value: number | null;
   color?: string;
+  formatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
 }
 
 export interface AxisConfig {
@@ -83,6 +97,7 @@ const ChartLayoutContext = createContext<ChartLayoutContextValue | null>(null);
 const ChartRenderContext = createContext<ChartRenderContextValue | null>(null);
 const ChartScaleContext = createContext<ChartScaleContextValue | null>(null);
 const ChartInteractionContext = createContext<ChartInteractionContextValue | null>(null);
+const ChartSeriesContext = createContext<ChartSeriesContextValue | null>(null);
 
 function useRequiredContext<T>(context: Context<T | null>, errorMessage: string): T {
   const value = useContext(context);
@@ -97,12 +112,14 @@ export const useChartContext = (): ChartContextValue => {
   const render = useChartRenderContext();
   const scale = useChartScaleContext();
   const interaction = useChartInteractionContext();
+  const series = useChartSeriesContext();
 
   return {
     ...layout,
     ...render,
     ...scale,
     ...interaction,
+    ...series,
   };
 };
 
@@ -117,6 +134,9 @@ export const useChartScaleContext = (): ChartScaleContextValue =>
 
 export const useChartInteractionContext = (): ChartInteractionContextValue =>
   useRequiredContext(ChartInteractionContext, 'Chart components must be used within a Chart');
+
+export const useChartSeriesContext = (): ChartSeriesContextValue =>
+  useRequiredContext(ChartSeriesContext, 'Chart components must be used within a Chart');
 
 export interface ChartProps {
   data: ChartData;
@@ -140,11 +160,13 @@ export function Chart({
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [dpr, setDpr] = useState(1);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [barSeriesVersion, setBarSeriesVersion] = useState(0);
   
   // Mouse event subscribers
   const mouseSubscribersRef = useRef<Set<(mouseX: number, mouseY: number) => void>>(new Set());
   const animationFrameRef = useRef<number | null>(null);
   const tooltipSeriesRef = useRef<Map<symbol, (index: number) => TooltipPayloadItem | null>>(new Map());
+  const barSeriesRef = useRef<Map<symbol, BarSeriesRegistration>>(new Map());
 
   useEffect(() => {
     setDpr(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
@@ -266,6 +288,20 @@ export function Chart({
       }
     });
     return items;
+  }, []);
+
+  const registerBarSeries = useCallback((registration: BarSeriesRegistration) => {
+    barSeriesRef.current.set(registration.id, registration);
+    setBarSeriesVersion((version) => version + 1);
+
+    return () => {
+      barSeriesRef.current.delete(registration.id);
+      setBarSeriesVersion((version) => version + 1);
+    };
+  }, []);
+
+  const getBarSeriesRegistrations = useCallback((): BarSeriesRegistration[] => {
+    return Array.from(barSeriesRef.current.values());
   }, []);
 
   useEffect(() => {
@@ -431,20 +467,28 @@ export function Chart({
     getTooltipPayload,
   }), [hoveredIndex, setHoveredIndexStable, subscribeToMouse, registerTooltipSeries, getTooltipPayload]);
 
+  const seriesValue = useMemo<ChartSeriesContextValue>(() => ({
+    registerBarSeries,
+    getBarSeriesRegistrations,
+    barSeriesVersion,
+  }), [registerBarSeries, getBarSeriesRegistrations, barSeriesVersion]);
+
   return (
     <ChartLayoutContext.Provider value={layoutValue}>
       <ChartRenderContext.Provider value={renderValue}>
         <ChartScaleContext.Provider value={scaleValue}>
           <ChartInteractionContext.Provider value={interactionValue}>
-            <div style={{ position: 'relative', width: `${width}px`, height: `${height}px`, display: 'inline-block' }}>
-              <canvas
-                ref={canvasRef}
-                width={width}
-                height={height}
-                style={{ width: `${width}px`, height: `${height}px`, display: 'block' }}
-              />
-              {children}
-            </div>
+            <ChartSeriesContext.Provider value={seriesValue}>
+              <div style={{ position: 'relative', width: `${width}px`, height: `${height}px`, display: 'inline-block' }}>
+                <canvas
+                  ref={canvasRef}
+                  width={width}
+                  height={height}
+                  style={{ width: `${width}px`, height: `${height}px`, display: 'block' }}
+                />
+                {children}
+              </div>
+            </ChartSeriesContext.Provider>
           </ChartInteractionContext.Provider>
         </ChartScaleContext.Provider>
       </ChartRenderContext.Provider>

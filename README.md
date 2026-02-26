@@ -53,7 +53,7 @@ function App() {
 | Feature | Status |
 |---------|--------|
 | Line Chart | ✅ |
-| Bar Chart | 🚧 |
+| Bar Chart | ✅ |
 | Area Chart | 🚧 |
 | Scatter Plot | 🚧 |
 | Pie/Donut | 🚧 |

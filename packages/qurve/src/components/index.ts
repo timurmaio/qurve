@@ -13,6 +13,8 @@ export type { CartesianGridProps } from './cartesian/CartesianGrid';
 // Series components
 export { Line } from './series/Line';
 export type { LineProps } from './series/Line';
+export { Bar } from './series/Bar';
+export type { BarProps } from './series/Bar';
 
 // Interactive components
 export { Tooltip } from './Tooltip';

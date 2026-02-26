@@ -1,4 +1,4 @@
-import { Chart, XAxis, YAxis, CartesianGrid, Line, Tooltip } from "qurve";
+import { Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Tooltip } from "qurve";
 import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
@@ -92,7 +92,6 @@ function FeatureCard({
 // Planned primitives data
 const PLANNED_PRIMITIVES = [
   { name: "Area", description: "Filled area charts with gradient support" },
-  { name: "Bar", description: "Vertical and horizontal bar charts" },
   { name: "Scatter", description: "Scatter plots with customizable points" },
   { name: "Pie", description: "Pie and donut charts" },
   { name: "Legend", description: "Auto-generated legends with toggle" },
@@ -252,6 +251,49 @@ function TooltipDemo() {
   );
 }
 
+function BarDemo() {
+  const data = useMemo(() => {
+    return [
+      { name: "Mon", sales: 22, refunds: -4 },
+      { name: "Tue", sales: 18, refunds: -3 },
+      { name: "Wed", sales: 30, refunds: -6 },
+      { name: "Thu", sales: 26, refunds: -5 },
+      { name: "Fri", sales: 34, refunds: -7 },
+      { name: "Sat", sales: 28, refunds: -4 },
+      { name: "Sun", sales: 20, refunds: -2 },
+    ];
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={120}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Bar
+        dataKey="sales"
+        fill="#60a5fa"
+        radius={4}
+        stackId="net"
+        maxBarSize={24}
+        minPointSize={3}
+        tooltipName="Sales"
+        tooltipFormatter={(value) => value === null ? "-" : `$${value.toFixed(0)}k`}
+      />
+      <Bar
+        dataKey="refunds"
+        fill="#f59e0b"
+        radius={4}
+        stackId="net"
+        maxBarSize={24}
+        minPointSize={3}
+        tooltipName="Refunds"
+        tooltipFormatter={(value) => value === null ? "-" : `$${Math.abs(value).toFixed(0)}k`}
+      />
+      <Tooltip />
+    </Chart>
+  );
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] px-4 sm:px-8 py-16">
@@ -304,6 +346,12 @@ export default function Home() {
                 description="Line series with support for linear, monotone, and step interpolation."
                 status="implemented"
                 example={<LineChartDemo />}
+              />
+              <PrimitiveCard
+                name="<Bar />"
+                description="Vertical bars with grouping, stacking (stackId), rounded corners, and tooltip support."
+                status="implemented"
+                example={<BarDemo />}
               />
               <PrimitiveCard
                 name="Axes"

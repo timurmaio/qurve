@@ -17,7 +17,7 @@ npm install qurve
 ## Quick start
 
 ```tsx
-import { Chart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "qurve";
+import { Chart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "qurve";
 
 const data = [
   { name: 1, price: 120 },
@@ -31,6 +31,7 @@ export function Demo() {
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis dataKey="name" />
       <YAxis />
+      <Bar dataKey="price" fill="#93c5fd" />
       <Line dataKey="price" type="monotone" stroke="#3b82f6" dot={false} />
       <Tooltip />
     </Chart>
@@ -42,10 +43,46 @@ export function Demo() {
 
 - `Chart`
 - `Line`
+- `Bar`
 - `XAxis`
 - `YAxis`
 - `CartesianGrid`
 - `Tooltip`
+
+## Bar options
+
+`Bar` supports grouped and stacked layouts:
+
+- **Grouped bars**: render multiple `Bar` components with different `dataKey`s (default behavior)
+- **Stacked bars**: pass the same `stackId` to bars that should stack
+- **Rounded corners**: set `radius` as a number or tuple `[topLeft, topRight, bottomRight, bottomLeft]` (stacked bars only round outer segments)
+- **Width constraints**: `barSize` for fixed width and `maxBarSize` to cap auto width
+- **Small values visibility**: `minPointSize` guarantees a minimum visible bar height for non-zero values
+- **Series-level tooltip formatting**: `tooltipName` and `tooltipFormatter` customize one bar series without affecting others
+
+```tsx
+<Chart data={data} width={600} height={300}>
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Bar
+    dataKey="revenue"
+    fill="#60a5fa"
+    radius={6}
+    maxBarSize={28}
+    minPointSize={3}
+    tooltipName="Revenue"
+    tooltipFormatter={(value) => value === null ? '-' : `$${value.toFixed(0)}k`}
+  />
+  <Bar dataKey="cost" fill="#f59e0b" radius={6} maxBarSize={28} />
+</Chart>
+
+<Chart data={data} width={600} height={300}>
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Bar dataKey="profit" fill="#34d399" stackId="total" radius={6} />
+  <Bar dataKey="loss" fill="#f87171" stackId="total" radius={6} />
+</Chart>
+```
 
 ## Notes
 

@@ -318,7 +318,8 @@ export function Tooltip({
         )}
 
         {tooltipProps.payload?.map((item) => {
-          const formatted = formatter ? formatter(item.value, item.name, item) : null;
+          const valueFormatter = item.formatter ?? formatter;
+          const formatted = valueFormatter ? valueFormatter(item.value, item.name, item) : null;
           const valueNode = Array.isArray(formatted)
             ? formatted[0]
             : formatted ?? (item.value === null ? '-' : item.value.toFixed(2));
