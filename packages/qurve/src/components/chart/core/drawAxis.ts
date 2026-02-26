@@ -21,6 +21,8 @@ export function drawXAxis(params: {
   tickLine: boolean;
   axisLine: boolean;
   tickCount: number;
+  tickValues?: number[];
+  interval?: number;
   tickFormatter?: (value: unknown) => string;
 }): void {
   const {
@@ -36,11 +38,16 @@ export function drawXAxis(params: {
     tickLine,
     axisLine,
     tickCount,
+    tickValues,
+    interval = 0,
     tickFormatter,
   } = params;
 
   const [min, max] = domain;
-  const ticks = createTicks(min, max, tickCount);
+  const ticks = tickValues && tickValues.length > 0 ? tickValues : createTicks(min, max, tickCount);
+  const visibleTicks = interval > 0
+    ? ticks.filter((_, index) => index % (interval + 1) === 0)
+    : ticks;
   const y = position === 'top' ? margin.top : margin.top + innerHeight;
 
   ctx.save();
@@ -59,7 +66,7 @@ export function drawXAxis(params: {
   }
 
   if (tickLine || tick) {
-    for (const tickValue of ticks) {
+    for (const tickValue of visibleTicks) {
       const xPos = margin.left + scale(tickValue);
       if (tickLine) {
         ctx.beginPath();
@@ -92,6 +99,8 @@ export function drawYAxis(params: {
   tickLine: boolean;
   axisLine: boolean;
   tickCount: number;
+  tickValues?: number[];
+  interval?: number;
   tickFormatter?: (value: unknown) => string;
 }): void {
   const {
@@ -107,11 +116,16 @@ export function drawYAxis(params: {
     tickLine,
     axisLine,
     tickCount,
+    tickValues,
+    interval = 0,
     tickFormatter,
   } = params;
 
   const [min, max] = domain;
-  const ticks = createTicks(min, max, tickCount);
+  const ticks = tickValues && tickValues.length > 0 ? tickValues : createTicks(min, max, tickCount);
+  const visibleTicks = interval > 0
+    ? ticks.filter((_, index) => index % (interval + 1) === 0)
+    : ticks;
   const x = position === 'left' ? margin.left : margin.left + innerWidth;
 
   ctx.save();
@@ -130,7 +144,7 @@ export function drawYAxis(params: {
   }
 
   if (tickLine || tick) {
-    for (const tickValue of ticks) {
+    for (const tickValue of visibleTicks) {
       const yPos = margin.top + scale(tickValue);
 
       if (tickLine) {

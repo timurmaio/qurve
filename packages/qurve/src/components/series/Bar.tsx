@@ -115,6 +115,9 @@ export function Bar({
     registerBarSeries,
     getBarSeriesRegistrations,
     barSeriesVersion,
+    registerLegendItem,
+    isSeriesVisible,
+    legendVersion,
     ctx,
     hoveredIndex,
     requestRender,
@@ -126,6 +129,15 @@ export function Bar({
   const seriesName = tooltipName ?? name ?? (typeof dataKey === 'string' ? dataKey : 'value');
   const payloadDataKey = typeof dataKey === 'string' ? dataKey : 'value';
   const normalizedHoverOpacity = normalizeHoverOpacity(hoverOpacity);
+
+  useEffect(() => {
+    return registerLegendItem({
+      id: seriesId,
+      name: seriesName,
+      color: fill,
+      type: 'bar',
+    });
+  }, [registerLegendItem, seriesId, seriesName, fill]);
 
   useEffect(() => {
     const getValue = (item: Record<string, unknown>, index: number): number => {
@@ -321,6 +333,7 @@ export function Bar({
 
   useEffect(() => {
     return registerTooltipSeries((index) => {
+      if (!isSeriesVisible(seriesId)) return null;
       const bar = barsRef.current[index];
       if (!bar) return null;
 
@@ -332,7 +345,7 @@ export function Bar({
         formatter: tooltipFormatter,
       };
     });
-  }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter]);
+  }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
     hoveredIndexRef.current = hoveredIndex;
@@ -347,6 +360,7 @@ export function Bar({
       if (bars.length === 0) return;
 
       try {
+        if (!isSeriesVisible(seriesId)) return;
         drawBars({
           ctx,
           bars,
@@ -362,7 +376,7 @@ export function Bar({
     };
 
     return registerRender(render);
-  }, [ctx, data, fill, stroke, strokeWidth, normalizedHoverOpacity, registerRender]);
+  }, [ctx, data, fill, stroke, strokeWidth, normalizedHoverOpacity, registerRender, isSeriesVisible, seriesId, legendVersion]);
 
   return null;
 }

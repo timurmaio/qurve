@@ -12,6 +12,9 @@ export interface XAxisProps {
   position?: 'top' | 'bottom';
   allowDecimals?: boolean;
   tickCount?: number;
+  tickValues?: number[];
+  interval?: number;
+  padding?: number | { left?: number; right?: number };
   tickFormatter?: (value: unknown) => string;
   stroke?: string;
   tick?: boolean;
@@ -27,6 +30,9 @@ export function XAxis({
   position = 'bottom',
   allowDecimals = true,
   tickCount = 5,
+  tickValues,
+  interval = 0,
+  padding,
   tickFormatter,
   stroke = '#666',
   tick = true,
@@ -43,11 +49,12 @@ export function XAxis({
       type,
       domain,
       reversed,
+      padding,
       tickFormatter,
     });
 
     return () => setXAxis(null);
-  }, [setXAxis, dataKey, type, domain, reversed, tickFormatter]);
+  }, [setXAxis, dataKey, type, domain, reversed, padding, tickFormatter]);
 
   useEffect(() => {
     if (!ctx) return;
@@ -76,12 +83,14 @@ export function XAxis({
         tickLine,
         axisLine,
         tickCount,
+        tickValues,
+        interval,
         tickFormatter,
       });
     };
 
     return registerRender(render);
-  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickFormatter, stroke, tick, tickLine, axisLine, registerRender]);
+  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender]);
 
   return null;
 }

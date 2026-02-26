@@ -35,10 +35,31 @@ export interface BarSeriesRegistration {
   getValue: (item: Record<string, unknown>, index: number) => number;
 }
 
+export interface AreaSeriesRegistration {
+  id: symbol;
+  stackId?: string | number;
+  getValue: (item: Record<string, unknown>, index: number) => number;
+}
+
 export interface ChartSeriesContextValue {
   registerBarSeries: (registration: BarSeriesRegistration) => () => void;
   getBarSeriesRegistrations: () => BarSeriesRegistration[];
   barSeriesVersion: number;
+  registerAreaSeries: (registration: AreaSeriesRegistration) => () => void;
+  getAreaSeriesRegistrations: () => AreaSeriesRegistration[];
+  areaSeriesVersion: number;
+  registerLegendItem: (item: LegendItemRegistration) => () => void;
+  getLegendItems: () => LegendItemRegistration[];
+  legendVersion: number;
+  isSeriesVisible: (id: symbol) => boolean;
+  setSeriesVisible: (id: symbol, visible: boolean) => void;
+}
+
+export interface LegendItemRegistration {
+  id: symbol;
+  name: string;
+  color: string;
+  type: 'line' | 'bar' | 'area';
 }
 
 export interface ChartInteractionContextValue {
@@ -70,6 +91,9 @@ export interface AxisConfig {
   domain?: [number, number] | 'auto';
   range?: [number, number];
   tickCount?: number;
+  tickValues?: number[];
+  interval?: number;
+  padding?: number | { left?: number; right?: number; top?: number; bottom?: number };
   tickFormatter?: (value: unknown) => string;
   reversed?: boolean;
 }
@@ -91,6 +115,23 @@ function createLinearScale(config: { domain: [number, number]; range: [number, n
   scale.range = () => range;
 
   return scale;
+}
+
+function applyDomainPadding(
+  domain: [number, number],
+  padding: AxisConfig['padding'],
+  axis: 'x' | 'y',
+): [number, number] {
+  if (padding === undefined) return domain;
+  if (typeof padding === 'number') {
+    return [domain[0] - padding, domain[1] + padding];
+  }
+
+  if (axis === 'x') {
+    return [domain[0] - (padding.left ?? 0), domain[1] + (padding.right ?? 0)];
+  }
+
+  return [domain[0] - (padding.bottom ?? 0), domain[1] + (padding.top ?? 0)];
 }
 
 const ChartLayoutContext = createContext<ChartLayoutContextValue | null>(null);
@@ -161,12 +202,17 @@ export function Chart({
   const [dpr, setDpr] = useState(1);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [barSeriesVersion, setBarSeriesVersion] = useState(0);
+  const [areaSeriesVersion, setAreaSeriesVersion] = useState(0);
+  const [legendVersion, setLegendVersion] = useState(0);
   
   // Mouse event subscribers
   const mouseSubscribersRef = useRef<Set<(mouseX: number, mouseY: number) => void>>(new Set());
   const animationFrameRef = useRef<number | null>(null);
   const tooltipSeriesRef = useRef<Map<symbol, (index: number) => TooltipPayloadItem | null>>(new Map());
   const barSeriesRef = useRef<Map<symbol, BarSeriesRegistration>>(new Map());
+  const areaSeriesRef = useRef<Map<symbol, AreaSeriesRegistration>>(new Map());
+  const legendItemsRef = useRef<Map<symbol, LegendItemRegistration>>(new Map());
+  const seriesVisibilityRef = useRef<Map<symbol, boolean>>(new Map());
 
   useEffect(() => {
     setDpr(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
@@ -304,6 +350,48 @@ export function Chart({
     return Array.from(barSeriesRef.current.values());
   }, []);
 
+  const registerAreaSeries = useCallback((registration: AreaSeriesRegistration) => {
+    areaSeriesRef.current.set(registration.id, registration);
+    setAreaSeriesVersion((version) => version + 1);
+
+    return () => {
+      areaSeriesRef.current.delete(registration.id);
+      setAreaSeriesVersion((version) => version + 1);
+    };
+  }, []);
+
+  const getAreaSeriesRegistrations = useCallback((): AreaSeriesRegistration[] => {
+    return Array.from(areaSeriesRef.current.values());
+  }, []);
+
+  const registerLegendItem = useCallback((item: LegendItemRegistration) => {
+    legendItemsRef.current.set(item.id, item);
+    if (!seriesVisibilityRef.current.has(item.id)) {
+      seriesVisibilityRef.current.set(item.id, true);
+    }
+    setLegendVersion((version) => version + 1);
+
+    return () => {
+      legendItemsRef.current.delete(item.id);
+      seriesVisibilityRef.current.delete(item.id);
+      setLegendVersion((version) => version + 1);
+    };
+  }, []);
+
+  const getLegendItems = useCallback((): LegendItemRegistration[] => {
+    return Array.from(legendItemsRef.current.values());
+  }, []);
+
+  const isSeriesVisible = useCallback((id: symbol): boolean => {
+    return seriesVisibilityRef.current.get(id) ?? true;
+  }, []);
+
+  const setSeriesVisible = useCallback((id: symbol, visible: boolean) => {
+    seriesVisibilityRef.current.set(id, visible);
+    setLegendVersion((version) => version + 1);
+    requestRender();
+  }, [requestRender]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -387,7 +475,7 @@ export function Chart({
     }
 
     const range: [number, number] = xAxis?.reversed ? [innerWidth, 0] : [0, innerWidth];
-    return createLinearScale({ domain, range });
+    return createLinearScale({ domain: applyDomainPadding(domain, xAxis?.padding, 'x'), range });
   }, [data, innerWidth, xAxis]);
 
   const getYScale = useCallback((dataKey?: DataKey) => {
@@ -399,7 +487,7 @@ export function Chart({
 
     if (yAxis?.domain && yAxis.domain !== 'auto') {
       const range: [number, number] = yAxis.reversed ? [0, innerHeight] : [innerHeight, 0];
-      return createLinearScale({ domain: yAxis.domain, range });
+      return createLinearScale({ domain: applyDomainPadding(yAxis.domain, yAxis.padding, 'y'), range });
     }
 
     let minVal = Infinity;
@@ -425,7 +513,7 @@ export function Chart({
     const domain: [number, number] = [minVal - padding, maxVal + padding];
     const range: [number, number] = yAxis?.reversed ? [0, innerHeight] : [innerHeight, 0];
 
-    return createLinearScale({ domain, range });
+    return createLinearScale({ domain: applyDomainPadding(domain, yAxis?.padding, 'y'), range });
   }, [data, innerHeight, yAxis]);
 
   // Stable setter functions - don't need to be in dependencies
@@ -471,7 +559,27 @@ export function Chart({
     registerBarSeries,
     getBarSeriesRegistrations,
     barSeriesVersion,
-  }), [registerBarSeries, getBarSeriesRegistrations, barSeriesVersion]);
+    registerAreaSeries,
+    getAreaSeriesRegistrations,
+    areaSeriesVersion,
+    registerLegendItem,
+    getLegendItems,
+    legendVersion,
+    isSeriesVisible,
+    setSeriesVisible,
+  }), [
+    registerBarSeries,
+    getBarSeriesRegistrations,
+    barSeriesVersion,
+    registerAreaSeries,
+    getAreaSeriesRegistrations,
+    areaSeriesVersion,
+    registerLegendItem,
+    getLegendItems,
+    legendVersion,
+    isSeriesVisible,
+    setSeriesVisible,
+  ]);
 
   return (
     <ChartLayoutContext.Provider value={layoutValue}>

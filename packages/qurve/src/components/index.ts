@@ -15,7 +15,15 @@ export { Line } from './series/Line';
 export type { LineProps } from './series/Line';
 export { Bar } from './series/Bar';
 export type { BarProps } from './series/Bar';
+export { Area } from './series/Area';
+export type { AreaProps } from './series/Area';
 
 // Interactive components
 export { Tooltip } from './Tooltip';
 export type { TooltipProps, TooltipContentProps } from './Tooltip';
+export { Legend } from './Legend';
+export type { LegendProps } from './Legend';
+
+// Layout components
+export { ResponsiveContainer } from './ResponsiveContainer';
+export type { ResponsiveContainerProps } from './ResponsiveContainer';

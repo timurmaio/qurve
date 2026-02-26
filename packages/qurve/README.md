@@ -17,7 +17,7 @@ npm install qurve
 ## Quick start
 
 ```tsx
-import { Chart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "qurve";
+import { ResponsiveContainer, Chart, Line, Bar, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "qurve";
 
 const data = [
   { name: 1, price: 120 },
@@ -27,14 +27,20 @@ const data = [
 
 export function Demo() {
   return (
-    <Chart data={data} width={600} height={300}>
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Bar dataKey="price" fill="#93c5fd" />
-      <Line dataKey="price" type="monotone" stroke="#3b82f6" dot={false} />
-      <Tooltip />
-    </Chart>
+    <div style={{ width: "100%", height: 320 }}>
+      <ResponsiveContainer>
+        <Chart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Bar dataKey="price" fill="#93c5fd" />
+          <Area dataKey="price" fill="#93c5fd" fillOpacity={0.2} stroke="#2563eb" />
+          <Line dataKey="price" type="monotone" stroke="#3b82f6" dot={false} />
+          <Legend />
+          <Tooltip />
+        </Chart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 ```
@@ -44,10 +50,13 @@ export function Demo() {
 - `Chart`
 - `Line`
 - `Bar`
+- `Area`
 - `XAxis`
 - `YAxis`
 - `CartesianGrid`
 - `Tooltip`
+- `ResponsiveContainer`
+- `Legend`
 
 ## Bar options
 
@@ -81,6 +90,38 @@ export function Demo() {
   <YAxis />
   <Bar dataKey="profit" fill="#34d399" stackId="total" radius={6} />
   <Bar dataKey="loss" fill="#f87171" stackId="total" radius={6} />
+</Chart>
+```
+
+## Area options
+
+`Area` supports layered and stacked filled series:
+
+- Use `stackId` to stack multiple areas
+- Use `fill` + `fillOpacity` to control fill color and transparency
+- Use `tooltipName` and `tooltipFormatter` to override tooltip labels per series
+
+```tsx
+<Chart data={data} width={600} height={300}>
+  <XAxis dataKey="name" />
+  <YAxis domain={[0, 100]} />
+  <Area dataKey="organic" stackId="traffic" fill="#60a5fa" stroke="#2563eb" fillOpacity={0.25} />
+  <Area dataKey="paid" stackId="traffic" fill="#34d399" stroke="#059669" fillOpacity={0.25} />
+  <Tooltip />
+</Chart>
+```
+
+## Legend
+
+`Legend` reads rendered series and supports click-to-toggle visibility.
+
+```tsx
+<Chart data={data} width={600} height={300} margin={{ bottom: 32 }}>
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Bar dataKey="sales" fill="#93c5fd" />
+  <Line dataKey="trend" stroke="#2563eb" dot={false} />
+  <Legend />
 </Chart>
 ```
 

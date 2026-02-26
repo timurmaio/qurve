@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project follows Semantic Versioning while in preview (`0.x`).
 
+## [Unreleased]
+
+### Added
+- New series primitives: `Bar` and `Area` with stacking support via `stackId`.
+- `ResponsiveContainer` for auto-sizing charts to parent dimensions.
+- `Legend` with click-to-toggle visibility for line/bar/area series.
+
+### Changed
+- `Tooltip` now supports per-series formatter overrides from payload items.
+- `XAxis` and `YAxis` support custom `tickValues`, `interval`, and axis `padding`.
+- `Bar` adds `maxBarSize`, `minPointSize`, and improved stacked-corner rounding.
+
+### Notes
+- Release verification now includes `check:release` (`typecheck`, build, and pack).
+
 ## [0.1.0] - 2026-02-20
 
 ### Added

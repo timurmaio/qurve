@@ -12,6 +12,9 @@ export interface YAxisProps {
   position?: 'left' | 'right';
   allowDecimals?: boolean;
   tickCount?: number;
+  tickValues?: number[];
+  interval?: number;
+  padding?: number | { top?: number; bottom?: number };
   tickFormatter?: (value: unknown) => string;
   stroke?: string;
   tick?: boolean;
@@ -28,6 +31,9 @@ export function YAxis({
   position = 'left',
   allowDecimals = true,
   tickCount = 5,
+  tickValues,
+  interval = 0,
+  padding,
   tickFormatter,
   stroke = '#666',
   tick = true,
@@ -50,11 +56,12 @@ export function YAxis({
       type,
       domain,
       reversed,
+      padding,
       tickFormatter,
     });
 
     return () => setYAxis(null);
-  }, [setYAxis, dataKey, type, domain, reversed, tickFormatter]);
+  }, [setYAxis, dataKey, type, domain, reversed, padding, tickFormatter]);
 
   useEffect(() => {
     if (!ctx) return;
@@ -83,12 +90,14 @@ export function YAxis({
         tickLine,
         axisLine,
         tickCount,
+        tickValues,
+        interval,
         tickFormatter,
       });
     };
 
     return registerRender(render);
-  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickFormatter, stroke, tick, tickLine, axisLine, registerRender]);
+  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender]);
 
   return null;
 }

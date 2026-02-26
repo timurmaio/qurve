@@ -50,11 +50,24 @@ export function Line({
     ctx,
     hoveredIndex,
     requestRender,
+    registerLegendItem,
+    isSeriesVisible,
+    legendVersion,
   } = useChartContext();
+  const seriesIdRef = useRef(Symbol('line-series'));
   const pointsRef = useRef<Point[]>([]);
   const hoveredIndexRef = useRef<number | null>(null);
   const seriesName = name ?? (typeof dataKey === 'string' ? dataKey : 'value');
   const payloadDataKey = typeof dataKey === 'string' ? dataKey : 'value';
+
+  useEffect(() => {
+    return registerLegendItem({
+      id: seriesIdRef.current,
+      name: seriesName,
+      color: stroke,
+      type: 'line',
+    });
+  }, [registerLegendItem, seriesName, stroke]);
 
   // Cache points when data changes
   useEffect(() => {
@@ -79,6 +92,7 @@ export function Line({
 
   useEffect(() => {
     return registerTooltipSeries((index) => {
+      if (!isSeriesVisible(seriesIdRef.current)) return null;
       const point = pointsRef.current[index];
       if (!point) return null;
       return {
@@ -88,7 +102,7 @@ export function Line({
         color: stroke,
       };
     });
-  }, [registerTooltipSeries, payloadDataKey, seriesName, stroke]);
+  }, [registerTooltipSeries, payloadDataKey, seriesName, stroke, isSeriesVisible, legendVersion]);
 
   // Sync hoveredIndex to ref - avoids re-registering render function
   useEffect(() => {
@@ -105,6 +119,7 @@ export function Line({
 
     const render = () => {
       try {
+        if (!isSeriesVisible(seriesIdRef.current)) return;
         ctx.save();
         drawLinePath({ ctx, points, type, stroke, strokeWidth });
 
@@ -135,7 +150,7 @@ export function Line({
     };
 
     return registerRender(render);
-  }, [ctx, data, margin, getXScale, getYScale, xAxis, dataKey, type, stroke, strokeWidth, dot, registerRender, activeDot]);
+  }, [ctx, data, margin, getXScale, getYScale, xAxis, dataKey, type, stroke, strokeWidth, dot, registerRender, activeDot, isSeriesVisible, legendVersion]);
 
   return null;
 }

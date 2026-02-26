@@ -1,4 +1,4 @@
-import { Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Tooltip } from "qurve";
+import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Tooltip, Legend } from "qurve";
 import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
@@ -91,12 +91,9 @@ function FeatureCard({
 
 // Planned primitives data
 const PLANNED_PRIMITIVES = [
-  { name: "Area", description: "Filled area charts with gradient support" },
   { name: "Scatter", description: "Scatter plots with customizable points" },
   { name: "Pie", description: "Pie and donut charts" },
-  { name: "Legend", description: "Auto-generated legends with toggle" },
   { name: "Brush", description: "Range selector for zoom and pan" },
-  { name: "ResponsiveContainer", description: "Auto-sizing to parent" },
 ];
 
 // Demo charts
@@ -294,6 +291,85 @@ function BarDemo() {
   );
 }
 
+function AreaDemo() {
+  const data = useMemo(() => {
+    return [
+      { name: "Q1", productA: 18, productB: 10 },
+      { name: "Q2", productA: 24, productB: 14 },
+      { name: "Q3", productA: 20, productB: 16 },
+      { name: "Q4", productA: 28, productB: 18 },
+    ];
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={120}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="name" />
+      <YAxis domain={[0, 50]} />
+      <Area
+        dataKey="productA"
+        stackId="total"
+        fill="#60a5fa"
+        fillOpacity={0.28}
+        stroke="#3b82f6"
+        tooltipName="Product A"
+      />
+      <Area
+        dataKey="productB"
+        stackId="total"
+        fill="#34d399"
+        fillOpacity={0.28}
+        stroke="#10b981"
+        tooltipName="Product B"
+      />
+      <Tooltip />
+    </Chart>
+  );
+}
+
+function ResponsiveDemo() {
+  const data = useMemo(() => {
+    return Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      value: 30 + Math.sin(i * 0.45) * 12 + i,
+    }));
+  }, []);
+
+  return (
+    <div className="w-full h-[120px]">
+      <ResponsiveContainer>
+        <Chart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Area dataKey="value" fill="#a7f3d0" fillOpacity={0.3} stroke="#10b981" />
+        </Chart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function LegendDemo() {
+  const data = useMemo(() => {
+    return Array.from({ length: 8 }, (_, i) => ({
+      day: i + 1,
+      line: 24 + Math.sin(i * 0.7) * 8,
+      bars: 20 + Math.cos(i * 0.45) * 6,
+    }));
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={140} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="day" />
+      <YAxis />
+      <Bar dataKey="bars" fill="#93c5fd" maxBarSize={20} />
+      <Line dataKey="line" stroke="#2563eb" dot={false} />
+      <Legend />
+    </Chart>
+  );
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] px-4 sm:px-8 py-16">
@@ -352,6 +428,24 @@ export default function Home() {
                 description="Vertical bars with grouping, stacking (stackId), rounded corners, and tooltip support."
                 status="implemented"
                 example={<BarDemo />}
+              />
+              <PrimitiveCard
+                name="<Area />"
+                description="Filled area series with stacking, custom fill opacity, and per-series tooltip formatting."
+                status="implemented"
+                example={<AreaDemo />}
+              />
+              <PrimitiveCard
+                name="<ResponsiveContainer />"
+                description="Auto-sizes charts to the parent element via ResizeObserver."
+                status="implemented"
+                example={<ResponsiveDemo />}
+              />
+              <PrimitiveCard
+                name="<Legend />"
+                description="Built-in legend with click-to-toggle visibility for line, bar, and area series."
+                status="implemented"
+                example={<LegendDemo />}
               />
               <PrimitiveCard
                 name="Axes"

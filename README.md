@@ -54,11 +54,11 @@ function App() {
 |---------|--------|
 | Line Chart | ✅ |
 | Bar Chart | ✅ |
-| Area Chart | 🚧 |
+| Area Chart | ✅ |
 | Scatter Plot | 🚧 |
 | Pie/Donut | 🚧 |
 | Axes (Linear, Band, Time) | 🚧 |
-| Tooltips & Legends | 🚧 |
+| Tooltips & Legends | ✅ |
 | Brush, Pan & Zoom | 🚧 |
 
 ## Philosophy
