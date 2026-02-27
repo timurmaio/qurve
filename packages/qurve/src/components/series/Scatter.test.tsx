@@ -51,7 +51,7 @@ describe('Scatter', () => {
 
     expect(await screen.findByText('Observations:')).toBeInTheDocument();
 
-    const legendButton = await screen.findByRole('button', { name: 'Observations' });
+    const legendButton = await screen.findByRole('button', { name: 'Observations, visible' });
     fireEvent.click(legendButton);
     expect(legendButton).toHaveStyle({ color: 'rgb(136, 136, 136)' });
   });

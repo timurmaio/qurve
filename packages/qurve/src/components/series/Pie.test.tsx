@@ -48,7 +48,7 @@ describe('Pie', () => {
     expect(await screen.findByText('Alpha:')).toBeInTheDocument();
     expect(screen.getByText('40.00')).toBeInTheDocument();
 
-    const legendButton = await screen.findByRole('button', { name: 'Distribution' });
+    const legendButton = await screen.findByRole('button', { name: 'Distribution, visible' });
     fireEvent.click(legendButton);
     expect(legendButton).toHaveStyle({ color: 'rgb(136, 136, 136)' });
   });

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useChartContext } from './chart/chartContext';
 
 export interface LegendProps {
@@ -6,6 +6,7 @@ export interface LegendProps {
   verticalAlign?: 'top' | 'bottom';
   iconSize?: number;
   wrapperStyle?: React.CSSProperties;
+  ariaLabel?: string;
 }
 
 function justifyByAlign(align: LegendProps['align']): React.CSSProperties['justifyContent'] {
@@ -19,8 +20,10 @@ export function Legend({
   verticalAlign = 'bottom',
   iconSize = 10,
   wrapperStyle,
+  ariaLabel = 'Chart legend',
 }: LegendProps) {
   const { getLegendItems, legendVersion, isSeriesVisible, setSeriesVisible } = useChartContext();
+  const [focusedSeriesId, setFocusedSeriesId] = useState<symbol | null>(null);
 
   const items = useMemo(() => getLegendItems(), [getLegendItems, legendVersion]);
   if (items.length === 0) return null;
@@ -38,16 +41,33 @@ export function Legend({
         padding: '6px 8px',
         ...wrapperStyle,
       }}
+      role="group"
+      aria-label={ariaLabel}
     >
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         {items.map((item) => {
           const visible = isSeriesVisible(item.id);
+          const isFocused = focusedSeriesId === item.id;
+
+          const toggleSeries = () => {
+            setSeriesVisible(item.id, !visible);
+          };
 
           return (
             <button
               key={item.id.toString()}
               type="button"
-              onClick={() => setSeriesVisible(item.id, !visible)}
+              onClick={toggleSeries}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  toggleSeries();
+                }
+              }}
+              onFocus={() => setFocusedSeriesId(item.id)}
+              onBlur={() => setFocusedSeriesId((current) => (current === item.id ? null : current))}
+              aria-pressed={visible}
+              aria-label={`${item.name}, ${visible ? 'visible' : 'hidden'}`}
               style={{
                 appearance: 'none',
                 border: '1px solid #d6d6d6',
@@ -60,6 +80,8 @@ export function Legend({
                 gap: '8px',
                 fontSize: '12px',
                 cursor: 'pointer',
+                outline: 'none',
+                boxShadow: isFocused ? '0 0 0 2px rgba(37, 99, 235, 0.45)' : 'none',
               }}
             >
               <span
