@@ -17,6 +17,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 ### Changed
 - `Tooltip` now supports per-series formatter overrides from payload items.
 - `XAxis` and `YAxis` support custom `tickValues`, `interval`, and axis `padding`.
+- `XAxis` now supports `type='time'` with automatic time ticks and locale-aware default formatting.
 - `Bar` adds `maxBarSize`, `minPointSize`, and improved stacked-corner rounding.
 
 ### Notes

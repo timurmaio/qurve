@@ -65,4 +65,31 @@ describe('Tooltip', () => {
     expect(await screen.findByText('series:15')).toBeInTheDocument();
     expect(screen.queryByText('global:15')).toBeNull();
   });
+
+  it('formats time labels with Intl when x axis is time', async () => {
+    const { container } = render(
+      <Chart
+        data={[
+          { ts: new Date('2024-01-01T10:00:00.000Z').getTime(), y: 10 },
+          { ts: new Date('2024-01-02T10:00:00.000Z').getTime(), y: 20 },
+        ]}
+        width={320}
+        height={160}
+      >
+        <XAxis dataKey="ts" type="time" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Tooltip />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+    hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+
+    const expected = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(
+      new Date('2024-01-02T10:00:00.000Z').getTime(),
+    );
+    expect(await screen.findByText(expected)).toBeInTheDocument();
+  });
 });

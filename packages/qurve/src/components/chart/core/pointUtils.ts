@@ -1,4 +1,5 @@
 import type { AxisConfig, ChartData, DataKey } from '../chartContext';
+import { toTimeNumber } from './timeUtils';
 
 export interface ProjectedPoint {
   x: number;
@@ -13,6 +14,11 @@ export function resolveXValue(item: Record<string, unknown>, index: number, xAxi
     : xAxis?.dataKey
       ? item[xAxis.dataKey as string]
       : index;
+
+  if (xAxis?.type === 'time') {
+    const time = toTimeNumber(raw);
+    return time ?? index;
+  }
 
   const value = Number(raw);
   return Number.isFinite(value) ? value : index;

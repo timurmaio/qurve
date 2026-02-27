@@ -170,6 +170,19 @@ export function Demo() {
 </Chart>
 ```
 
+## Time axis
+
+`XAxis` supports time scale values with locale-aware formatting via `Intl.DateTimeFormat(undefined, ...)`.
+
+```tsx
+<Chart data={data} width={700} height={320}>
+  <XAxis dataKey="ts" type="time" tickCount={6} />
+  <YAxis />
+  <Line dataKey="value" stroke="#2563eb" dot={false} />
+  <Tooltip />
+</Chart>
+```
+
 ## Brush
 
 `Brush` adds a draggable x-range window for large datasets.

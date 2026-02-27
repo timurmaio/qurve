@@ -4,6 +4,7 @@ import { drawActiveDot } from './chart/core/drawLine';
 import { drawCrosshair } from './chart/core/drawCrosshair';
 import { findClosestPointByX, projectPoints, resolveXValue } from './chart/core/pointUtils';
 import type { TooltipPayloadItem } from './chart/chartContext';
+import { toTimeNumber } from './chart/core/timeUtils';
 
 const TOOLTIP_CONSTANTS = {
   POINT_RADIUS: 6,
@@ -18,6 +19,14 @@ const TOOLTIP_CONSTANTS = {
 };
 
 type TooltipLabel = string | number;
+
+function formatDefaultLabel(label: TooltipLabel, axisType: 'number' | 'category' | 'band' | 'time' | undefined): React.ReactNode {
+  if (axisType !== 'time') return label;
+
+  const value = toTimeNumber(label);
+  if (value === null) return label;
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(value);
+}
 
 export interface TooltipContentProps {
   active?: boolean;
@@ -320,10 +329,10 @@ export function Tooltip({
         }}
       >
         {tooltipProps.label !== undefined && (
-          <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1a1a1a', ...labelStyle }}>
-            {labelFormatter ? labelFormatter(tooltipProps.label) : tooltipProps.label}
-          </div>
-        )}
+            <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1a1a1a', ...labelStyle }}>
+            {labelFormatter ? labelFormatter(tooltipProps.label) : formatDefaultLabel(tooltipProps.label, xAxis?.type)}
+            </div>
+          )}
 
         {tooltipProps.payload?.map((item) => {
           const valueFormatter = item.formatter ?? formatter;

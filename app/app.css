@@ -7,9 +7,89 @@
     Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
+:root {
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --surface-muted: #f3f5f8;
+  --text: #111827;
+  --text-muted: #667085;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --success: #22c55e;
+
+  --chart-grid: #d8dee8;
+  --chart-line-primary: #60a5fa;
+  --chart-line-secondary: #f97316;
+  --chart-bar-primary: #60a5fa;
+  --chart-bar-secondary: #f59e0b;
+  --chart-area-primary: #60a5fa;
+  --chart-area-secondary: #34d399;
+  --chart-pie-1: #60a5fa;
+  --chart-pie-2: #34d399;
+  --chart-pie-3: #f59e0b;
+  --chart-scatter: #2563eb;
+}
+
+[data-theme="dark"] {
+  --bg: #0b1020;
+  --surface: #111827;
+  --surface-muted: #1f2937;
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border: #334155;
+  --border-strong: #475569;
+  --shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --accent: #60a5fa;
+  --accent-strong: #93c5fd;
+  --success: #4ade80;
+
+  --chart-grid: #334155;
+  --chart-line-primary: #93c5fd;
+  --chart-line-secondary: #fb923c;
+  --chart-bar-primary: #60a5fa;
+  --chart-bar-secondary: #fbbf24;
+  --chart-area-primary: #93c5fd;
+  --chart-area-secondary: #6ee7b7;
+  --chart-pie-1: #60a5fa;
+  --chart-pie-2: #34d399;
+  --chart-pie-3: #fbbf24;
+  --chart-scatter: #93c5fd;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg: #0b1020;
+    --surface: #111827;
+    --surface-muted: #1f2937;
+    --text: #e5e7eb;
+    --text-muted: #9ca3af;
+    --border: #334155;
+    --border-strong: #475569;
+    --shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    --accent: #60a5fa;
+    --accent-strong: #93c5fd;
+    --success: #4ade80;
+    --chart-grid: #334155;
+    --chart-line-primary: #93c5fd;
+    --chart-line-secondary: #fb923c;
+    --chart-bar-primary: #60a5fa;
+    --chart-bar-secondary: #fbbf24;
+    --chart-area-primary: #93c5fd;
+    --chart-area-secondary: #6ee7b7;
+    --chart-pie-1: #60a5fa;
+    --chart-pie-2: #34d399;
+    --chart-pie-3: #fbbf24;
+    --chart-scatter: #93c5fd;
+  }
+}
+
 html,
 body {
-  @apply bg-[#fafafa];
+  background: var(--bg);
+  color: var(--text);
   font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

@@ -8,6 +8,12 @@ describe('pointUtils', () => {
     expect(resolveXValue(item, 2, null)).toBe(2);
   });
 
+  it('resolves time x values from Date data', () => {
+    const date = new Date('2024-01-01T00:00:00.000Z');
+    const item = { ts: date } as Record<string, unknown>;
+    expect(resolveXValue(item, 0, { dataKey: 'ts', type: 'time' })).toBe(date.getTime());
+  });
+
   it('uses zero fallback for invalid y values', () => {
     const item = { y: 'abc' } as Record<string, unknown>;
     expect(resolveYValue(item, 1, 'y')).toBe(0);

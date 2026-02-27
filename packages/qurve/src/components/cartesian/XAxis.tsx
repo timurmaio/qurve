@@ -2,17 +2,18 @@ import { useEffect } from 'react';
 import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
 import { drawXAxis } from '../chart/core/drawAxis';
+import { createTimeTicks, formatTimeTick, toTimeNumber } from '../chart/core/timeUtils';
 
 export interface XAxisProps {
   dataKey?: DataKey;
   xAxisKey?: string;
-  type?: 'number' | 'category' | 'band';
-  domain?: [number, number] | 'auto';
+  type?: 'number' | 'category' | 'band' | 'time';
+  domain?: [number | Date, number | Date] | 'auto';
   reversed?: boolean;
   position?: 'top' | 'bottom';
   allowDecimals?: boolean;
   tickCount?: number;
-  tickValues?: number[];
+  tickValues?: Array<number | Date>;
   interval?: number;
   padding?: number | { left?: number; right?: number };
   tickFormatter?: (value: unknown) => string;
@@ -66,6 +67,16 @@ export function XAxis({
     if (!domainMethod || typeof domainMethod !== 'function') return;
     
     const [min, max] = domainMethod.call(scale);
+    const axisDomain: [number, number] = [Number(min), Number(max)];
+    const numericTickValues = type === 'time'
+      ? (tickValues
+          ?.map((value) => toTimeNumber(value))
+          .filter((value): value is number => value !== null) ?? createTimeTicks(axisDomain, tickCount))
+      : (tickValues as number[] | undefined);
+    const resolvedTickFormatter = tickFormatter
+      ?? (type === 'time'
+        ? (value: unknown) => formatTimeTick(Number(value), axisDomain)
+        : undefined);
 
     const render = () => {
       if (!ctx) return;
@@ -73,7 +84,7 @@ export function XAxis({
       drawXAxis({
         ctx,
         scale,
-        domain: [min, max],
+        domain: axisDomain,
         margin,
         innerWidth,
         innerHeight,
@@ -83,14 +94,14 @@ export function XAxis({
         tickLine,
         axisLine,
         tickCount,
-        tickValues,
+        tickValues: numericTickValues,
         interval,
-        tickFormatter,
+        tickFormatter: resolvedTickFormatter,
       });
     };
 
     return registerRender(render);
-  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender]);
+  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender, type]);
 
   return null;
 }

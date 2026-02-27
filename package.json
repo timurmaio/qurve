@@ -6,7 +6,7 @@
     "build": "pnpm --filter qurve build && react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
-    "typecheck": "pnpm --filter qurve typecheck && react-router typegen && tsc",
+    "typecheck": "pnpm --filter qurve build && pnpm --filter qurve typecheck && react-router typegen && tsc",
     "verify": "pnpm --filter qurve test && pnpm typecheck && pnpm build"
   },
   "dependencies": {

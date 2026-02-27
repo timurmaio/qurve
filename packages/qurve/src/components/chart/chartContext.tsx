@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, useRef, useEffect, useSyncExternalStore, type Context } from 'react';
+import { normalizeTimeDomain, toTimeNumber } from './core/timeUtils';
 
 export type ChartData = Record<string, unknown>[];
 export type DataKey = string | ((data: Record<string, unknown>, index: number) => number | string);
@@ -92,11 +93,11 @@ export interface TooltipPayloadItem {
 
 export interface AxisConfig {
   dataKey: DataKey;
-  type?: 'number' | 'category' | 'band';
-  domain?: [number, number] | 'auto';
+  type?: 'number' | 'category' | 'band' | 'time';
+  domain?: [number | Date, number | Date] | 'auto';
   range?: [number, number];
   tickCount?: number;
-  tickValues?: number[];
+  tickValues?: Array<number | Date>;
   interval?: number;
   padding?: number | { left?: number; right?: number; top?: number; bottom?: number };
   tickFormatter?: (value: unknown) => string;
@@ -531,8 +532,31 @@ function useChartModel(params: {
     const xAxisKey = xAxis?.dataKey;
     let domain: [number, number] = [0, Math.max(0, data.length - 1)];
 
-    if (xAxis?.domain && xAxis.domain !== 'auto') {
-      domain = xAxis.domain;
+    if (xAxis?.type === 'time') {
+      const explicit = normalizeTimeDomain(xAxis.domain);
+      if (explicit) {
+        domain = explicit;
+      } else if (xAxisKey && data.length > 0) {
+        const values: number[] = [];
+        data.forEach((item, index) => {
+          const raw = typeof xAxisKey === 'function' ? xAxisKey(item, index) : item[xAxisKey];
+          const value = toTimeNumber(raw);
+          if (value !== null) values.push(value);
+        });
+
+        if (values.length > 0) {
+          let min = values[0];
+          let max = values[0];
+          for (let i = 1; i < values.length; i++) {
+            const current = values[i];
+            if (current < min) min = current;
+            if (current > max) max = current;
+          }
+          domain = min === max ? [min - 24 * 60 * 60 * 1000, max + 24 * 60 * 60 * 1000] : [min, max];
+        }
+      }
+    } else if (xAxis?.domain && xAxis.domain !== 'auto') {
+      domain = [Number(xAxis.domain[0]), Number(xAxis.domain[1])];
     } else if (xAxisKey && data.length > 0) {
       const values: number[] = [];
       data.forEach((item, index) => {
@@ -568,7 +592,8 @@ function useChartModel(params: {
 
     if (yAxis?.domain && yAxis.domain !== 'auto') {
       const range: [number, number] = yAxis.reversed ? [0, innerHeight] : [innerHeight, 0];
-      return createLinearScale({ domain: applyDomainPadding(yAxis.domain, yAxis.padding, 'y'), range });
+      const numericDomain: [number, number] = [Number(yAxis.domain[0]), Number(yAxis.domain[1])];
+      return createLinearScale({ domain: applyDomainPadding(numericDomain, yAxis.padding, 'y'), range });
     }
 
     let minVal = Infinity;
