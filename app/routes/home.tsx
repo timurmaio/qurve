@@ -1,4 +1,4 @@
-import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Tooltip, Legend } from "qurve";
+import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Pie, Tooltip, Legend } from "qurve";
 import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
@@ -92,7 +92,6 @@ function FeatureCard({
 // Planned primitives data
 const PLANNED_PRIMITIVES = [
   { name: "Scatter", description: "Scatter plots with customizable points" },
-  { name: "Pie", description: "Pie and donut charts" },
   { name: "Brush", description: "Range selector for zoom and pan" },
 ];
 
@@ -370,6 +369,24 @@ function LegendDemo() {
   );
 }
 
+function PieDemo() {
+  const data = useMemo(() => {
+    return [
+      { name: "Desktop", value: 42 },
+      { name: "Mobile", value: 35 },
+      { name: "Tablet", value: 23 },
+    ];
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={140} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
+      <Pie dataKey="value" nameKey="name" innerRadius={24} outerRadius={50} />
+      <Legend />
+      <Tooltip />
+    </Chart>
+  );
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] px-4 sm:px-8 py-16">
@@ -446,6 +463,12 @@ export default function Home() {
                 description="Built-in legend with click-to-toggle visibility for line, bar, and area series."
                 status="implemented"
                 example={<LegendDemo />}
+              />
+              <PrimitiveCard
+                name="<Pie />"
+                description="Pie and donut charts with tooltip hit-testing, legend integration, and slice hover opacity."
+                status="implemented"
+                example={<PieDemo />}
               />
               <PrimitiveCard
                 name="Axes"

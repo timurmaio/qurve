@@ -107,6 +107,7 @@ export function Tooltip({
     subscribeToMouse,
     setHoveredIndex,
     getTooltipPayload,
+    getTooltipIndexFromMouse,
   } = useChartContext();
 
   const pointsRef = useRef(projectPoints({ data: [], margin, xAxis, getXScale, getYScale }));
@@ -136,11 +137,15 @@ export function Tooltip({
   useEffect(() => {
     if (!ctx) return;
 
-    const handleMouseMove = (mouseX: number) => {
-      const closestPoint = findClosestPointByX(pointsRef.current, mouseX);
+    const handleMouseMove = (mouseX: number, mouseY: number) => {
+      const customIndex = getTooltipIndexFromMouse(mouseX, mouseY);
+      const closestPoint = customIndex === null
+        ? findClosestPointByX(pointsRef.current, mouseX)
+        : pointsRef.current.find((point) => point.index === customIndex) ?? null;
+      const activeIndex = customIndex ?? closestPoint?.index ?? null;
       hoveredPointRef.current = closestPoint;
 
-      if (!closestPoint) {
+      if (activeIndex === null) {
         if (isVisibleRef.current) {
           isVisibleRef.current = false;
           tooltipDataRef.current = { active: false, payload: [] };
@@ -151,18 +156,18 @@ export function Tooltip({
         return;
       }
 
-      const rawPayload = getTooltipPayload(closestPoint.index);
+      const rawPayload = getTooltipPayload(activeIndex);
       const filteredPayload = filterNull
         ? rawPayload.filter((item) => item.value !== null)
         : rawPayload;
       const sortedPayload = sortPayload(filteredPayload, itemSorter);
 
-      const item = data[closestPoint.index];
+      const item = data[activeIndex] ?? {};
       const rawLabel = xAxis?.dataKey
         ? (typeof xAxis.dataKey === 'function'
-          ? xAxis.dataKey(item, closestPoint.index)
+          ? xAxis.dataKey(item, activeIndex)
           : item[xAxis.dataKey as string])
-        : resolveXValue(item, closestPoint.index, xAxis);
+        : item?.name ?? resolveXValue(item, activeIndex, xAxis);
 
       tooltipDataRef.current = {
         active: true,
@@ -174,21 +179,23 @@ export function Tooltip({
 
       const fixedX = position?.x;
       const fixedY = position?.y;
+      const anchorX = closestPoint?.x ?? mouseX;
+      const anchorY = closestPoint?.y ?? mouseY;
       const nextX = fixedX
         ?? (reverse.x
-          ? closestPoint.x - offset - TOOLTIP_CONSTANTS.ESTIMATED_WIDTH
-          : closestPoint.x + offset);
+          ? anchorX - offset - TOOLTIP_CONSTANTS.ESTIMATED_WIDTH
+          : anchorX + offset);
       const nextY = fixedY
         ?? (reverse.y
-          ? closestPoint.y + offset
-          : closestPoint.y - offset - TOOLTIP_CONSTANTS.ESTIMATED_HEIGHT);
+          ? anchorY + offset
+          : anchorY - offset - TOOLTIP_CONSTANTS.ESTIMATED_HEIGHT);
 
       tooltipPositionRef.current = {
         x: Math.max(0, Math.min(nextX, width - TOOLTIP_CONSTANTS.ESTIMATED_WIDTH)),
         y: Math.max(0, Math.min(nextY, height - TOOLTIP_CONSTANTS.ESTIMATED_HEIGHT)),
       };
 
-      setHoveredIndex(closestPoint.index);
+      setHoveredIndex(activeIndex);
       requestRender();
 
       if (!isVisibleRef.current) {
@@ -221,6 +228,7 @@ export function Tooltip({
     data,
     filterNull,
     getTooltipPayload,
+    getTooltipIndexFromMouse,
     height,
     itemSorter,
     offset,

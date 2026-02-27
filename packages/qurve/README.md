@@ -17,7 +17,7 @@ npm install qurve
 ## Quick start
 
 ```tsx
-import { ResponsiveContainer, Chart, Line, Bar, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "qurve";
+import { ResponsiveContainer, Chart, Line, Bar, Area, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "qurve";
 
 const data = [
   { name: 1, price: 120 },
@@ -51,6 +51,7 @@ export function Demo() {
 - `Line`
 - `Bar`
 - `Area`
+- `Pie`
 - `XAxis`
 - `YAxis`
 - `CartesianGrid`
@@ -122,6 +123,30 @@ export function Demo() {
   <Bar dataKey="sales" fill="#93c5fd" />
   <Line dataKey="trend" stroke="#2563eb" dot={false} />
   <Legend />
+</Chart>
+```
+
+## Pie options
+
+`Pie` provides pie and donut variants in the same primitive:
+
+- Use `innerRadius` to switch from pie to donut
+- Use `nameKey` to control slice labels used by tooltip
+- Use `startAngle`/`endAngle` and `paddingAngle` for custom arc layouts
+
+```tsx
+<Chart data={data} width={600} height={320}>
+  <Pie
+    dataKey="value"
+    nameKey="name"
+    innerRadius={60}
+    outerRadius={110}
+    startAngle={0}
+    endAngle={360}
+    paddingAngle={1}
+  />
+  <Legend />
+  <Tooltip />
 </Chart>
 ```
 

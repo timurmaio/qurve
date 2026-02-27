@@ -59,7 +59,7 @@ export interface LegendItemRegistration {
   id: symbol;
   name: string;
   color: string;
-  type: 'line' | 'bar' | 'area';
+  type: 'line' | 'bar' | 'area' | 'pie';
 }
 
 export interface ChartInteractionContextValue {
@@ -68,6 +68,8 @@ export interface ChartInteractionContextValue {
   subscribeToMouse: (callback: (mouseX: number, mouseY: number) => void) => () => void;
   registerTooltipSeries: (resolver: (index: number) => TooltipPayloadItem | null) => () => void;
   getTooltipPayload: (index: number) => TooltipPayloadItem[];
+  registerTooltipIndexResolver: (resolver: (mouseX: number, mouseY: number) => number | null) => () => void;
+  getTooltipIndexFromMouse: (mouseX: number, mouseY: number) => number | null;
 }
 
 export type ChartContextValue =
@@ -274,6 +276,7 @@ function useChartModel(params: {
   const mouseSubscribersRef = useRef<Set<(mouseX: number, mouseY: number) => void>>(new Set());
   const animationFrameRef = useRef<number | null>(null);
   const tooltipSeriesRef = useRef<Map<symbol, (index: number) => TooltipPayloadItem | null>>(new Map());
+  const tooltipIndexResolversRef = useRef<Map<symbol, (mouseX: number, mouseY: number) => number | null>>(new Map());
   const barSeriesRef = useRef<Map<symbol, BarSeriesRegistration>>(new Map());
   const areaSeriesRef = useRef<Map<symbol, AreaSeriesRegistration>>(new Map());
   const legendItemsRef = useRef<Map<symbol, LegendItemRegistration>>(new Map());
@@ -378,6 +381,24 @@ function useChartModel(params: {
       }
     });
     return items;
+  }, []);
+
+  const registerTooltipIndexResolver = useCallback((resolver: (mouseX: number, mouseY: number) => number | null) => {
+    const id = Symbol('tooltip-index-resolver');
+    tooltipIndexResolversRef.current.set(id, resolver);
+    return () => {
+      tooltipIndexResolversRef.current.delete(id);
+    };
+  }, []);
+
+  const getTooltipIndexFromMouse = useCallback((mouseX: number, mouseY: number): number | null => {
+    for (const resolver of tooltipIndexResolversRef.current.values()) {
+      const index = resolver(mouseX, mouseY);
+      if (index !== null && Number.isFinite(index) && index >= 0) {
+        return index;
+      }
+    }
+    return null;
   }, []);
 
   const registerBarSeries = useCallback((registration: BarSeriesRegistration) => {
@@ -598,7 +619,17 @@ function useChartModel(params: {
     subscribeToMouse,
     registerTooltipSeries,
     getTooltipPayload,
-  }), [hoveredIndex, setHoveredIndexStable, subscribeToMouse, registerTooltipSeries, getTooltipPayload]);
+    registerTooltipIndexResolver,
+    getTooltipIndexFromMouse,
+  }), [
+    hoveredIndex,
+    setHoveredIndexStable,
+    subscribeToMouse,
+    registerTooltipSeries,
+    getTooltipPayload,
+    registerTooltipIndexResolver,
+    getTooltipIndexFromMouse,
+  ]);
 
   const seriesValue = useMemo<ChartSeriesContextValue>(() => ({
     registerBarSeries,

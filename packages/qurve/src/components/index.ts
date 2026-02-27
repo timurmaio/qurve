@@ -17,6 +17,8 @@ export { Bar } from './series/Bar';
 export type { BarProps } from './series/Bar';
 export { Area } from './series/Area';
 export type { AreaProps } from './series/Area';
+export { Pie } from './series/Pie';
+export type { PieProps } from './series/Pie';
 
 // Interactive components
 export { Tooltip } from './Tooltip';

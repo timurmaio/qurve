@@ -56,7 +56,7 @@ function App() {
 | Bar Chart | ✅ |
 | Area Chart | ✅ |
 | Scatter Plot | 🚧 |
-| Pie/Donut | 🚧 |
+| Pie/Donut | ✅ |
 | Axes (Linear, Band, Time) | 🚧 |
 | Tooltips & Legends | ✅ |
 | Brush, Pan & Zoom | 🚧 |
