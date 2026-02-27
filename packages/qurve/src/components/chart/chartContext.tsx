@@ -5,12 +5,14 @@ export type DataKey = string | ((data: Record<string, unknown>, index: number) =
 
 export interface ChartLayoutContextValue {
   data: ChartData;
+  sourceData: ChartData;
   width: number;
   height: number;
   dpr: number;
   margin: { top: number; right: number; bottom: number; left: number };
   innerWidth: number;
   innerHeight: number;
+  visibleRange: { start: number; end: number };
 }
 
 export interface ChartRenderContextValue {
@@ -70,6 +72,7 @@ export interface ChartInteractionContextValue {
   getTooltipPayload: (index: number) => TooltipPayloadItem[];
   registerTooltipIndexResolver: (resolver: (mouseX: number, mouseY: number) => number | null) => () => void;
   getTooltipIndexFromMouse: (mouseX: number, mouseY: number) => number | null;
+  setVisibleRange: (range: { start: number; end: number }) => void;
 }
 
 export type ChartContextValue =
@@ -197,6 +200,7 @@ interface ChartState {
   barSeriesVersion: number;
   areaSeriesVersion: number;
   legendVersion: number;
+  visibleRange: { start: number; end: number };
 }
 
 type ChartAction =
@@ -204,6 +208,7 @@ type ChartAction =
   | { type: 'setYAxis'; payload: AxisConfig | null }
   | { type: 'setCtx'; payload: CanvasRenderingContext2D | null }
   | { type: 'setHoveredIndex'; payload: number | null }
+  | { type: 'setVisibleRange'; payload: { start: number; end: number } }
   | { type: 'bumpBarSeriesVersion' }
   | { type: 'bumpAreaSeriesVersion' }
   | { type: 'bumpLegendVersion' };
@@ -216,6 +221,7 @@ const initialChartState: ChartState = {
   barSeriesVersion: 0,
   areaSeriesVersion: 0,
   legendVersion: 0,
+  visibleRange: { start: 0, end: 1 },
 };
 
 function chartReducer(state: ChartState, action: ChartAction): ChartState {
@@ -228,6 +234,8 @@ function chartReducer(state: ChartState, action: ChartAction): ChartState {
       return { ...state, ctx: action.payload };
     case 'setHoveredIndex':
       return { ...state, hoveredIndex: action.payload };
+    case 'setVisibleRange':
+      return { ...state, visibleRange: action.payload };
     case 'bumpBarSeriesVersion':
       return { ...state, barSeriesVersion: state.barSeriesVersion + 1 };
     case 'bumpAreaSeriesVersion':
@@ -267,9 +275,9 @@ function useChartModel(params: {
   height: number;
   marginProp: { top?: number; right?: number; bottom?: number; left?: number };
 }) {
-  const { data, width, height, marginProp } = params;
+  const { data: sourceData, width, height, marginProp } = params;
   const [state, dispatch] = useReducer(chartReducer, initialChartState);
-  const { xAxis, yAxis, ctx, hoveredIndex, barSeriesVersion, areaSeriesVersion, legendVersion } = state;
+  const { xAxis, yAxis, ctx, hoveredIndex, barSeriesVersion, areaSeriesVersion, legendVersion, visibleRange } = state;
   const dpr = useDevicePixelRatio();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderFnsRef = useRef<Set<() => void>>(new Set());
@@ -291,6 +299,18 @@ function useChartModel(params: {
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
+
+  const data = useMemo<ChartData>(() => {
+    if (sourceData.length <= 1) return sourceData;
+
+    const maxIndex = sourceData.length - 1;
+    const start = Math.max(0, Math.min(1, visibleRange.start));
+    const end = Math.max(start, Math.min(1, visibleRange.end));
+
+    const startIndex = Math.floor(start * maxIndex);
+    const endIndex = Math.ceil(end * maxIndex);
+    return sourceData.slice(startIndex, endIndex + 1);
+  }, [sourceData, visibleRange.end, visibleRange.start]);
 
   const requestRender = useCallback(() => {
     if (animationFrameRef.current) return;
@@ -586,16 +606,23 @@ function useChartModel(params: {
   const setHoveredIndexStable = useCallback((index: number | null) => {
     dispatch({ type: 'setHoveredIndex', payload: index });
   }, []);
+  const setVisibleRange = useCallback((range: { start: number; end: number }) => {
+    const start = Math.max(0, Math.min(1, range.start));
+    const end = Math.max(start, Math.min(1, range.end));
+    dispatch({ type: 'setVisibleRange', payload: { start, end } });
+  }, []);
 
   const layoutValue = useMemo<ChartLayoutContextValue>(() => ({
     data,
+    sourceData,
     width,
     height,
     dpr,
     margin,
     innerWidth,
     innerHeight,
-  }), [data, width, height, dpr, margin, innerWidth, innerHeight]);
+    visibleRange,
+  }), [data, sourceData, width, height, dpr, margin, innerWidth, innerHeight, visibleRange]);
 
   const renderValue = useMemo<ChartRenderContextValue>(() => ({
     canvasRef,
@@ -621,6 +648,7 @@ function useChartModel(params: {
     getTooltipPayload,
     registerTooltipIndexResolver,
     getTooltipIndexFromMouse,
+    setVisibleRange,
   }), [
     hoveredIndex,
     setHoveredIndexStable,
@@ -629,6 +657,7 @@ function useChartModel(params: {
     getTooltipPayload,
     registerTooltipIndexResolver,
     getTooltipIndexFromMouse,
+    setVisibleRange,
   ]);
 
   const seriesValue = useMemo<ChartSeriesContextValue>(() => ({

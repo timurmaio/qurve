@@ -17,7 +17,7 @@ npm install qurve
 ## Quick start
 
 ```tsx
-import { ResponsiveContainer, Chart, Line, Bar, Area, Pie, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "qurve";
+import { ResponsiveContainer, Chart, Line, Bar, Area, Pie, Scatter, Brush, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "qurve";
 
 const data = [
   { name: 1, price: 120 },
@@ -59,6 +59,7 @@ export function Demo() {
 - `Tooltip`
 - `ResponsiveContainer`
 - `Legend`
+- `Brush`
 
 ## Bar options
 
@@ -166,6 +167,19 @@ export function Demo() {
   <Scatter xKey="hours" yKey="score" size={5} fill="#2563eb" name="Samples" />
   <Tooltip />
   <Legend />
+</Chart>
+```
+
+## Brush
+
+`Brush` adds a draggable x-range window for large datasets.
+
+```tsx
+<Chart data={data} width={700} height={320} margin={{ bottom: 28 }}>
+  <XAxis dataKey="day" />
+  <YAxis />
+  <Line dataKey="value" stroke="#2563eb" dot={false} />
+  <Brush />
 </Chart>
 ```
 

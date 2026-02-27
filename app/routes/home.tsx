@@ -1,4 +1,4 @@
-import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend } from "qurve";
+import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend, Brush } from "qurve";
 import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
@@ -90,9 +90,7 @@ function FeatureCard({
 }
 
 // Planned primitives data
-const PLANNED_PRIMITIVES = [
-  { name: "Brush", description: "Range selector for zoom and pan" },
-];
+const PLANNED_PRIMITIVES: { name: string; description: string }[] = [];
 
 // Demo charts
 function SimpleChartDemo() {
@@ -409,6 +407,25 @@ function ScatterDemo() {
   );
 }
 
+function BrushDemo() {
+  const data = useMemo(() => {
+    return appleStock.slice(0, 60).map((d, i) => ({
+      day: i + 1,
+      value: d.close,
+    }));
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={150} margin={{ top: 6, right: 8, left: 8, bottom: 26 }}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="day" />
+      <YAxis />
+      <Line dataKey="value" stroke="#2563eb" dot={false} strokeWidth={2} />
+      <Brush />
+    </Chart>
+  );
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] px-4 sm:px-8 py-16">
@@ -497,6 +514,12 @@ export default function Home() {
                 description="Point-based plots with custom x/y keys, tooltip payloads, and legend toggling."
                 status="implemented"
                 example={<ScatterDemo />}
+              />
+              <PrimitiveCard
+                name="<Brush />"
+                description="Interactive range selector with draggable window and handles for x-range zooming."
+                status="implemented"
+                example={<BrushDemo />}
               />
               <PrimitiveCard
                 name="Axes"

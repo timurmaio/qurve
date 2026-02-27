@@ -59,7 +59,7 @@ function App() {
 | Pie/Donut | ✅ |
 | Axes (Linear, Band, Time) | 🚧 |
 | Tooltips & Legends | ✅ |
-| Brush, Pan & Zoom | 🚧 |
+| Brush, Pan & Zoom | ✅ |
 
 ## Philosophy
 

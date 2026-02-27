@@ -10,6 +10,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - New series primitives: `Bar` and `Area` with stacking support via `stackId`.
 - New `Pie` primitive for pie/donut charts with tooltip hit-testing.
 - New `Scatter` primitive with `xKey`/`yKey` mapping and tooltip/legend support.
+- New `Brush` component for draggable x-range selection.
 - `ResponsiveContainer` for auto-sizing charts to parent dimensions.
 - `Legend` with click-to-toggle visibility for line/bar/area series.
 

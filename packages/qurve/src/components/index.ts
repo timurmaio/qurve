@@ -27,6 +27,8 @@ export { Tooltip } from './Tooltip';
 export type { TooltipProps, TooltipContentProps } from './Tooltip';
 export { Legend } from './Legend';
 export type { LegendProps } from './Legend';
+export { Brush } from './Brush';
+export type { BrushProps } from './Brush';
 
 // Layout components
 export { ResponsiveContainer } from './ResponsiveContainer';
