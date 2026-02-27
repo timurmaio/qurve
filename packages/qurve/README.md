@@ -189,6 +189,7 @@ export function Demo() {
 
 - Drag the window to pan
 - Use mouse wheel to zoom in/out around cursor
+- Use touch drag and two-finger pinch on mobile
 - Press `Esc` or click `Reset` to restore full range
 
 ```tsx

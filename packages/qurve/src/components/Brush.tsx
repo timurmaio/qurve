@@ -1,7 +1,16 @@
-import { useMemo, useRef, useState, type KeyboardEventHandler, type WheelEventHandler } from 'react';
+import {
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEventHandler,
+  type MouseEventHandler,
+  type TouchEventHandler,
+  type WheelEventHandler,
+} from 'react';
 import { useChartContext } from './chart/chartContext';
 
 type DragMode = 'window' | 'start' | 'end' | null;
+type InputMode = 'mouse' | 'touch';
 
 export interface BrushProps {
   height?: number;
@@ -20,6 +29,17 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+function getTouchX(event: TouchEvent): number | null {
+  const touch = event.touches[0] ?? event.changedTouches[0];
+  return touch ? touch.clientX : null;
+}
+
+function getTouchDistance(touchA: { clientX: number; clientY: number }, touchB: { clientX: number; clientY: number }): number {
+  const dx = touchB.clientX - touchA.clientX;
+  const dy = touchB.clientY - touchA.clientY;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
 export function Brush({
   height = 22,
   travellerWidth = 10,
@@ -36,6 +56,12 @@ export function Brush({
   const rootRef = useRef<HTMLDivElement>(null);
   const [dragMode, setDragMode] = useState<DragMode>(null);
   const dragStartRef = useRef<{ x: number; start: number; end: number } | null>(null);
+  const pinchRef = useRef<{
+    distance: number;
+    start: number;
+    end: number;
+    centerRatio: number;
+  } | null>(null);
 
   const left = margin.left;
   const top = chartHeight - height;
@@ -71,7 +97,7 @@ export function Brush({
     applyRange(0, 1);
   };
 
-  const beginDrag = (mode: DragMode, clientX: number) => {
+  const beginDrag = (mode: DragMode, clientX: number, inputMode: InputMode) => {
     if (!mode) return;
     setDragMode(mode);
     dragStartRef.current = { x: clientX, start: visibleRange.start, end: visibleRange.end };
@@ -103,15 +129,98 @@ export function Brush({
       applyRange(dragStart.start, nextEnd);
     };
 
+    const handleTouchMove = (event: TouchEvent) => {
+      const root = rootRef.current;
+      const dragStart = dragStartRef.current;
+      const clientX = getTouchX(event);
+      if (!root || !dragStart || clientX === null) return;
+
+      event.preventDefault();
+      const rect = root.getBoundingClientRect();
+      const dxRatio = (clientX - dragStart.x) / Math.max(1, rect.width);
+
+      if (mode === 'window') {
+        if (!enablePan) return;
+        const widthRatio = dragStart.end - dragStart.start;
+        const start = clamp(dragStart.start + dxRatio, 0, 1 - widthRatio);
+        const end = start + widthRatio;
+        applyRange(start, end);
+        return;
+      }
+
+      if (mode === 'start') {
+        const nextStart = clamp(dragStart.start + dxRatio, 0, dragStart.end - minSpan);
+        applyRange(nextStart, dragStart.end);
+        return;
+      }
+
+      const nextEnd = clamp(dragStart.end + dxRatio, dragStart.start + minSpan, 1);
+      applyRange(dragStart.start, nextEnd);
+    };
+
     const handleUp = () => {
       setDragMode(null);
       dragStartRef.current = null;
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleUp);
     };
 
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
+    if (inputMode === 'mouse') {
+      window.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleUp);
+    } else {
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleUp);
+    }
+  };
+
+  const beginPinch = (
+    touchA: { clientX: number; clientY: number },
+    touchB: { clientX: number; clientY: number },
+  ) => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const rect = root.getBoundingClientRect();
+    const center = (touchA.clientX + touchB.clientX) / 2;
+    const centerRatio = clamp((center - rect.left) / Math.max(1, rect.width), 0, 1);
+    pinchRef.current = {
+      distance: Math.max(1, getTouchDistance(touchA, touchB)),
+      start: visibleRange.start,
+      end: visibleRange.end,
+      centerRatio,
+    };
+
+    const handlePinchMove = (event: TouchEvent) => {
+      if (!enableWheelZoom || !pinchRef.current || event.touches.length < 2) return;
+      const rootNode = rootRef.current;
+      if (!rootNode) return;
+
+      event.preventDefault();
+      const [first, second] = [event.touches[0], event.touches[1]];
+      const currentDistance = Math.max(1, getTouchDistance(first, second));
+      const startState = pinchRef.current;
+      const startSpan = Math.max(minSpan, startState.end - startState.start);
+      const targetSpan = clamp(startSpan * (startState.distance / currentDistance), minSpan, 1);
+
+      const center = startState.start + startState.centerRatio * startSpan;
+      const nextStart = clamp(center - startState.centerRatio * targetSpan, 0, 1 - targetSpan);
+      const nextEnd = nextStart + targetSpan;
+      applyRange(nextStart, nextEnd);
+    };
+
+    const handlePinchEnd = () => {
+      pinchRef.current = null;
+      window.removeEventListener('touchmove', handlePinchMove);
+      window.removeEventListener('touchend', handlePinchEnd);
+      window.removeEventListener('touchcancel', handlePinchEnd);
+    };
+
+    window.addEventListener('touchmove', handlePinchMove, { passive: false });
+    window.addEventListener('touchend', handlePinchEnd);
+    window.addEventListener('touchcancel', handlePinchEnd);
   };
 
   const handleWheel: WheelEventHandler<HTMLDivElement> = (event) => {
@@ -143,6 +252,42 @@ export function Brush({
     }
   };
 
+  const onWindowMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+    beginDrag('window', event.clientX, 'mouse');
+  };
+
+  const onWindowTouchStart: TouchEventHandler<HTMLDivElement> = (event) => {
+    if (event.touches.length > 1) return;
+    const touch = event.touches[0];
+    if (!touch) return;
+    beginDrag('window', touch.clientX, 'touch');
+  };
+
+  const onStartHandleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+    beginDrag('start', event.clientX, 'mouse');
+  };
+
+  const onStartHandleTouchStart: TouchEventHandler<HTMLDivElement> = (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    beginDrag('start', touch.clientX, 'touch');
+  };
+
+  const onEndHandleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+    beginDrag('end', event.clientX, 'mouse');
+  };
+
+  const onEndHandleTouchStart: TouchEventHandler<HTMLDivElement> = (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    beginDrag('end', touch.clientX, 'touch');
+  };
+
+  const onRootTouchStart: TouchEventHandler<HTMLDivElement> = (event) => {
+    if (!enableWheelZoom || event.touches.length < 2) return;
+    beginPinch(event.touches[0], event.touches[1]);
+  };
+
   if (sourceData.length <= 1) return null;
 
   return (
@@ -152,6 +297,7 @@ export function Brush({
       tabIndex={0}
       onWheel={handleWheel}
       onKeyDown={handleKeyDown}
+      onTouchStart={onRootTouchStart}
       style={{
         position: 'absolute',
         left,
@@ -160,6 +306,7 @@ export function Brush({
         height,
         pointerEvents: 'auto',
         userSelect: 'none',
+        touchAction: 'none',
       }}
     >
       <div
@@ -186,7 +333,8 @@ export function Brush({
           cursor: enablePan ? (dragMode === 'window' ? 'grabbing' : 'grab') : 'default',
           boxSizing: 'border-box',
         }}
-        onMouseDown={(event) => beginDrag('window', event.clientX)}
+        onMouseDown={onWindowMouseDown}
+        onTouchStart={onWindowTouchStart}
       />
 
       <div
@@ -201,7 +349,8 @@ export function Brush({
           borderRadius: 3,
           cursor: 'ew-resize',
         }}
-        onMouseDown={(event) => beginDrag('start', event.clientX)}
+        onMouseDown={onStartHandleMouseDown}
+        onTouchStart={onStartHandleTouchStart}
       />
       <div
         data-testid="brush-handle-end"
@@ -215,7 +364,8 @@ export function Brush({
           borderRadius: 3,
           cursor: 'ew-resize',
         }}
-        onMouseDown={(event) => beginDrag('end', event.clientX)}
+        onMouseDown={onEndHandleMouseDown}
+        onTouchStart={onEndHandleTouchStart}
       />
 
       {showReset && span < 0.999 && (
