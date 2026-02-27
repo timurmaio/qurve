@@ -9,3 +9,4 @@
 # Package artifacts
 packages/*/dist/
 packages/*/*.tgz
+packages/*/coverage/
