@@ -20,6 +20,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - `XAxis` now supports `type='time'` with automatic time ticks plus `locale`, `timeZone`, and `timeFormat` controls.
 - `Bar` adds `maxBarSize`, `minPointSize`, and improved stacked-corner rounding.
 - `Brush` adds wheel zoom, drag pan, touch pinch interactions, and quick reset.
+- `Brush` now includes configurable mini-preview sparkline rendering.
 - `Legend` now includes better accessibility metadata and explicit keyboard toggling.
 
 ### Notes

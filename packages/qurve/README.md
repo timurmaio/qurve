@@ -202,6 +202,7 @@ export function Demo() {
 - Use mouse wheel to zoom in/out around cursor
 - Use touch drag and two-finger pinch on mobile
 - Press `Esc` or click `Reset` to restore full range
+- Built-in mini-preview sparkline (`showPreview`, `previewDataKey`)
 
 ```tsx
 <Chart data={data} width={700} height={320} margin={{ bottom: 28 }}>

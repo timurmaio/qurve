@@ -7,6 +7,42 @@ import { Line } from './series/Line';
 import { Brush } from './Brush';
 
 describe('Brush', () => {
+  it('renders preview sparkline by default', () => {
+    render(
+      <Chart
+        data={Array.from({ length: 20 }, (_, index) => ({ x: index, y: index * 2 }))}
+        width={320}
+        height={180}
+        margin={{ bottom: 26 }}
+      >
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" dot={false} />
+        <Brush />
+      </Chart>,
+    );
+
+    expect(screen.getByTestId('brush-preview')).toBeInTheDocument();
+  });
+
+  it('hides preview when disabled', () => {
+    render(
+      <Chart
+        data={Array.from({ length: 20 }, (_, index) => ({ x: index, y: index * 2 }))}
+        width={320}
+        height={180}
+        margin={{ bottom: 26 }}
+      >
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" dot={false} />
+        <Brush showPreview={false} />
+      </Chart>,
+    );
+
+    expect(screen.queryByTestId('brush-preview')).toBeNull();
+  });
+
   it('renders and emits range updates on drag', () => {
     const onChange = vi.fn();
 

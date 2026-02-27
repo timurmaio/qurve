@@ -16,6 +16,11 @@ export interface BrushProps {
   height?: number;
   travellerWidth?: number;
   minSpan?: number;
+  showPreview?: boolean;
+  previewDataKey?: string;
+  previewStroke?: string;
+  previewStrokeWidth?: number;
+  previewOpacity?: number;
   wheelZoomStep?: number;
   enableWheelZoom?: boolean;
   enablePan?: boolean;
@@ -44,6 +49,11 @@ export function Brush({
   height = 22,
   travellerWidth = 10,
   minSpan = 0.08,
+  showPreview = true,
+  previewDataKey,
+  previewStroke = '#64748b',
+  previewStrokeWidth = 1.5,
+  previewOpacity = 0.85,
   wheelZoomStep = 0.08,
   enableWheelZoom = true,
   enablePan = true,
@@ -76,6 +86,45 @@ export function Brush({
       width: Math.max(1, endPx - startPx),
     };
   }, [left, visibleRange.start, visibleRange.end, innerWidth]);
+
+  const previewPath = useMemo(() => {
+    if (!showPreview || sourceData.length < 2 || innerWidth <= 0 || height <= 0) return null;
+
+    const key = previewDataKey ?? Object.keys(sourceData[0] ?? {}).find((candidate) => {
+      const value = sourceData[0]?.[candidate];
+      return typeof value === 'number' && Number.isFinite(value);
+    });
+
+    if (!key) return null;
+
+    const values = sourceData
+      .map((item) => Number(item[key]))
+      .filter((value) => Number.isFinite(value));
+
+    if (values.length < 2) return null;
+
+    let min = values[0];
+    let max = values[0];
+    for (let index = 1; index < values.length; index++) {
+      const value = values[index];
+      if (value < min) min = value;
+      if (value > max) max = value;
+    }
+
+    const span = max - min || 1;
+    const pathPoints: string[] = [];
+    for (let index = 0; index < sourceData.length; index++) {
+      const raw = Number(sourceData[index][key]);
+      const value = Number.isFinite(raw) ? raw : min;
+      const x = sourceData.length === 1
+        ? 0
+        : (index / Math.max(1, sourceData.length - 1)) * innerWidth;
+      const y = (1 - (value - min) / span) * Math.max(1, height - 2) + 1;
+      pathPoints.push(`${x},${y}`);
+    }
+
+    return pathPoints.join(' ');
+  }, [showPreview, previewDataKey, sourceData, innerWidth, height]);
 
   const emitChange = (start: number, end: number) => {
     if (!onChange || sourceData.length === 0) return;
@@ -319,6 +368,28 @@ export function Brush({
           background: '#f4f7fb',
         }}
       />
+      {previewPath && (
+        <svg
+          data-testid="brush-preview"
+          width={innerWidth}
+          height={height}
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            pointerEvents: 'none',
+            opacity: previewOpacity,
+          }}
+        >
+          <polyline
+            points={previewPath}
+            fill="none"
+            stroke={previewStroke}
+            strokeWidth={previewStrokeWidth}
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      )}
       <div
         data-testid="brush-window-selection"
         style={{
