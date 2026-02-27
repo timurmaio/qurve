@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type KeyboardEventHandler, type WheelEventHandler } from 'react';
 import { useChartContext } from './chart/chartContext';
 
 type DragMode = 'window' | 'start' | 'end' | null;
@@ -7,6 +7,10 @@ export interface BrushProps {
   height?: number;
   travellerWidth?: number;
   minSpan?: number;
+  wheelZoomStep?: number;
+  enableWheelZoom?: boolean;
+  enablePan?: boolean;
+  showReset?: boolean;
   fill?: string;
   stroke?: string;
   onChange?: (range: { startIndex: number; endIndex: number }) => void;
@@ -20,6 +24,10 @@ export function Brush({
   height = 22,
   travellerWidth = 10,
   minSpan = 0.08,
+  wheelZoomStep = 0.08,
+  enableWheelZoom = true,
+  enablePan = true,
+  showReset = true,
   fill = 'rgba(37, 99, 235, 0.16)',
   stroke = '#2563eb',
   onChange,
@@ -52,6 +60,17 @@ export function Brush({
     });
   };
 
+  const applyRange = (start: number, end: number, emit = true) => {
+    const clampedStart = clamp(start, 0, 1);
+    const clampedEnd = clamp(end, clampedStart, 1);
+    setVisibleRange({ start: clampedStart, end: clampedEnd });
+    if (emit) emitChange(clampedStart, clampedEnd);
+  };
+
+  const resetRange = () => {
+    applyRange(0, 1);
+  };
+
   const beginDrag = (mode: DragMode, clientX: number) => {
     if (!mode) return;
     setDragMode(mode);
@@ -66,24 +85,22 @@ export function Brush({
       const dxRatio = (event.clientX - dragStart.x) / Math.max(1, rect.width);
 
       if (mode === 'window') {
+        if (!enablePan) return;
         const widthRatio = dragStart.end - dragStart.start;
         const start = clamp(dragStart.start + dxRatio, 0, 1 - widthRatio);
         const end = start + widthRatio;
-        setVisibleRange({ start, end });
-        emitChange(start, end);
+        applyRange(start, end);
         return;
       }
 
       if (mode === 'start') {
         const nextStart = clamp(dragStart.start + dxRatio, 0, dragStart.end - minSpan);
-        setVisibleRange({ start: nextStart, end: dragStart.end });
-        emitChange(nextStart, dragStart.end);
+        applyRange(nextStart, dragStart.end);
         return;
       }
 
       const nextEnd = clamp(dragStart.end + dxRatio, dragStart.start + minSpan, 1);
-      setVisibleRange({ start: dragStart.start, end: nextEnd });
-      emitChange(dragStart.start, nextEnd);
+      applyRange(dragStart.start, nextEnd);
     };
 
     const handleUp = () => {
@@ -97,12 +114,44 @@ export function Brush({
     window.addEventListener('mouseup', handleUp);
   };
 
+  const handleWheel: WheelEventHandler<HTMLDivElement> = (event) => {
+    if (!enableWheelZoom || sourceData.length <= 1) return;
+    event.preventDefault();
+
+    const root = rootRef.current;
+    if (!root) return;
+
+    const rect = root.getBoundingClientRect();
+    const cursorRatio = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+    const currentStart = visibleRange.start;
+    const currentEnd = visibleRange.end;
+    const currentSpan = Math.max(minSpan, currentEnd - currentStart);
+    const direction = Math.sign(event.deltaY);
+    const delta = wheelZoomStep * (direction >= 0 ? 1 : -1);
+    const targetSpan = clamp(currentSpan + delta, minSpan, 1);
+
+    const center = currentStart + cursorRatio * currentSpan;
+    const nextStart = clamp(center - cursorRatio * targetSpan, 0, 1 - targetSpan);
+    const nextEnd = nextStart + targetSpan;
+    applyRange(nextStart, nextEnd);
+  };
+
+  const handleKeyDown: KeyboardEventHandler<HTMLDivElement> = (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      resetRange();
+    }
+  };
+
   if (sourceData.length <= 1) return null;
 
   return (
     <div
       ref={rootRef}
       data-testid="brush-root"
+      tabIndex={0}
+      onWheel={handleWheel}
+      onKeyDown={handleKeyDown}
       style={{
         position: 'absolute',
         left,
@@ -124,7 +173,7 @@ export function Brush({
         }}
       />
       <div
-        data-testid="brush-handle-start"
+        data-testid="brush-window-selection"
         style={{
           position: 'absolute',
           left: selection.startPx - left,
@@ -134,14 +183,14 @@ export function Brush({
           background: fill,
           border: `1px solid ${stroke}`,
           borderRadius: 4,
-          cursor: dragMode === 'window' ? 'grabbing' : 'grab',
+          cursor: enablePan ? (dragMode === 'window' ? 'grabbing' : 'grab') : 'default',
           boxSizing: 'border-box',
         }}
         onMouseDown={(event) => beginDrag('window', event.clientX)}
       />
 
       <div
-        data-testid="brush-handle-end"
+        data-testid="brush-handle-start"
         style={{
           position: 'absolute',
           left: selection.startPx - left - travellerWidth / 2,
@@ -155,6 +204,7 @@ export function Brush({
         onMouseDown={(event) => beginDrag('start', event.clientX)}
       />
       <div
+        data-testid="brush-handle-end"
         style={{
           position: 'absolute',
           left: selection.endPx - left - travellerWidth / 2,
@@ -167,6 +217,28 @@ export function Brush({
         }}
         onMouseDown={(event) => beginDrag('end', event.clientX)}
       />
+
+      {showReset && span < 0.999 && (
+        <button
+          type="button"
+          data-testid="brush-reset"
+          onClick={resetRange}
+          style={{
+            position: 'absolute',
+            right: 4,
+            top: -24,
+            border: `1px solid ${stroke}`,
+            background: '#ffffff',
+            color: stroke,
+            borderRadius: 4,
+            fontSize: 11,
+            padding: '2px 6px',
+            cursor: 'pointer',
+          }}
+        >
+          Reset
+        </button>
+      )}
     </div>
   );
 }

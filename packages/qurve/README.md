@@ -187,6 +187,10 @@ export function Demo() {
 
 `Brush` adds a draggable x-range window for large datasets.
 
+- Drag the window to pan
+- Use mouse wheel to zoom in/out around cursor
+- Press `Esc` or click `Reset` to restore full range
+
 ```tsx
 <Chart data={data} width={700} height={320} margin={{ bottom: 28 }}>
   <XAxis dataKey="day" />

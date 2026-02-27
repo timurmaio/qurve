@@ -19,6 +19,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - `XAxis` and `YAxis` support custom `tickValues`, `interval`, and axis `padding`.
 - `XAxis` now supports `type='time'` with automatic time ticks and locale-aware default formatting.
 - `Bar` adds `maxBarSize`, `minPointSize`, and improved stacked-corner rounding.
+- `Brush` adds wheel zoom, drag pan behavior, and quick reset interactions.
 
 ### Notes
 - Release verification now includes `check:release` (`typecheck`, build, and pack).

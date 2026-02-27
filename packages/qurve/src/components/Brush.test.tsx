@@ -52,4 +52,47 @@ describe('Brush', () => {
     expect(lastCall.endIndex).toBeLessThanOrEqual(19);
     expect(lastCall.endIndex).toBeGreaterThanOrEqual(lastCall.startIndex);
   });
+
+  it('supports wheel zoom and reset button', () => {
+    const onChange = vi.fn();
+
+    render(
+      <Chart
+        data={Array.from({ length: 20 }, (_, index) => ({ x: index, y: index * 2 }))}
+        width={320}
+        height={180}
+        margin={{ bottom: 26 }}
+      >
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" dot={false} />
+        <Brush onChange={onChange} />
+      </Chart>,
+    );
+
+    const root = screen.getByTestId('brush-root');
+    Object.defineProperty(root, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({
+        left: 0,
+        top: 0,
+        right: 304,
+        bottom: 22,
+        width: 304,
+        height: 22,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }),
+    });
+
+    fireEvent.wheel(root, { deltaY: -100, clientX: 152 });
+
+    const reset = screen.getByTestId('brush-reset');
+    expect(reset).toBeInTheDocument();
+
+    fireEvent.click(reset);
+
+    expect(onChange).toHaveBeenCalled();
+  });
 });
