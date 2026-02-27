@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
 import { drawXAxis } from '../chart/core/drawAxis';
-import { createTimeTicks, formatTimeTick, toTimeNumber } from '../chart/core/timeUtils';
+import { createTimeTicks, formatTimeTick, toTimeNumber, type TimeFormatMode } from '../chart/core/timeUtils';
 
 export interface XAxisProps {
   dataKey?: DataKey;
@@ -17,6 +17,9 @@ export interface XAxisProps {
   interval?: number;
   padding?: number | { left?: number; right?: number };
   tickFormatter?: (value: unknown) => string;
+  locale?: string;
+  timeZone?: string;
+  timeFormat?: TimeFormatMode;
   stroke?: string;
   tick?: boolean;
   tickLine?: boolean;
@@ -35,6 +38,9 @@ export function XAxis({
   interval = 0,
   padding,
   tickFormatter,
+  locale,
+  timeZone,
+  timeFormat,
   stroke = '#666',
   tick = true,
   tickLine = true,
@@ -52,10 +58,13 @@ export function XAxis({
       reversed,
       padding,
       tickFormatter,
+      locale,
+      timeZone,
+      timeFormat,
     });
 
     return () => setXAxis(null);
-  }, [setXAxis, dataKey, type, domain, reversed, padding, tickFormatter]);
+  }, [setXAxis, dataKey, type, domain, reversed, padding, tickFormatter, locale, timeZone, timeFormat]);
 
   useEffect(() => {
     if (!ctx) return;
@@ -75,7 +84,7 @@ export function XAxis({
       : (tickValues as number[] | undefined);
     const resolvedTickFormatter = tickFormatter
       ?? (type === 'time'
-        ? (value: unknown) => formatTimeTick(Number(value), axisDomain)
+        ? (value: unknown) => formatTimeTick(Number(value), axisDomain, { locale, timeZone, timeFormat })
         : undefined);
 
     const render = () => {
@@ -101,7 +110,7 @@ export function XAxis({
     };
 
     return registerRender(render);
-  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender, type]);
+  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender, type, locale, timeZone, timeFormat]);
 
   return null;
 }

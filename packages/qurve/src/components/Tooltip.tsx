@@ -4,7 +4,7 @@ import { drawActiveDot } from './chart/core/drawLine';
 import { drawCrosshair } from './chart/core/drawCrosshair';
 import { findClosestPointByX, projectPoints, resolveXValue } from './chart/core/pointUtils';
 import type { TooltipPayloadItem } from './chart/chartContext';
-import { toTimeNumber } from './chart/core/timeUtils';
+import { formatTimeTick, toTimeNumber, type TimeFormatMode } from './chart/core/timeUtils';
 
 const TOOLTIP_CONSTANTS = {
   POINT_RADIUS: 6,
@@ -20,12 +20,27 @@ const TOOLTIP_CONSTANTS = {
 
 type TooltipLabel = string | number;
 
-function formatDefaultLabel(label: TooltipLabel, axisType: 'number' | 'category' | 'band' | 'time' | undefined): React.ReactNode {
-  if (axisType !== 'time') return label;
+function formatDefaultLabel(
+  label: TooltipLabel,
+  axis: {
+    type?: 'number' | 'category' | 'band' | 'time';
+    locale?: string;
+    timeZone?: string;
+    timeFormat?: TimeFormatMode;
+  } | null,
+): React.ReactNode {
+  if (axis?.type !== 'time') return label;
 
   const value = toTimeNumber(label);
   if (value === null) return label;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(value);
+
+  const day = 24 * 60 * 60 * 1000;
+  const domain: [number, number] = [value - day, value + day];
+  return formatTimeTick(value, domain, {
+    locale: axis.locale,
+    timeZone: axis.timeZone,
+    timeFormat: axis.timeFormat,
+  });
 }
 
 export interface TooltipContentProps {
@@ -330,7 +345,7 @@ export function Tooltip({
       >
         {tooltipProps.label !== undefined && (
             <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1a1a1a', ...labelStyle }}>
-            {labelFormatter ? labelFormatter(tooltipProps.label) : formatDefaultLabel(tooltipProps.label, xAxis?.type)}
+            {labelFormatter ? labelFormatter(tooltipProps.label) : formatDefaultLabel(tooltipProps.label, xAxis)}
             </div>
           )}
 

@@ -17,6 +17,20 @@ const TIME_STEPS_MS = [
   365 * 24 * 60 * 60 * 1000,
 ];
 
+export type TimeFormatMode =
+  | 'auto'
+  | 'time'
+  | 'date'
+  | 'month'
+  | 'year'
+  | Intl.DateTimeFormatOptions;
+
+export interface TimeFormatOptions {
+  locale?: string;
+  timeZone?: string;
+  timeFormat?: TimeFormatMode;
+}
+
 export function toTimeNumber(value: unknown): number | null {
   if (value instanceof Date) {
     const time = value.getTime();
@@ -78,20 +92,59 @@ export function createTimeTicks(domain: [number, number], tickCount: number): nu
   return ticks;
 }
 
-export function formatTimeTick(value: number, domain: [number, number]): string {
+function pickAutoOptions(domain: [number, number]): Intl.DateTimeFormatOptions {
   const span = Math.abs(domain[1] - domain[0]);
 
   if (span <= 24 * 60 * 60 * 1000) {
-    return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(value);
+    return { hour: '2-digit', minute: '2-digit' };
   }
 
   if (span <= 90 * 24 * 60 * 60 * 1000) {
-    return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(value);
+    return { month: 'short', day: 'numeric' };
   }
 
   if (span <= 365 * 24 * 60 * 60 * 1000 * 2) {
-    return new Intl.DateTimeFormat(undefined, { month: 'short', year: 'numeric' }).format(value);
+    return { month: 'short', year: 'numeric' };
   }
 
-  return new Intl.DateTimeFormat(undefined, { year: 'numeric' }).format(value);
+  return { year: 'numeric' };
+}
+
+function resolveTimeFormatOptions(
+  domain: [number, number],
+  format: TimeFormatMode | undefined,
+): Intl.DateTimeFormatOptions {
+  if (!format || format === 'auto') {
+    return pickAutoOptions(domain);
+  }
+
+  if (typeof format === 'object') {
+    return format;
+  }
+
+  if (format === 'time') {
+    return { hour: '2-digit', minute: '2-digit' };
+  }
+
+  if (format === 'date') {
+    return { year: 'numeric', month: 'short', day: 'numeric' };
+  }
+
+  if (format === 'month') {
+    return { month: 'short', year: 'numeric' };
+  }
+
+  return { year: 'numeric' };
+}
+
+export function formatTimeTick(
+  value: number,
+  domain: [number, number],
+  options?: TimeFormatOptions,
+): string {
+  const formatterOptions = resolveTimeFormatOptions(domain, options?.timeFormat);
+  return new Intl.DateTimeFormat(options?.locale ?? undefined, {
+    ...formatterOptions,
+    timeZone: options?.timeZone,
+  }).format(value);
 }

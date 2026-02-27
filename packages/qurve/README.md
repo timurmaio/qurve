@@ -174,9 +174,20 @@ export function Demo() {
 
 `XAxis` supports time scale values with locale-aware formatting via `Intl.DateTimeFormat(undefined, ...)`.
 
+- `locale` and `timeZone` for deterministic formatting across environments
+- `timeFormat` presets: `auto`, `time`, `date`, `month`, `year`
+- `timeFormat` also accepts raw `Intl.DateTimeFormatOptions`
+
 ```tsx
 <Chart data={data} width={700} height={320}>
-  <XAxis dataKey="ts" type="time" tickCount={6} />
+  <XAxis
+    dataKey="ts"
+    type="time"
+    tickCount={6}
+    locale="en-US"
+    timeZone="UTC"
+    timeFormat="date"
+  />
   <YAxis />
   <Line dataKey="value" stroke="#2563eb" dot={false} />
   <Tooltip />

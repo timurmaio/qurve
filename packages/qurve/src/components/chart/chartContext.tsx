@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, useRef, useEffect, useSyncExternalStore, type Context } from 'react';
-import { normalizeTimeDomain, toTimeNumber } from './core/timeUtils';
+import { normalizeTimeDomain, toTimeNumber, type TimeFormatMode } from './core/timeUtils';
 
 export type ChartData = Record<string, unknown>[];
 export type DataKey = string | ((data: Record<string, unknown>, index: number) => number | string);
@@ -101,6 +101,9 @@ export interface AxisConfig {
   interval?: number;
   padding?: number | { left?: number; right?: number; top?: number; bottom?: number };
   tickFormatter?: (value: unknown) => string;
+  locale?: string;
+  timeZone?: string;
+  timeFormat?: TimeFormatMode;
   reversed?: boolean;
 }
 

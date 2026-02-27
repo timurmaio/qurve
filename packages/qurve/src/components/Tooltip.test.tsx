@@ -76,7 +76,7 @@ describe('Tooltip', () => {
         width={320}
         height={160}
       >
-        <XAxis dataKey="ts" type="time" />
+        <XAxis dataKey="ts" type="time" locale="en-US" timeZone="UTC" timeFormat="date" />
         <YAxis />
         <Line dataKey="y" name="Revenue" />
         <Tooltip />
@@ -87,7 +87,12 @@ describe('Tooltip', () => {
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
 
-    const expected = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(
+    const expected = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(
       new Date('2024-01-02T10:00:00.000Z').getTime(),
     );
     expect(await screen.findByText(expected)).toBeInTheDocument();

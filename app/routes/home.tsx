@@ -221,7 +221,7 @@ function AxisDemo({ palette }: { palette: ChartPalette }) {
   return (
     <Chart data={data} width={280} height={120}>
       <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="ts" type="time" tickCount={4} />
+      <XAxis dataKey="ts" type="time" tickCount={4} locale="en-US" timeZone="UTC" timeFormat="date" />
       <YAxis />
       <Line
         dataKey="value"
