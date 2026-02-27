@@ -11,6 +11,8 @@ export interface CartesianGridProps {
   verticalCount?: number;
 }
 
+const GRID_RENDER_LAYER = 10;
+
 export function CartesianGrid({
   stroke = '#e5e5e5',
   strokeDasharray = '3 3',
@@ -40,7 +42,7 @@ export function CartesianGrid({
       });
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: GRID_RENDER_LAYER });
   }, [ctx, margin, innerWidth, innerHeight, stroke, strokeDasharray, horizontal, vertical, horizontalCount, verticalCount, registerRender]);
 
   return null;

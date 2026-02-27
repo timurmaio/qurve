@@ -9,6 +9,8 @@ const AREA_CONSTANTS = {
   DEFAULT_FILL_OPACITY: 0.25,
   DEFAULT_STROKE_WIDTH: 2,
   DEFAULT_HOVER_OPACITY: 0.55,
+  RENDER_LAYER: 30,
+  TOOLTIP_LAYER: 30,
 };
 
 interface AreaGeometry extends AreaPoint {
@@ -198,7 +200,7 @@ export function Area({
         color: stroke ?? fill,
         formatter: tooltipFormatter,
       };
-    });
+    }, { layer: AREA_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, payloadDataKey, seriesName, stroke, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -230,7 +232,7 @@ export function Area({
       }
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: AREA_CONSTANTS.RENDER_LAYER });
   }, [
     ctx,
     data,

@@ -11,6 +11,8 @@ const BAR_CONSTANTS = {
   DEFAULT_BAND_RATIO: 0.72,
   DEFAULT_SLOT_PADDING_RATIO: 0.12,
   DEFAULT_SINGLE_BAR_RATIO: 0.62,
+  RENDER_LAYER: 40,
+  TOOLTIP_LAYER: 40,
 };
 
 export interface BarProps {
@@ -344,7 +346,7 @@ export function Bar({
         color: fill,
         formatter: tooltipFormatter,
       };
-    });
+    }, { layer: BAR_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -375,7 +377,7 @@ export function Bar({
       }
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: BAR_CONSTANTS.RENDER_LAYER });
   }, [ctx, data, fill, stroke, strokeWidth, normalizedHoverOpacity, registerRender, isSeriesVisible, seriesId, legendVersion]);
 
   return null;

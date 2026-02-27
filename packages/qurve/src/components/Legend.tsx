@@ -7,6 +7,7 @@ export interface LegendProps {
   iconSize?: number;
   wrapperStyle?: React.CSSProperties;
   ariaLabel?: string;
+  selectionMode?: 'multiple' | 'single';
 }
 
 function justifyByAlign(align: LegendProps['align']): React.CSSProperties['justifyContent'] {
@@ -21,6 +22,7 @@ export function Legend({
   iconSize = 10,
   wrapperStyle,
   ariaLabel = 'Chart legend',
+  selectionMode = 'multiple',
 }: LegendProps) {
   const { getLegendItems, legendVersion, isSeriesVisible, setSeriesVisible } = useChartContext();
   const [focusedSeriesId, setFocusedSeriesId] = useState<symbol | null>(null);
@@ -45,17 +47,36 @@ export function Legend({
       aria-label={ariaLabel}
     >
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-        {items.map((item) => {
+        {items.map((item, index) => {
           const visible = isSeriesVisible(item.id);
           const isFocused = focusedSeriesId === item.id;
 
           const toggleSeries = () => {
+            if (selectionMode === 'single') {
+              const currentlyOnlyVisible = visible && items.every((entry) => {
+                if (entry.id === item.id) return true;
+                return !isSeriesVisible(entry.id);
+              });
+
+              if (currentlyOnlyVisible) {
+                for (const entry of items) {
+                  setSeriesVisible(entry.id, true);
+                }
+                return;
+              }
+
+              for (const entry of items) {
+                setSeriesVisible(entry.id, entry.id === item.id);
+              }
+              return;
+            }
+
             setSeriesVisible(item.id, !visible);
           };
 
           return (
             <button
-              key={item.id.toString()}
+              key={`${item.name}-${index}`}
               type="button"
               onClick={toggleSeries}
               onKeyDown={(event) => {

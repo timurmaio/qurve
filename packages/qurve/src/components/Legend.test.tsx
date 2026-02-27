@@ -46,4 +46,27 @@ describe('Legend', () => {
     fireEvent.keyDown(button, { key: ' ' });
     expect(button).toHaveAttribute('aria-pressed', 'true');
   });
+
+  it('supports single selection mode with reset-on-second-click', async () => {
+    render(
+      <Chart data={[{ x: 0, a: 10, b: 20 }, { x: 1, a: 15, b: 25 }]} width={280} height={140}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="a" name="A" />
+        <Line dataKey="b" name="B" />
+        <Legend selectionMode="single" />
+      </Chart>,
+    );
+
+    const buttonA = await screen.findByRole('button', { name: 'A, visible' });
+    const buttonB = await screen.findByRole('button', { name: 'B, visible' });
+
+    fireEvent.click(buttonA);
+    expect(buttonA).toHaveAttribute('aria-pressed', 'true');
+    expect(buttonB).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(buttonA);
+    expect(buttonA).toHaveAttribute('aria-pressed', 'true');
+    expect(buttonB).toHaveAttribute('aria-pressed', 'true');
+  });
 });

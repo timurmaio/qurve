@@ -3,6 +3,8 @@ import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } fr
 import type { DataKey } from '../chart/chartContext';
 import { drawYAxis } from '../chart/core/drawAxis';
 
+const AXIS_RENDER_LAYER = 20;
+
 export interface YAxisProps {
   dataKey?: DataKey;
   yAxisKey?: string;
@@ -96,7 +98,7 @@ export function YAxis({
       });
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: AXIS_RENDER_LAYER });
   }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender]);
 
   return null;

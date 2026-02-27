@@ -16,6 +16,7 @@ const TOOLTIP_CONSTANTS = {
   CURSOR_DEFAULT_STROKE: '#666',
   CURSOR_DEFAULT_WIDTH: 1,
   CURSOR_DEFAULT_DASH: '4 4',
+  RENDER_LAYER: 1000,
 };
 
 type TooltipLabel = string | number;
@@ -393,7 +394,7 @@ export function Tooltip({
       }
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: TOOLTIP_CONSTANTS.RENDER_LAYER });
   }, [ctx, cursor, innerHeight, innerWidth, margin, registerRender]);
 
   const tooltipProps = tooltipDataRef.current;

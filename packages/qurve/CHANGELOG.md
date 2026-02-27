@@ -22,6 +22,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - `Brush` adds wheel zoom, drag pan, touch pinch interactions, and quick reset.
 - `Brush` now includes configurable mini-preview sparkline rendering.
 - `Legend` now includes better accessibility metadata and explicit keyboard toggling.
+- `Legend` now supports `selectionMode='single'` with click-again reset to all series.
+- Composed charts now use deterministic series layering and tooltip payload order.
 
 ### Notes
 - Release verification now includes `check:release` (`typecheck`, build, and pack).

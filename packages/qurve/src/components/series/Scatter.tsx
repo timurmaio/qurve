@@ -9,6 +9,8 @@ const SCATTER_CONSTANTS = {
   DEFAULT_SIZE: 4,
   DEFAULT_STROKE_WIDTH: 0,
   DEFAULT_HOVER_OPACITY: 0.5,
+  RENDER_LAYER: 60,
+  TOOLTIP_LAYER: 60,
 };
 
 interface ScatterGeometry extends ScatterPoint {
@@ -128,7 +130,7 @@ export function Scatter({
         color: fill,
         formatter: tooltipFormatter,
       };
-    });
+    }, { layer: SCATTER_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -147,7 +149,7 @@ export function Scatter({
       });
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: SCATTER_CONSTANTS.RENDER_LAYER });
   }, [ctx, data, fill, stroke, strokeWidth, hoveredIndex, normalizedHoverOpacity, registerRender, isSeriesVisible, seriesId, legendVersion]);
 
   return null;

@@ -118,15 +118,22 @@ export function Demo() {
 
 `Legend` reads rendered series and supports click-to-toggle visibility.
 
+- Keyboard toggle with `Enter`/`Space`
+- `selectionMode="single"` to focus one series at a time (click active again to reset all)
+
 ```tsx
 <Chart data={data} width={600} height={300} margin={{ bottom: 32 }}>
   <XAxis dataKey="name" />
   <YAxis />
   <Bar dataKey="sales" fill="#93c5fd" />
   <Line dataKey="trend" stroke="#2563eb" dot={false} />
-  <Legend />
+  <Legend selectionMode="single" />
 </Chart>
 ```
+
+Composed charts use deterministic layering and tooltip payload order:
+
+`Area -> Bar -> Line -> Scatter`
 
 ## Pie options
 

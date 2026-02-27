@@ -19,7 +19,7 @@ export interface ChartLayoutContextValue {
 export interface ChartRenderContextValue {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   ctx: CanvasRenderingContext2D | null;
-  registerRender: (fn: () => void) => () => void;
+  registerRender: (fn: () => void, options?: { layer?: number }) => () => void;
   requestRender: () => void;
 }
 
@@ -69,7 +69,7 @@ export interface ChartInteractionContextValue {
   hoveredIndex: number | null;
   setHoveredIndex: (index: number | null) => void;
   subscribeToMouse: (callback: (mouseX: number, mouseY: number) => void) => () => void;
-  registerTooltipSeries: (resolver: (index: number) => TooltipPayloadItem | null) => () => void;
+  registerTooltipSeries: (resolver: (index: number) => TooltipPayloadItem | null, options?: { layer?: number }) => () => void;
   getTooltipPayload: (index: number) => TooltipPayloadItem[];
   registerTooltipIndexResolver: (resolver: (mouseX: number, mouseY: number) => number | null) => () => void;
   getTooltipIndexFromMouse: (mouseX: number, mouseY: number) => number | null;
@@ -207,6 +207,20 @@ interface ChartState {
   visibleRange: { start: number; end: number };
 }
 
+interface RenderRegistration {
+  id: symbol;
+  layer: number;
+  order: number;
+  fn: () => void;
+}
+
+interface TooltipSeriesRegistration {
+  id: symbol;
+  layer: number;
+  order: number;
+  resolver: (index: number) => TooltipPayloadItem | null;
+}
+
 type ChartAction =
   | { type: 'setXAxis'; payload: AxisConfig | null }
   | { type: 'setYAxis'; payload: AxisConfig | null }
@@ -284,10 +298,12 @@ function useChartModel(params: {
   const { xAxis, yAxis, ctx, hoveredIndex, barSeriesVersion, areaSeriesVersion, legendVersion, visibleRange } = state;
   const dpr = useDevicePixelRatio();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const renderFnsRef = useRef<Set<() => void>>(new Set());
+  const renderFnsRef = useRef<Map<symbol, RenderRegistration>>(new Map());
+  const renderOrderRef = useRef(0);
   const mouseSubscribersRef = useRef<Set<(mouseX: number, mouseY: number) => void>>(new Set());
   const animationFrameRef = useRef<number | null>(null);
-  const tooltipSeriesRef = useRef<Map<symbol, (index: number) => TooltipPayloadItem | null>>(new Map());
+  const tooltipSeriesRef = useRef<Map<symbol, TooltipSeriesRegistration>>(new Map());
+  const tooltipOrderRef = useRef(0);
   const tooltipIndexResolversRef = useRef<Map<symbol, (mouseX: number, mouseY: number) => number | null>>(new Map());
   const barSeriesRef = useRef<Map<symbol, BarSeriesRegistration>>(new Map());
   const areaSeriesRef = useRef<Map<symbol, AreaSeriesRegistration>>(new Map());
@@ -316,6 +332,12 @@ function useChartModel(params: {
     return sourceData.slice(startIndex, endIndex + 1);
   }, [sourceData, visibleRange.end, visibleRange.start]);
 
+  const sortedRenderFns = useCallback(() => {
+    return Array.from(renderFnsRef.current.values())
+      .sort((a, b) => (a.layer - b.layer) || (a.order - b.order))
+      .map((item) => item.fn);
+  }, []);
+
   const requestRender = useCallback(() => {
     if (animationFrameRef.current) return;
 
@@ -332,17 +354,25 @@ function useChartModel(params: {
 
         ctx.save();
         ctx.scale(dpr, dpr);
-        renderFnsRef.current.forEach(fn => fn());
+        for (const fn of sortedRenderFns()) {
+          fn();
+        }
         ctx.restore();
       }
     });
-  }, [ctx, dpr]);
+  }, [ctx, dpr, sortedRenderFns]);
 
-  const registerRender = useCallback((fn: () => void) => {
-    renderFnsRef.current.add(fn);
+  const registerRender = useCallback((fn: () => void, options?: { layer?: number }) => {
+    const id = Symbol('render-fn');
+    renderFnsRef.current.set(id, {
+      id,
+      fn,
+      layer: options?.layer ?? 100,
+      order: renderOrderRef.current++,
+    });
     requestRender();
     return () => {
-      renderFnsRef.current.delete(fn);
+      renderFnsRef.current.delete(id);
     };
   }, [requestRender]);
 
@@ -388,9 +418,17 @@ function useChartModel(params: {
     };
   }, []);
 
-  const registerTooltipSeries = useCallback((resolver: (index: number) => TooltipPayloadItem | null) => {
+  const registerTooltipSeries = useCallback((
+    resolver: (index: number) => TooltipPayloadItem | null,
+    options?: { layer?: number },
+  ) => {
     const id = Symbol('tooltip-series');
-    tooltipSeriesRef.current.set(id, resolver);
+    tooltipSeriesRef.current.set(id, {
+      id,
+      resolver,
+      layer: options?.layer ?? 100,
+      order: tooltipOrderRef.current++,
+    });
     return () => {
       tooltipSeriesRef.current.delete(id);
     };
@@ -398,12 +436,15 @@ function useChartModel(params: {
 
   const getTooltipPayload = useCallback((index: number): TooltipPayloadItem[] => {
     const items: TooltipPayloadItem[] = [];
-    tooltipSeriesRef.current.forEach((resolver) => {
-      const item = resolver(index);
+    const registrations = Array.from(tooltipSeriesRef.current.values())
+      .sort((a, b) => (a.layer - b.layer) || (a.order - b.order));
+
+    for (const registration of registrations) {
+      const item = registration.resolver(index);
       if (item) {
         items.push(item);
       }
-    });
+    }
     return items;
   }, []);
 
@@ -521,7 +562,9 @@ function useChartModel(params: {
 
         ctx.save();
         ctx.scale(dpr, dpr);
-        renderFnsRef.current.forEach(fn => fn());
+        for (const fn of sortedRenderFns()) {
+          fn();
+        }
         ctx.restore();
       } catch (error) {
         console.error('Chart render error:', error);
@@ -529,7 +572,7 @@ function useChartModel(params: {
     };
 
     requestAnimationFrame(render);
-  }, [ctx, width, height, dpr]);
+  }, [ctx, width, height, dpr, sortedRenderFns]);
 
   const getXScale = useCallback(() => {
     const xAxisKey = xAxis?.dataKey;

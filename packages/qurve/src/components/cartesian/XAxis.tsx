@@ -4,6 +4,8 @@ import type { DataKey } from '../chart/chartContext';
 import { drawXAxis } from '../chart/core/drawAxis';
 import { createTimeTicks, formatTimeTick, toTimeNumber, type TimeFormatMode } from '../chart/core/timeUtils';
 
+const AXIS_RENDER_LAYER = 20;
+
 export interface XAxisProps {
   dataKey?: DataKey;
   xAxisKey?: string;
@@ -109,7 +111,7 @@ export function XAxis({
       });
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: AXIS_RENDER_LAYER });
   }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender, type, locale, timeZone, timeFormat]);
 
   return null;

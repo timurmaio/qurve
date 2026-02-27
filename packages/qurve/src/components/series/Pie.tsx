@@ -19,6 +19,8 @@ const PIE_CONSTANTS = {
   DEFAULT_HOVER_OPACITY: 0.45,
   DEFAULT_PADDING_ANGLE: 0,
   DEFAULT_MIN_ANGLE: 0,
+  RENDER_LAYER: 45,
+  TOOLTIP_LAYER: 45,
 };
 
 type PieDataKey = DataKey;
@@ -230,7 +232,7 @@ export function Pie({
         color: slice.color,
         formatter: tooltipFormatter,
       };
-    });
+    }, { layer: PIE_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, dataKey, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -273,7 +275,7 @@ export function Pie({
       });
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: PIE_CONSTANTS.RENDER_LAYER });
   }, [ctx, data, registerRender, hoveredIndex, hoverOpacityValue, isSeriesVisible, seriesId, legendVersion]);
 
   return null;

@@ -11,6 +11,8 @@ const LINE_CONSTANTS = {
   DEFAULT_DOT_STROKE: '#fff',
   DEFAULT_STROKE: '#8884d8',
   DEFAULT_STROKE_WIDTH: 2,
+  RENDER_LAYER: 50,
+  TOOLTIP_LAYER: 50,
 };
 
 export interface LineProps {
@@ -101,7 +103,7 @@ export function Line({
         value: Number.isFinite(point.value) ? point.value : null,
         color: stroke,
       };
-    });
+    }, { layer: LINE_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, payloadDataKey, seriesName, stroke, isSeriesVisible, legendVersion]);
 
   // Sync hoveredIndex to ref - avoids re-registering render function
@@ -149,7 +151,7 @@ export function Line({
       }
     };
 
-    return registerRender(render);
+    return registerRender(render, { layer: LINE_CONSTANTS.RENDER_LAYER });
   }, [ctx, data, margin, getXScale, getYScale, xAxis, dataKey, type, stroke, strokeWidth, dot, registerRender, activeDot, isSeriesVisible, legendVersion]);
 
   return null;
