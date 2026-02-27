@@ -97,4 +97,30 @@ describe('Tooltip', () => {
     );
     expect(await screen.findByText(expected)).toBeInTheDocument();
   });
+
+  it('supports sticky mode lock and unlock', async () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }, { x: 1, y: 20 }]} width={320} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Tooltip sticky />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+
+    hoverCanvas(canvas as HTMLCanvasElement, 20, 20);
+    expect(await screen.findByText('10.00')).toBeInTheDocument();
+
+    fireEvent.click(canvas as HTMLCanvasElement, { clientX: 20, clientY: 20 });
+    hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+    expect(screen.queryByText('20.00')).toBeNull();
+    expect(screen.getByText('10.00')).toBeInTheDocument();
+
+    fireEvent.click(canvas as HTMLCanvasElement, { clientX: 300, clientY: 20 });
+    hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+    expect(await screen.findByText('20.00')).toBeInTheDocument();
+  });
 });

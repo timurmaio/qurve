@@ -212,6 +212,22 @@ export function Demo() {
 </Chart>
 ```
 
+## Tooltip options
+
+`Tooltip` supports sticky interaction mode:
+
+- `sticky`: click/tap to lock tooltip at current point
+- Click again or press `Esc` to unlock
+
+```tsx
+<Chart data={data} width={600} height={300}>
+  <XAxis dataKey="x" />
+  <YAxis />
+  <Line dataKey="value" stroke="#2563eb" />
+  <Tooltip sticky />
+</Chart>
+```
+
 ## Notes
 
 - React and React DOM are peer dependencies.

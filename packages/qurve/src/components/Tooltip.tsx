@@ -61,6 +61,7 @@ export interface TooltipProps {
   reverseDirection?: boolean | { x?: boolean; y?: boolean };
   position?: { x?: number; y?: number };
   offset?: number;
+  sticky?: boolean;
   wrapperStyle?: React.CSSProperties;
   contentStyle?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
@@ -110,6 +111,7 @@ export function Tooltip({
   reverseDirection,
   position,
   offset = TOOLTIP_CONSTANTS.DEFAULT_OFFSET,
+  sticky = false,
   wrapperStyle,
   contentStyle,
   labelStyle,
@@ -139,6 +141,7 @@ export function Tooltip({
   const tooltipDataRef = useRef<TooltipContentProps>({ active: false, payload: [] });
   const tooltipPositionRef = useRef<TooltipPosition>({ x: 0, y: 0 });
   const isVisibleRef = useRef(false);
+  const isLockedRef = useRef(false);
   const [, forceUpdate] = useState({});
 
   const reverse = useMemo(() => toReverseConfig(reverseDirection), [reverseDirection]);
@@ -147,6 +150,7 @@ export function Tooltip({
     if (!data.length) {
       pointsRef.current = [];
       isVisibleRef.current = false;
+      isLockedRef.current = false;
       tooltipDataRef.current = { active: false, payload: [] };
       setHoveredIndex(null);
       requestRender();
@@ -161,7 +165,7 @@ export function Tooltip({
   useEffect(() => {
     if (!ctx) return;
 
-    const handleMouseMove = (mouseX: number, mouseY: number) => {
+    const updateTooltipFromMouse = (mouseX: number, mouseY: number) => {
       const customIndex = getTooltipIndexFromMouse(mouseX, mouseY);
       const closestPoint = customIndex === null
         ? findClosestPointByX(pointsRef.current, mouseX)
@@ -177,7 +181,7 @@ export function Tooltip({
           requestRender();
           forceUpdate({});
         }
-        return;
+        return null;
       }
 
       const rawPayload = getTooltipPayload(activeIndex);
@@ -228,9 +232,42 @@ export function Tooltip({
       } else {
         forceUpdate({});
       }
+
+      return activeIndex;
+    };
+
+    const handleMouseMove = (mouseX: number, mouseY: number) => {
+      if (sticky && isLockedRef.current) return;
+      updateTooltipFromMouse(mouseX, mouseY);
+    };
+
+    const handleClick = (event: MouseEvent) => {
+      if (!sticky) return;
+
+      const canvas = ctx.canvas as HTMLCanvasElement;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+
+      if (isLockedRef.current) {
+        isLockedRef.current = false;
+        isVisibleRef.current = false;
+        tooltipDataRef.current = { active: false, payload: [] };
+        hoveredPointRef.current = null;
+        setHoveredIndex(null);
+        requestRender();
+        forceUpdate({});
+        return;
+      }
+
+      const activeIndex = updateTooltipFromMouse(mouseX, mouseY);
+      if (activeIndex !== null) {
+        isLockedRef.current = true;
+      }
     };
 
     const handleMouseLeave = () => {
+      if (sticky && isLockedRef.current) return;
       hoveredPointRef.current = null;
       tooltipDataRef.current = { active: false, payload: [] };
       isVisibleRef.current = false;
@@ -242,10 +279,28 @@ export function Tooltip({
     const unsubscribe = subscribeToMouse(handleMouseMove);
     const canvas = ctx.canvas as HTMLCanvasElement;
     canvas.addEventListener('mouseleave', handleMouseLeave);
+    canvas.addEventListener('click', handleClick);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!sticky) return;
+      if (event.key !== 'Escape' || !isLockedRef.current) return;
+
+      isLockedRef.current = false;
+      isVisibleRef.current = false;
+      tooltipDataRef.current = { active: false, payload: [] };
+      hoveredPointRef.current = null;
+      setHoveredIndex(null);
+      requestRender();
+      forceUpdate({});
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       unsubscribe();
       canvas.removeEventListener('mouseleave', handleMouseLeave);
+      canvas.removeEventListener('click', handleClick);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [
     ctx,
@@ -262,6 +317,7 @@ export function Tooltip({
     reverse.x,
     reverse.y,
     setHoveredIndex,
+    sticky,
     subscribeToMouse,
     width,
     xAxis,
