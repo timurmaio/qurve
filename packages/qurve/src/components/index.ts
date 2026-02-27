@@ -19,6 +19,8 @@ export { Area } from './series/Area';
 export type { AreaProps } from './series/Area';
 export { Pie } from './series/Pie';
 export type { PieProps } from './series/Pie';
+export { Scatter } from './series/Scatter';
+export type { ScatterProps } from './series/Scatter';
 
 // Interactive components
 export { Tooltip } from './Tooltip';

@@ -17,7 +17,7 @@ npm install qurve
 ## Quick start
 
 ```tsx
-import { ResponsiveContainer, Chart, Line, Bar, Area, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "qurve";
+import { ResponsiveContainer, Chart, Line, Bar, Area, Pie, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "qurve";
 
 const data = [
   { name: 1, price: 120 },
@@ -52,6 +52,7 @@ export function Demo() {
 - `Bar`
 - `Area`
 - `Pie`
+- `Scatter`
 - `XAxis`
 - `YAxis`
 - `CartesianGrid`
@@ -147,6 +148,24 @@ export function Demo() {
   />
   <Legend />
   <Tooltip />
+</Chart>
+```
+
+## Scatter options
+
+`Scatter` renders point clouds using chart-level data:
+
+- Use `xKey` and `yKey` to map numeric axes
+- Use `size`, `fill`, and `stroke` to style points
+- Works with `Tooltip` and `Legend` out of the box
+
+```tsx
+<Chart data={data} width={600} height={320}>
+  <XAxis dataKey="hours" domain={[0, 8]} />
+  <YAxis dataKey="score" domain={[0, 100]} />
+  <Scatter xKey="hours" yKey="score" size={5} fill="#2563eb" name="Samples" />
+  <Tooltip />
+  <Legend />
 </Chart>
 ```
 

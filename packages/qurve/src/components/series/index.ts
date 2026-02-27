@@ -6,3 +6,5 @@ export { Area } from './Area';
 export type { AreaProps } from './Area';
 export { Pie } from './Pie';
 export type { PieProps } from './Pie';
+export { Scatter } from './Scatter';
+export type { ScatterProps } from './Scatter';

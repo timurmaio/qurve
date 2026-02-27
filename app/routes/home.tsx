@@ -1,4 +1,4 @@
-import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Pie, Tooltip, Legend } from "qurve";
+import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend } from "qurve";
 import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useMemo } from "react";
 import { appleStock } from "../../src/mock";
@@ -91,7 +91,6 @@ function FeatureCard({
 
 // Planned primitives data
 const PLANNED_PRIMITIVES = [
-  { name: "Scatter", description: "Scatter plots with customizable points" },
   { name: "Brush", description: "Range selector for zoom and pan" },
 ];
 
@@ -387,6 +386,29 @@ function PieDemo() {
   );
 }
 
+function ScatterDemo() {
+  const data = useMemo(() => {
+    return [
+      { hours: 1, score: 22 },
+      { hours: 2, score: 28 },
+      { hours: 3, score: 35 },
+      { hours: 4, score: 41 },
+      { hours: 5, score: 55 },
+      { hours: 6, score: 60 },
+    ];
+  }, []);
+
+  return (
+    <Chart data={data} width={280} height={140}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+      <XAxis dataKey="hours" domain={[0, 7]} />
+      <YAxis dataKey="score" domain={[0, 70]} />
+      <Scatter xKey="hours" yKey="score" fill="#2563eb" size={5} name="Samples" />
+      <Tooltip />
+    </Chart>
+  );
+}
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#fafafa] px-4 sm:px-8 py-16">
@@ -469,6 +491,12 @@ export default function Home() {
                 description="Pie and donut charts with tooltip hit-testing, legend integration, and slice hover opacity."
                 status="implemented"
                 example={<PieDemo />}
+              />
+              <PrimitiveCard
+                name="<Scatter />"
+                description="Point-based plots with custom x/y keys, tooltip payloads, and legend toggling."
+                status="implemented"
+                example={<ScatterDemo />}
               />
               <PrimitiveCard
                 name="Axes"

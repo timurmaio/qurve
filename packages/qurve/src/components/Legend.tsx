@@ -67,7 +67,7 @@ export function Legend({
                   display: 'inline-block',
                   width: iconSize,
                   height: iconSize,
-                  borderRadius: item.type === 'line' || item.type === 'pie' ? '999px' : '2px',
+                  borderRadius: item.type === 'line' || item.type === 'pie' || item.type === 'scatter' ? '999px' : '2px',
                   background: item.color,
                   opacity: visible ? 1 : 0.35,
                 }}

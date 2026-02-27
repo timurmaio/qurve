@@ -59,7 +59,7 @@ export interface LegendItemRegistration {
   id: symbol;
   name: string;
   color: string;
-  type: 'line' | 'bar' | 'area' | 'pie';
+  type: 'line' | 'bar' | 'area' | 'pie' | 'scatter';
 }
 
 export interface ChartInteractionContextValue {
