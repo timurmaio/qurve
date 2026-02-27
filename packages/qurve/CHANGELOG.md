@@ -15,7 +15,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - `Legend` with click-to-toggle visibility for line/bar/area series.
 
 ### Changed
-- `Tooltip` now supports per-series formatter overrides from payload items and sticky lock mode.
+- `Tooltip` now supports per-series formatter overrides, sticky lock mode, and optional screen-reader live region controls.
 - `XAxis` and `YAxis` support custom `tickValues`, `interval`, and axis `padding`.
 - `XAxis` now supports `type='time'` with automatic time ticks plus `locale`, `timeZone`, and `timeFormat` controls.
 - `Bar` adds `maxBarSize`, `minPointSize`, and improved stacked-corner rounding.

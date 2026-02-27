@@ -123,4 +123,41 @@ describe('Tooltip', () => {
     hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
     expect(await screen.findByText('20.00')).toBeInTheDocument();
   });
+
+  it('updates screen-reader live region text', async () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }, { x: 1, y: 20 }]} width={320} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Tooltip ariaLive="assertive" />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+    hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+
+    const status = await screen.findByRole('status');
+    expect(status).toHaveAttribute('aria-live', 'assertive');
+    expect(status.textContent).toContain('Label: 1');
+    expect(status.textContent).toContain('Revenue: 20.00');
+  });
+
+  it('can hide screen-reader live region', async () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }]} width={320} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Tooltip hideA11yRegion />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+    hoverCanvas(canvas as HTMLCanvasElement, 20, 20);
+
+    expect(screen.queryByRole('status')).toBeNull();
+  });
 });

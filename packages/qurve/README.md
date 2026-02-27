@@ -218,13 +218,20 @@ export function Demo() {
 
 - `sticky`: click/tap to lock tooltip at current point
 - Click again or press `Esc` to unlock
+- `ariaLive`: controls live region politeness (`polite` by default)
+- `a11yLabelFormatter`: custom text for screen readers
+- `hideA11yRegion`: disable built-in SR announcements
 
 ```tsx
 <Chart data={data} width={600} height={300}>
   <XAxis dataKey="x" />
   <YAxis />
   <Line dataKey="value" stroke="#2563eb" />
-  <Tooltip sticky />
+  <Tooltip
+    sticky
+    ariaLive="polite"
+    a11yLabelFormatter={(label, payload) => `${label}: ${payload.map((p) => `${p.name} ${p.value}`).join(', ')}`}
+  />
 </Chart>
 ```
 

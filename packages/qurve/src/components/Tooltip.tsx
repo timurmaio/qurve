@@ -62,10 +62,40 @@ export interface TooltipProps {
   position?: { x?: number; y?: number };
   offset?: number;
   sticky?: boolean;
+  ariaLive?: 'off' | 'polite' | 'assertive';
+  a11yLabelFormatter?: (label: TooltipLabel | undefined, payload: TooltipPayloadItem[]) => string;
+  hideA11yRegion?: boolean;
   wrapperStyle?: React.CSSProperties;
   contentStyle?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
   itemStyle?: React.CSSProperties;
+}
+
+function nodeToText(node: React.ReactNode): string {
+  if (node === null || node === undefined || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(nodeToText).join(' ');
+  if (isValidElement(node)) {
+    return nodeToText((node.props as { children?: React.ReactNode }).children);
+  }
+  return '';
+}
+
+function payloadToA11yText(payload: TooltipPayloadItem[], formatter?: TooltipProps['formatter']): string {
+  return payload
+    .map((item) => {
+      const valueFormatter = item.formatter ?? formatter;
+      const formatted = valueFormatter ? valueFormatter(item.value, item.name, item) : null;
+      const valueNode = Array.isArray(formatted)
+        ? formatted[0]
+        : formatted ?? (item.value === null ? '-' : item.value.toFixed(2));
+      const nameNode = Array.isArray(formatted) ? formatted[1] : item.name;
+
+      const nameText = nodeToText(nameNode) || item.name;
+      const valueText = nodeToText(valueNode) || (item.value === null ? '-' : item.value.toFixed(2));
+      return `${nameText}: ${valueText}`;
+    })
+    .join('. ');
 }
 
 interface TooltipPosition {
@@ -112,6 +142,9 @@ export function Tooltip({
   position,
   offset = TOOLTIP_CONSTANTS.DEFAULT_OFFSET,
   sticky = false,
+  ariaLive = 'polite',
+  a11yLabelFormatter,
+  hideA11yRegion = false,
   wrapperStyle,
   contentStyle,
   labelStyle,
@@ -364,7 +397,39 @@ export function Tooltip({
   }, [ctx, cursor, innerHeight, innerWidth, margin, registerRender]);
 
   const tooltipProps = tooltipDataRef.current;
-  if (!isVisibleRef.current || !tooltipProps.active) return null;
+  const activePayload = tooltipProps.payload ?? [];
+  const a11yText = tooltipProps.active && isVisibleRef.current
+    ? (a11yLabelFormatter
+      ? a11yLabelFormatter(tooltipProps.label, activePayload)
+      : [
+          tooltipProps.label !== undefined ? `Label: ${nodeToText(formatDefaultLabel(tooltipProps.label, xAxis))}` : '',
+          payloadToA11yText(activePayload, formatter),
+        ].filter(Boolean).join('. '))
+    : '';
+
+  if (!isVisibleRef.current || !tooltipProps.active) {
+    if (hideA11yRegion) return null;
+    return (
+      <div
+        role="status"
+        aria-live={ariaLive}
+        aria-atomic="true"
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          padding: 0,
+          margin: -1,
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        {a11yText}
+      </div>
+    );
+  }
 
   if (content) {
     if (typeof content === 'function') {
@@ -377,58 +442,80 @@ export function Tooltip({
   }
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: tooltipPositionRef.current.x,
-        top: tooltipPositionRef.current.y,
-        pointerEvents: 'none',
-        zIndex: TOOLTIP_CONSTANTS.Z_INDEX,
-        ...wrapperStyle,
-      }}
-    >
+    <>
+      {!hideA11yRegion && (
+        <div
+          role="status"
+          aria-live={ariaLive}
+          aria-atomic="true"
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            padding: 0,
+            margin: -1,
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+        >
+          {a11yText}
+        </div>
+      )}
       <div
         style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
-          padding: '10px 12px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          fontSize: '13px',
-          fontFamily: 'sans-serif',
-          ...contentStyle,
+          position: 'absolute',
+          left: tooltipPositionRef.current.x,
+          top: tooltipPositionRef.current.y,
+          pointerEvents: 'none',
+          zIndex: TOOLTIP_CONSTANTS.Z_INDEX,
+          ...wrapperStyle,
         }}
       >
-        {tooltipProps.label !== undefined && (
-            <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1a1a1a', ...labelStyle }}>
-            {labelFormatter ? labelFormatter(tooltipProps.label) : formatDefaultLabel(tooltipProps.label, xAxis)}
-            </div>
-          )}
+        <div
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid #e0e0e0',
+            borderRadius: '8px',
+            padding: '10px 12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            fontSize: '13px',
+            fontFamily: 'sans-serif',
+            ...contentStyle,
+          }}
+        >
+          {tooltipProps.label !== undefined && (
+              <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1a1a1a', ...labelStyle }}>
+              {labelFormatter ? labelFormatter(tooltipProps.label) : formatDefaultLabel(tooltipProps.label, xAxis)}
+              </div>
+            )}
 
-        {tooltipProps.payload?.map((item) => {
-          const valueFormatter = item.formatter ?? formatter;
-          const formatted = valueFormatter ? valueFormatter(item.value, item.name, item) : null;
-          const valueNode = Array.isArray(formatted)
-            ? formatted[0]
-            : formatted ?? (item.value === null ? '-' : item.value.toFixed(2));
-          const nameNode = Array.isArray(formatted) ? formatted[1] : item.name;
+          {tooltipProps.payload?.map((item) => {
+            const valueFormatter = item.formatter ?? formatter;
+            const formatted = valueFormatter ? valueFormatter(item.value, item.name, item) : null;
+            const valueNode = Array.isArray(formatted)
+              ? formatted[0]
+              : formatted ?? (item.value === null ? '-' : item.value.toFixed(2));
+            const nameNode = Array.isArray(formatted) ? formatted[1] : item.name;
 
-          return (
-            <div key={`${item.dataKey}-${item.name}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', ...itemStyle }}>
-              <div
-                style={{
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  backgroundColor: item.color ?? '#3b82f6',
-                }}
-              />
-              <span style={{ color: '#666' }}>{nameNode}:</span>
-              <span style={{ fontWeight: 500, color: '#1a1a1a' }}>{valueNode}</span>
-            </div>
-          );
-        })}
+            return (
+              <div key={`${item.dataKey}-${item.name}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', ...itemStyle }}>
+                <div
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    backgroundColor: item.color ?? '#3b82f6',
+                  }}
+                />
+                <span style={{ color: '#666' }}>{nameNode}:</span>
+                <span style={{ fontWeight: 500, color: '#1a1a1a' }}>{valueNode}</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
