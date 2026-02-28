@@ -16,6 +16,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - `MIGRATION.md` with upgrade guidance for time axis, tooltip, legend, and brush behaviors.
 
 ### Changed
+- `Pie` now supports per-slice `colors` palettes and optional `label`/`labelFormatter` HTML labels.
 - `Tooltip` now supports per-series formatter overrides, sticky lock mode, and optional screen-reader live region controls.
 - `Tooltip` accessibility now supports optional aggregated summary announcements.
 - `XAxis` and `YAxis` support custom `tickValues`, `interval`, and axis `padding`.

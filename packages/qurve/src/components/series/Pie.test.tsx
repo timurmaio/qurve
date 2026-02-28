@@ -52,4 +52,59 @@ describe('Pie', () => {
     fireEvent.click(legendButton);
     expect(legendButton).toHaveStyle({ color: 'rgb(136, 136, 136)' });
   });
+
+  it('renders labels with formatter output', async () => {
+    render(
+      <Chart
+        data={[
+          { name: 'Alpha', value: 40 },
+          { name: 'Beta', value: 60 },
+        ]}
+        width={280}
+        height={160}
+      >
+        <Pie
+          dataKey="value"
+          nameKey="name"
+          outerRadius={52}
+          innerRadius={20}
+          label
+          labelFormatter={(value, name, percent) => `${name} ${value} (${Math.round(percent * 100)}%)`}
+        />
+      </Chart>,
+    );
+
+    expect(await screen.findByText('Alpha 40 (40%)')).toBeInTheDocument();
+    expect(await screen.findByText('Beta 60 (60%)')).toBeInTheDocument();
+  });
+
+  it('uses slice palette colors in tooltip formatter item', async () => {
+    const { container } = render(
+      <Chart
+        data={[
+          { name: 'Alpha', value: 40 },
+          { name: 'Beta', value: 60 },
+        ]}
+        width={280}
+        height={160}
+      >
+        <Pie
+          dataKey="value"
+          nameKey="name"
+          outerRadius={52}
+          innerRadius={20}
+          colors={['#111111', '#222222']}
+          tooltipFormatter={(value, name, item) => [String(item.color), `${name} color`]}
+        />
+        <Tooltip />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+    hoverCanvas(canvas as HTMLCanvasElement);
+
+    expect(await screen.findByText('Alpha color:')).toBeInTheDocument();
+    expect(screen.getByText('#111111')).toBeInTheDocument();
+  });
 });

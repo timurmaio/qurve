@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 import { drawPieSlices, type PieDrawSlice } from '../chart/core/drawPie';
@@ -30,6 +30,7 @@ export interface PieProps {
   dataKey: PieDataKey;
   nameKey?: NameKey;
   fill?: string;
+  colors?: string[];
   stroke?: string;
   strokeWidth?: number;
   innerRadius?: number;
@@ -41,6 +42,8 @@ export interface PieProps {
   paddingAngle?: number;
   minAngle?: number;
   hoverOpacity?: number;
+  label?: boolean | ((slice: { index: number; name: string; value: number; percent: number; color: string }) => React.ReactNode);
+  labelFormatter?: (value: number, name: string, percent: number) => React.ReactNode;
   name?: string;
   tooltipName?: string;
   tooltipFormatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
@@ -84,7 +87,10 @@ function isAngleInArc(angle: number, start: number, end: number): boolean {
   return normalizedAngle >= normalizedStart || normalizedAngle <= normalizedEnd;
 }
 
-function pickColor(index: number, fill?: string): string {
+function pickColor(index: number, fill?: string, colors?: string[]): string {
+  if (colors && colors.length > 0) {
+    return colors[index % colors.length];
+  }
   if (fill) return fill;
   return PIE_COLORS[index % PIE_COLORS.length];
 }
@@ -93,6 +99,7 @@ export function Pie({
   dataKey,
   nameKey,
   fill,
+  colors,
   stroke = '#ffffff',
   strokeWidth = 1,
   innerRadius,
@@ -104,6 +111,8 @@ export function Pie({
   paddingAngle = PIE_CONSTANTS.DEFAULT_PADDING_ANGLE,
   minAngle = PIE_CONSTANTS.DEFAULT_MIN_ANGLE,
   hoverOpacity = PIE_CONSTANTS.DEFAULT_HOVER_OPACITY,
+  label = false,
+  labelFormatter,
   name,
   tooltipName,
   tooltipFormatter,
@@ -126,21 +135,24 @@ export function Pie({
 
   const seriesId = useMemo(() => Symbol('pie-series'), []);
   const slicesRef = useRef<PieSlice[]>([]);
+  const [labelSlices, setLabelSlices] = useState<PieSlice[]>([]);
   const hoverOpacityValue = normalizeHoverOpacity(hoverOpacity);
   const defaultSeriesName = tooltipName ?? name ?? (typeof dataKey === 'string' ? dataKey : 'Pie');
+  const legendColor = colors?.[0] ?? fill ?? PIE_COLORS[0];
 
   useEffect(() => {
     return registerLegendItem({
       id: seriesId,
       name: defaultSeriesName,
-      color: fill ?? PIE_COLORS[0],
+      color: legendColor,
       type: 'pie',
     });
-  }, [registerLegendItem, seriesId, defaultSeriesName, fill]);
+  }, [registerLegendItem, seriesId, defaultSeriesName, legendColor]);
 
   useEffect(() => {
     if (!ctx || !data.length) {
       slicesRef.current = [];
+      setLabelSlices([]);
       requestRender();
       return;
     }
@@ -180,7 +192,7 @@ export function Pie({
         index,
         value,
         name: normalizeName(data[index], index, nameKey),
-        color: pickColor(index, fill),
+        color: pickColor(index, fill, colors),
         startAngle: sliceStart,
         endAngle: sliceEnd,
         midAngle,
@@ -196,6 +208,7 @@ export function Pie({
     }
 
     slicesRef.current = slices;
+    setLabelSlices(slices);
     requestRender();
   }, [
     ctx,
@@ -203,6 +216,7 @@ export function Pie({
     dataKey,
     nameKey,
     fill,
+    colors,
     stroke,
     strokeWidth,
     innerRadius,
@@ -278,5 +292,44 @@ export function Pie({
     return registerRender(render, { layer: PIE_CONSTANTS.RENDER_LAYER });
   }, [ctx, data, registerRender, hoveredIndex, hoverOpacityValue, isSeriesVisible, seriesId, legendVersion]);
 
-  return null;
+  if (!label || !isSeriesVisible(seriesId)) return null;
+
+  const labelTotal = labelSlices.reduce((sum, item) => sum + item.value, 0) || 1;
+
+  const labelNodes = labelSlices.map((slice) => {
+    const mid = (slice.startAngle + slice.endAngle) / 2;
+    const rad = (mid * Math.PI) / 180;
+    const radius = slice.outerRadius + 12;
+    const x = slice.cx + Math.cos(rad) * radius;
+    const y = slice.cy + Math.sin(rad) * radius;
+    const percent = slice.value / labelTotal;
+
+    const customNode = typeof label === 'function'
+      ? label({ index: slice.index, name: slice.name, value: slice.value, percent, color: slice.color })
+      : null;
+    const formatted = customNode
+      ?? (labelFormatter
+        ? labelFormatter(slice.value, slice.name, percent)
+        : `${slice.name} ${(percent * 100).toFixed(0)}%`);
+
+    return (
+      <div
+        key={`pie-label-${slice.index}`}
+        style={{
+          position: 'absolute',
+          left: x,
+          top: y,
+          transform: 'translate(-50%, -50%)',
+          pointerEvents: 'none',
+          fontSize: 11,
+          color: '#334155',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {formatted}
+      </div>
+    );
+  });
+
+  return <>{labelNodes}</>;
 }

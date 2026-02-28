@@ -134,10 +134,13 @@ export function Demo() {
 |---|---|---|
 | `dataKey` | `string \| fn` | - |
 | `nameKey` | `string \| fn` | auto |
+| `colors` | `string[]` | - |
 | `innerRadius` | `number` | `0` |
 | `outerRadius` | `number` | auto |
 | `startAngle/endAngle` | `number` | `0/360` |
 | `paddingAngle` | `number` | `0` |
+| `label` | `boolean \| fn` | `false` |
+| `labelFormatter` | `fn` | - |
 
 `Scatter`
 
@@ -268,6 +271,8 @@ Composed charts use deterministic layering and tooltip payload order:
 
 - Use `innerRadius` to switch from pie to donut
 - Use `nameKey` to control slice labels used by tooltip
+- Use `colors` to provide a deterministic per-slice palette
+- Use `label`/`labelFormatter` for HTML labels around arcs
 - Use `startAngle`/`endAngle` and `paddingAngle` for custom arc layouts
 
 ```tsx
