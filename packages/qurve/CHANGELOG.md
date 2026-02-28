@@ -13,6 +13,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - New `Brush` component for draggable x-range selection.
 - `ResponsiveContainer` for auto-sizing charts to parent dimensions.
 - `Legend` with click-to-toggle visibility for line/bar/area series.
+- `MIGRATION.md` with upgrade guidance for time axis, tooltip, legend, and brush behaviors.
 
 ### Changed
 - `Tooltip` now supports per-series formatter overrides, sticky lock mode, and optional screen-reader live region controls.
@@ -27,6 +28,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Notes
 - Release verification now includes `check:release` (`typecheck`, build, and pack).
+- `0.2.0` is prepared as release-ready in docs and verification, without publishing in this cycle.
 
 ## [0.1.0] - 2026-02-20
 

@@ -61,6 +61,133 @@ export function Demo() {
 - `Legend`
 - `Brush`
 
+## API reference (core props)
+
+`Chart`
+
+| Prop | Type | Default | Notes |
+|---|---|---|---|
+| `data` | `Record<string, unknown>[]` | - | Source dataset |
+| `width` | `number` | `600` | Canvas width |
+| `height` | `number` | `300` | Canvas height |
+| `margin` | `{top,right,bottom,left}` | `0` | Plot padding |
+
+`XAxis`
+
+| Prop | Type | Default | Notes |
+|---|---|---|---|
+| `dataKey` | `string \| fn` | index | X value resolver |
+| `type` | `'number' \| 'time' \| ...` | `'number'` | Time axis supported |
+| `domain` | `[number\|Date, number\|Date] \| 'auto'` | `'auto'` | Manual axis domain |
+| `tickValues` | `Array<number\|Date>` | auto | Explicit ticks |
+| `interval` | `number` | `0` | Skip every N ticks |
+| `padding` | `number \| object` | - | Domain padding |
+| `locale` | `string` | environment | Time formatting locale |
+| `timeZone` | `string` | environment | Time formatting zone |
+| `timeFormat` | `'auto' \| 'time' \| 'date' \| 'month' \| 'year' \| Intl options` | `'auto'` | Time label format |
+
+`YAxis`
+
+| Prop | Type | Default | Notes |
+|---|---|---|---|
+| `dataKey` | `string \| fn` | auto | Y value resolver |
+| `domain` | `[number, number] \| 'auto'` | `'auto'` | Manual axis domain |
+| `tickValues` | `number[]` | auto | Explicit ticks |
+| `interval` | `number` | `0` | Skip every N ticks |
+| `padding` | `number \| object` | - | Domain padding |
+
+`Line`
+
+| Prop | Type | Default |
+|---|---|---|
+| `dataKey` | `string \| fn` | - |
+| `type` | `'linear' \| 'monotone' \| 'step'` | `'linear'` |
+| `stroke` | `string` | `#8884d8` |
+| `strokeWidth` | `number` | `2` |
+| `dot` | `boolean \| {r,fill,stroke}` | `false` |
+| `activeDot` | `boolean \| {r,fill,stroke}` | `true` |
+
+`Bar`
+
+| Prop | Type | Default |
+|---|---|---|
+| `dataKey` | `string \| fn` | - |
+| `stackId` | `string \| number` | - |
+| `barSize` | `number` | auto |
+| `maxBarSize` | `number` | - |
+| `minPointSize` | `number` | - |
+| `radius` | `number \| [tl,tr,br,bl]` | - |
+
+`Area`
+
+| Prop | Type | Default |
+|---|---|---|
+| `dataKey` | `string \| fn` | - |
+| `stackId` | `string \| number` | - |
+| `fill` | `string` | `#8884d8` |
+| `fillOpacity` | `number` | `0.25` |
+| `stroke` | `string` | - |
+
+`Pie`
+
+| Prop | Type | Default |
+|---|---|---|
+| `dataKey` | `string \| fn` | - |
+| `nameKey` | `string \| fn` | auto |
+| `innerRadius` | `number` | `0` |
+| `outerRadius` | `number` | auto |
+| `startAngle/endAngle` | `number` | `0/360` |
+| `paddingAngle` | `number` | `0` |
+
+`Scatter`
+
+| Prop | Type | Default |
+|---|---|---|
+| `xKey` | `string \| fn` | axis key |
+| `yKey` | `string \| fn` | `dataKey` |
+| `size` | `number` | `4` |
+| `fill` | `string` | `#3b82f6` |
+
+`Tooltip`
+
+| Prop | Type | Default | Notes |
+|---|---|---|---|
+| `sticky` | `boolean` | `false` | Click to lock/unlock |
+| `formatter` | `fn` | - | Global value formatter |
+| `labelFormatter` | `fn` | - | Custom label formatter |
+| `ariaLive` | `'off' \| 'polite' \| 'assertive'` | `'polite'` | SR live region mode |
+| `a11yLabelFormatter` | `fn` | - | Custom SR text |
+| `hideA11yRegion` | `boolean` | `false` | Disable SR region |
+
+`Legend`
+
+| Prop | Type | Default | Notes |
+|---|---|---|---|
+| `selectionMode` | `'multiple' \| 'single'` | `'multiple'` | Single mode resets to all on second click |
+| `ariaLabel` | `string` | `'Chart legend'` | Group label for SR |
+
+`Brush`
+
+| Prop | Type | Default | Notes |
+|---|---|---|---|
+| `enablePan` | `boolean` | `true` | Drag selected window |
+| `enableWheelZoom` | `boolean` | `true` | Wheel zoom |
+| `wheelZoomStep` | `number` | `0.08` | Zoom sensitivity |
+| `showPreview` | `boolean` | `true` | Sparkline preview |
+| `previewDataKey` | `string` | auto numeric field | Preview source |
+| `showReset` | `boolean` | `true` | Reset control |
+
+`ResponsiveContainer`
+
+| Prop | Type | Default |
+|---|---|---|
+| `width` | `number \| string` | `'100%'` |
+| `height` | `number \| string` | `'100%'` |
+| `aspect` | `number` | - |
+| `minWidth/minHeight` | `number` | `0` |
+
+For migration notes, see `MIGRATION.md` in this package.
+
 ## Bar options
 
 `Bar` supports grouped and stacked layouts:

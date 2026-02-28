@@ -28,7 +28,7 @@ npm install qurve
 ```
 
 ```tsx
-import { CanvasChart, LineSeries, LinearAxis } from 'qurve';
+import { Chart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Brush } from 'qurve';
 
 function App() {
   const data = [
@@ -39,11 +39,15 @@ function App() {
   ];
 
   return (
-    <CanvasChart width={600} height={400} data={data}>
-      <LinearAxis orientation="bottom" />
-      <LinearAxis orientation="left" />
-      <LineSeries x="x" y="y" strokeWidth={2} />
-    </CanvasChart>
+    <Chart width={700} height={360} data={data} margin={{ bottom: 28 }}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="x" />
+      <YAxis />
+      <Line dataKey="y" type="monotone" strokeWidth={2} />
+      <Legend selectionMode="single" />
+      <Tooltip sticky />
+      <Brush />
+    </Chart>
   );
 }
 ```
@@ -57,9 +61,14 @@ function App() {
 | Area Chart | ✅ |
 | Scatter Plot | ✅ |
 | Pie/Donut | ✅ |
-| Axes (Linear, Band, Time) | 🚧 |
+| Axes (Linear, Band, Time) | ✅ |
 | Tooltips & Legends | ✅ |
 | Brush, Pan & Zoom | ✅ |
+
+## Docs
+
+- Package docs: `packages/qurve/README.md`
+- Migration guide: `packages/qurve/MIGRATION.md`
 
 ## Philosophy
 
