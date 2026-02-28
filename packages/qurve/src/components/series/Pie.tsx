@@ -19,12 +19,39 @@ const PIE_CONSTANTS = {
   DEFAULT_HOVER_OPACITY: 0.45,
   DEFAULT_PADDING_ANGLE: 0,
   DEFAULT_MIN_ANGLE: 0,
+  DEFAULT_LABEL_OFFSET: 18,
+  DEFAULT_LABEL_MIN_GAP: 14,
+  DEFAULT_LABEL_LINE_WIDTH: 1,
   RENDER_LAYER: 45,
+  LABEL_LINE_LAYER: 46,
   TOOLTIP_LAYER: 45,
 };
 
 type PieDataKey = DataKey;
 type NameKey = string | ((data: Record<string, unknown>, index: number) => string);
+type PieLabelMode = 'namePercent' | 'name' | 'value' | 'percent' | 'nameValue' | 'valuePercent';
+
+interface PieLabelContext {
+  index: number;
+  name: string;
+  value: number;
+  percent: number;
+  color: string;
+}
+
+interface PieLabelLayoutItem {
+  key: string;
+  x: number;
+  y: number;
+  anchor: 'left' | 'right';
+  content: React.ReactNode;
+  lineStartX: number;
+  lineStartY: number;
+  lineBendX: number;
+  lineBendY: number;
+  lineEndX: number;
+  lineEndY: number;
+}
 
 export interface PieProps {
   dataKey: PieDataKey;
@@ -42,8 +69,14 @@ export interface PieProps {
   paddingAngle?: number;
   minAngle?: number;
   hoverOpacity?: number;
-  label?: boolean | ((slice: { index: number; name: string; value: number; percent: number; color: string }) => React.ReactNode);
+  label?: boolean | ((slice: PieLabelContext) => React.ReactNode);
+  labelMode?: PieLabelMode;
   labelFormatter?: (value: number, name: string, percent: number) => React.ReactNode;
+  labelLine?: boolean;
+  labelLineColor?: string;
+  labelLineWidth?: number;
+  labelOffset?: number;
+  labelMinGap?: number;
   name?: string;
   tooltipName?: string;
   tooltipFormatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
@@ -95,6 +128,81 @@ function pickColor(index: number, fill?: string, colors?: string[]): string {
   return PIE_COLORS[index % PIE_COLORS.length];
 }
 
+function formatValue(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+}
+
+function formatDefaultLabel(mode: PieLabelMode, label: PieLabelContext): string {
+  const valueText = formatValue(label.value);
+  const percentText = `${Math.round(label.percent * 100)}%`;
+
+  switch (mode) {
+    case 'name':
+      return label.name;
+    case 'value':
+      return valueText;
+    case 'percent':
+      return percentText;
+    case 'nameValue':
+      return `${label.name} ${valueText}`;
+    case 'valuePercent':
+      return `${valueText} (${percentText})`;
+    case 'namePercent':
+    default:
+      return `${label.name} ${percentText}`;
+  }
+}
+
+function distributeLabels(items: PieLabelLayoutItem[], minY: number, maxY: number, minGap: number): PieLabelLayoutItem[] {
+  if (items.length <= 1) return items;
+
+  const next = [...items];
+  next[0] = {
+    ...next[0],
+    y: Math.max(minY, Math.min(maxY, next[0].y)),
+  };
+
+  for (let index = 1; index < next.length; index++) {
+    const previous = next[index - 1];
+    next[index] = {
+      ...next[index],
+      y: Math.max(next[index].y, previous.y + minGap),
+    };
+  }
+
+  const overflow = next[next.length - 1].y - maxY;
+  if (overflow > 0) {
+    next[next.length - 1] = {
+      ...next[next.length - 1],
+      y: next[next.length - 1].y - overflow,
+    };
+
+    for (let index = next.length - 2; index >= 0; index--) {
+      const following = next[index + 1];
+      next[index] = {
+        ...next[index],
+        y: Math.min(next[index].y, following.y - minGap),
+      };
+    }
+  }
+
+  const underflow = minY - next[0].y;
+  if (underflow > 0) {
+    for (let index = 0; index < next.length; index++) {
+      next[index] = {
+        ...next[index],
+        y: next[index].y + underflow,
+      };
+    }
+  }
+
+  return next.map((item) => ({
+    ...item,
+    lineBendY: item.y,
+    lineEndY: item.y,
+  }));
+}
+
 export function Pie({
   dataKey,
   nameKey,
@@ -112,7 +220,13 @@ export function Pie({
   minAngle = PIE_CONSTANTS.DEFAULT_MIN_ANGLE,
   hoverOpacity = PIE_CONSTANTS.DEFAULT_HOVER_OPACITY,
   label = false,
+  labelMode = 'namePercent',
   labelFormatter,
+  labelLine = false,
+  labelLineColor,
+  labelLineWidth = PIE_CONSTANTS.DEFAULT_LABEL_LINE_WIDTH,
+  labelOffset = PIE_CONSTANTS.DEFAULT_LABEL_OFFSET,
+  labelMinGap = PIE_CONSTANTS.DEFAULT_LABEL_MIN_GAP,
   name,
   tooltipName,
   tooltipFormatter,
@@ -139,6 +253,7 @@ export function Pie({
   const hoverOpacityValue = normalizeHoverOpacity(hoverOpacity);
   const defaultSeriesName = tooltipName ?? name ?? (typeof dataKey === 'string' ? dataKey : 'Pie');
   const legendColor = colors?.[0] ?? fill ?? PIE_COLORS[0];
+  const labelLineStroke = labelLineColor ?? stroke ?? '#94a3b8';
 
   useEffect(() => {
     return registerLegendItem({
@@ -292,44 +407,144 @@ export function Pie({
     return registerRender(render, { layer: PIE_CONSTANTS.RENDER_LAYER });
   }, [ctx, data, registerRender, hoveredIndex, hoverOpacityValue, isSeriesVisible, seriesId, legendVersion]);
 
+  const labelLayout = useMemo<PieLabelLayoutItem[]>(() => {
+    if (!label || !isSeriesVisible(seriesId) || labelSlices.length === 0) return [];
+
+    const total = labelSlices.reduce((sum, item) => sum + item.value, 0) || 1;
+    const minY = margin.top + 8;
+    const maxY = height - margin.bottom - 8;
+    const horizontalGap = 8;
+    const sideGap = Math.max(0, labelOffset * 0.35);
+    const minGap = Math.max(8, labelMinGap);
+
+    const leftItems: PieLabelLayoutItem[] = [];
+    const rightItems: PieLabelLayoutItem[] = [];
+
+    for (const slice of labelSlices) {
+      const rad = (slice.midAngle * Math.PI) / 180;
+      const percent = slice.value / total;
+      const context: PieLabelContext = {
+        index: slice.index,
+        name: slice.name,
+        value: slice.value,
+        percent,
+        color: slice.color,
+      };
+
+      const customNode = typeof label === 'function' ? label(context) : null;
+      const content = customNode
+        ?? (labelFormatter
+          ? labelFormatter(slice.value, slice.name, percent)
+          : formatDefaultLabel(labelMode, context));
+
+      const side = Math.cos(rad) >= 0 ? 'right' : 'left';
+      const lineStartX = slice.cx + Math.cos(rad) * slice.outerRadius;
+      const lineStartY = slice.cy + Math.sin(rad) * slice.outerRadius;
+      const lineBendX = slice.cx + Math.cos(rad) * (slice.outerRadius + sideGap);
+      const lineBendY = slice.cy + Math.sin(rad) * (slice.outerRadius + sideGap);
+      const baseY = slice.cy + Math.sin(rad) * (slice.outerRadius + labelOffset);
+      const baseX = slice.cx
+        + Math.cos(rad) * (slice.outerRadius + labelOffset)
+        + (side === 'right' ? horizontalGap : -horizontalGap);
+
+      const item: PieLabelLayoutItem = {
+        key: `pie-label-${slice.index}`,
+        x: baseX,
+        y: baseY,
+        anchor: side,
+        content,
+        lineStartX,
+        lineStartY,
+        lineBendX,
+        lineBendY,
+        lineEndX: baseX + (side === 'right' ? -3 : 3),
+        lineEndY: baseY,
+      };
+
+      if (side === 'right') {
+        rightItems.push(item);
+      } else {
+        leftItems.push(item);
+      }
+    }
+
+    const sortByY = (a: PieLabelLayoutItem, b: PieLabelLayoutItem) => a.y - b.y;
+    leftItems.sort(sortByY);
+    rightItems.sort(sortByY);
+
+    const resolvedLeft = distributeLabels(leftItems, minY, maxY, minGap);
+    const resolvedRight = distributeLabels(rightItems, minY, maxY, minGap);
+
+    return [...resolvedLeft, ...resolvedRight];
+  }, [
+    label,
+    labelFormatter,
+    labelMode,
+    labelSlices,
+    labelOffset,
+    labelMinGap,
+    isSeriesVisible,
+    seriesId,
+    margin,
+    height,
+  ]);
+
+  useEffect(() => {
+    if (!ctx || !labelLine || !label || !isSeriesVisible(seriesId) || labelLayout.length === 0) return;
+
+    const renderLabelLines = () => {
+      if (!isSeriesVisible(seriesId)) return;
+      if (labelLayout.length === 0) return;
+
+      ctx.save();
+      ctx.strokeStyle = labelLineStroke;
+      ctx.lineWidth = Math.max(0.5, labelLineWidth);
+
+      for (const item of labelLayout) {
+        ctx.beginPath();
+        ctx.moveTo(item.lineStartX, item.lineStartY);
+        ctx.lineTo(item.lineBendX, item.lineBendY);
+        ctx.lineTo(item.lineEndX, item.lineEndY);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    };
+
+    return registerRender(renderLabelLines, { layer: PIE_CONSTANTS.LABEL_LINE_LAYER });
+  }, [
+    ctx,
+    label,
+    labelLine,
+    labelLayout,
+    labelLineStroke,
+    labelLineWidth,
+    registerRender,
+    isSeriesVisible,
+    seriesId,
+    legendVersion,
+  ]);
+
   if (!label || !isSeriesVisible(seriesId)) return null;
 
-  const labelTotal = labelSlices.reduce((sum, item) => sum + item.value, 0) || 1;
-
-  const labelNodes = labelSlices.map((slice) => {
-    const mid = (slice.startAngle + slice.endAngle) / 2;
-    const rad = (mid * Math.PI) / 180;
-    const radius = slice.outerRadius + 12;
-    const x = slice.cx + Math.cos(rad) * radius;
-    const y = slice.cy + Math.sin(rad) * radius;
-    const percent = slice.value / labelTotal;
-
-    const customNode = typeof label === 'function'
-      ? label({ index: slice.index, name: slice.name, value: slice.value, percent, color: slice.color })
-      : null;
-    const formatted = customNode
-      ?? (labelFormatter
-        ? labelFormatter(slice.value, slice.name, percent)
-        : `${slice.name} ${(percent * 100).toFixed(0)}%`);
-
-    return (
-      <div
-        key={`pie-label-${slice.index}`}
-        style={{
-          position: 'absolute',
-          left: x,
-          top: y,
-          transform: 'translate(-50%, -50%)',
-          pointerEvents: 'none',
-          fontSize: 11,
-          color: '#334155',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {formatted}
-      </div>
-    );
-  });
+  const labelNodes = labelLayout.map((item) => (
+    <div
+      key={item.key}
+      style={{
+        position: 'absolute',
+        left: item.x,
+        top: item.y,
+        transform: item.anchor === 'right' ? 'translate(0, -50%)' : 'translate(-100%, -50%)',
+        textAlign: item.anchor,
+        pointerEvents: 'none',
+        fontSize: 11,
+        color: '#334155',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {item.content}
+    </div>
+  ));
 
   return <>{labelNodes}</>;
 }

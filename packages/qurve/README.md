@@ -140,7 +140,13 @@ export function Demo() {
 | `startAngle/endAngle` | `number` | `0/360` |
 | `paddingAngle` | `number` | `0` |
 | `label` | `boolean \| fn` | `false` |
+| `labelMode` | `'namePercent' \| 'name' \| 'value' \| 'percent' \| 'nameValue' \| 'valuePercent'` | `'namePercent'` |
 | `labelFormatter` | `fn` | - |
+| `labelLine` | `boolean` | `false` |
+| `labelLineColor` | `string` | series stroke |
+| `labelLineWidth` | `number` | `1` |
+| `labelOffset` | `number` | `18` |
+| `labelMinGap` | `number` | `14` |
 
 `Scatter`
 
@@ -272,7 +278,8 @@ Composed charts use deterministic layering and tooltip payload order:
 - Use `innerRadius` to switch from pie to donut
 - Use `nameKey` to control slice labels used by tooltip
 - Use `colors` to provide a deterministic per-slice palette
-- Use `label`/`labelFormatter` for HTML labels around arcs
+- Use `label` with `labelMode`/`labelFormatter` for HTML labels around arcs
+- Use `labelLine` to draw connector lines and `labelMinGap` to reduce overlaps
 - Use `startAngle`/`endAngle` and `paddingAngle` for custom arc layouts
 
 ```tsx

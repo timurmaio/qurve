@@ -107,4 +107,48 @@ describe('Pie', () => {
     expect(await screen.findByText('Alpha color:')).toBeInTheDocument();
     expect(screen.getByText('#111111')).toBeInTheDocument();
   });
+
+  it('supports labelMode and custom label render function context', async () => {
+    render(
+      <Chart
+        data={[
+          { name: 'Alpha', value: 40 },
+          { name: 'Beta', value: 60 },
+        ]}
+        width={280}
+        height={160}
+      >
+        <Pie
+          dataKey="value"
+          nameKey="name"
+          outerRadius={52}
+          innerRadius={20}
+          label
+          labelMode="valuePercent"
+          colors={['#111111', '#222222']}
+        />
+      </Chart>,
+    );
+
+    expect(await screen.findByText('40 (40%)')).toBeInTheDocument();
+    expect(await screen.findByText('60 (60%)')).toBeInTheDocument();
+
+    render(
+      <Chart
+        data={[{ name: 'Alpha', value: 100 }]}
+        width={200}
+        height={120}
+      >
+        <Pie
+          dataKey="value"
+          nameKey="name"
+          outerRadius={40}
+          label={(slice) => `${slice.name} ${slice.color}`}
+          colors={['#abc123']}
+        />
+      </Chart>,
+    );
+
+    expect(await screen.findByText('Alpha #abc123')).toBeInTheDocument();
+  });
 });
