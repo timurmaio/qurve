@@ -160,4 +160,28 @@ describe('Tooltip', () => {
 
     expect(screen.queryByRole('status')).toBeNull();
   });
+
+  it('can include and customize accessibility summary', async () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, a: 10, b: 5 }]} width={320} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="a" name="A" />
+        <Line dataKey="b" name="B" />
+        <Tooltip
+          a11yIncludeSummary
+          a11ySummaryFormatter={(payload) => `Sum=${payload.reduce((sum, item) => sum + (item.value ?? 0), 0).toFixed(0)}`}
+        />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+    hoverCanvas(canvas as HTMLCanvasElement, 20, 20);
+
+    const status = await screen.findByRole('status');
+    expect(status.textContent).toContain('A: 10.00');
+    expect(status.textContent).toContain('B: 5.00');
+    expect(status.textContent).toContain('Sum=15');
+  });
 });

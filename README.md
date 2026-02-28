@@ -10,6 +10,10 @@
 
 [Visx](https://airbnb.io/visx)-like composability meets the raw power of HTML5 Canvas.
 
+[![npm version](https://img.shields.io/npm/v/qurve.svg)](https://www.npmjs.com/package/qurve)
+[![CI](https://github.com/timurmaio/qurve/actions/workflows/ci.yml/badge.svg)](https://github.com/timurmaio/qurve/actions/workflows/ci.yml)
+[![coverage](https://img.shields.io/badge/coverage-89%25-brightgreen)](./packages/qurve/coverage)
+
 </div>
 
 ## Why Qurve?

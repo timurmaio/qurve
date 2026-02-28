@@ -65,6 +65,8 @@ export interface TooltipProps {
   sticky?: boolean;
   ariaLive?: 'off' | 'polite' | 'assertive';
   a11yLabelFormatter?: (label: TooltipLabel | undefined, payload: TooltipPayloadItem[]) => string;
+  a11ySummaryFormatter?: (payload: TooltipPayloadItem[]) => string;
+  a11yIncludeSummary?: boolean;
   hideA11yRegion?: boolean;
   wrapperStyle?: React.CSSProperties;
   contentStyle?: React.CSSProperties;
@@ -145,6 +147,8 @@ export function Tooltip({
   sticky = false,
   ariaLive = 'polite',
   a11yLabelFormatter,
+  a11ySummaryFormatter,
+  a11yIncludeSummary = false,
   hideA11yRegion = false,
   wrapperStyle,
   contentStyle,
@@ -405,6 +409,16 @@ export function Tooltip({
       : [
           tooltipProps.label !== undefined ? `Label: ${nodeToText(formatDefaultLabel(tooltipProps.label, xAxis))}` : '',
           payloadToA11yText(activePayload, formatter),
+          a11yIncludeSummary
+            ? (a11ySummaryFormatter
+              ? a11ySummaryFormatter(activePayload)
+              : (() => {
+                  const total = activePayload.reduce((sum, item) => {
+                    return sum + (typeof item.value === 'number' ? item.value : 0);
+                  }, 0);
+                  return `Total: ${total.toFixed(2)}`;
+                })())
+            : '',
         ].filter(Boolean).join('. '))
     : '';
 

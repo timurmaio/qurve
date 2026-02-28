@@ -17,6 +17,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ### Changed
 - `Tooltip` now supports per-series formatter overrides, sticky lock mode, and optional screen-reader live region controls.
+- `Tooltip` accessibility now supports optional aggregated summary announcements.
 - `XAxis` and `YAxis` support custom `tickValues`, `interval`, and axis `padding`.
 - `XAxis` now supports `type='time'` with automatic time ticks plus `locale`, `timeZone`, and `timeFormat` controls.
 - `Bar` adds `maxBarSize`, `minPointSize`, and improved stacked-corner rounding.
@@ -29,6 +30,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 ### Notes
 - Release verification now includes `check:release` (`typecheck`, build, and pack).
 - `0.2.0` is prepared as release-ready in docs and verification, without publishing in this cycle.
+- CI workflow now runs `verify` and package release checks on PRs and main pushes.
 
 ## [0.1.0] - 2026-02-20
 

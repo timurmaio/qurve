@@ -355,6 +355,8 @@ Composed charts use deterministic layering and tooltip payload order:
 - Click again or press `Esc` to unlock
 - `ariaLive`: controls live region politeness (`polite` by default)
 - `a11yLabelFormatter`: custom text for screen readers
+- `a11yIncludeSummary`: include default aggregated summary
+- `a11ySummaryFormatter`: custom summary text for screen readers
 - `hideA11yRegion`: disable built-in SR announcements
 
 ```tsx
@@ -366,7 +368,40 @@ Composed charts use deterministic layering and tooltip payload order:
     sticky
     ariaLive="polite"
     a11yLabelFormatter={(label, payload) => `${label}: ${payload.map((p) => `${p.name} ${p.value}`).join(', ')}`}
+    a11yIncludeSummary
+    a11ySummaryFormatter={(payload) => `Total: ${payload.reduce((sum, p) => sum + (p.value ?? 0), 0)}`}
   />
+</Chart>
+```
+
+## Recipes
+
+Large dataset with brush + time axis:
+
+```tsx
+<Chart data={data} width={900} height={360} margin={{ bottom: 30 }}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="ts" type="time" tickCount={6} />
+  <YAxis />
+  <Line dataKey="close" stroke="#2563eb" dot={false} />
+  <Tooltip sticky />
+  <Brush previewDataKey="close" />
+</Chart>
+```
+
+Composed chart with focused legend mode:
+
+```tsx
+<Chart data={data} width={800} height={360}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Area dataKey="baseline" fill="#93c5fd" fillOpacity={0.2} />
+  <Bar dataKey="volume" fill="#60a5fa" />
+  <Line dataKey="trend" stroke="#1d4ed8" dot={false} />
+  <Scatter xKey="ix" yKey="outlier" size={5} fill="#f97316" />
+  <Legend selectionMode="single" />
+  <Tooltip />
 </Chart>
 ```
 
