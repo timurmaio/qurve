@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Chart } from '../chart/chartContext';
 import { Tooltip } from '../Tooltip';
@@ -150,5 +150,97 @@ describe('Pie', () => {
     );
 
     expect(await screen.findByText('Alpha #abc123')).toBeInTheDocument();
+  });
+
+  it('keeps labels in sync with legend visibility toggles', async () => {
+    render(
+      <Chart
+        data={[
+          { name: 'Alpha', value: 40 },
+          { name: 'Beta', value: 60 },
+        ]}
+        width={280}
+        height={160}
+      >
+        <Pie
+          dataKey="value"
+          nameKey="name"
+          name="Traffic"
+          outerRadius={52}
+          innerRadius={20}
+          label
+          labelLine
+        />
+        <Legend />
+      </Chart>,
+    );
+
+    expect(await screen.findByText('Alpha 40%')).toBeInTheDocument();
+
+    const legendButton = await screen.findByRole('button', { name: 'Traffic, visible' });
+    fireEvent.click(legendButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Alpha 40%')).not.toBeInTheDocument();
+      expect(screen.queryByText('Beta 60%')).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(legendButton);
+
+    expect(await screen.findByText('Alpha 40%')).toBeInTheDocument();
+    expect(await screen.findByText('Beta 60%')).toBeInTheDocument();
+  });
+
+  it('renders dense labels with configured minimum gaps on both sides', async () => {
+    const data = Array.from({ length: 20 }, (_, index) => ({
+      name: `Slice ${index + 1}`,
+      value: 5 + (index % 4),
+    }));
+
+    render(
+      <Chart data={data} width={280} height={170} margin={{ top: 6, right: 8, left: 8, bottom: 24 }}>
+        <Pie
+          dataKey="value"
+          nameKey="name"
+          innerRadius={20}
+          outerRadius={48}
+          startAngle={210}
+          endAngle={-150}
+          label
+          labelLine
+          labelMode="name"
+          labelOffset={16}
+          labelMinGap={10}
+        />
+      </Chart>,
+    );
+
+    expect(await screen.findByText('Slice 1')).toBeInTheDocument();
+    expect(await screen.findByText('Slice 20')).toBeInTheDocument();
+
+    const labelElements = data
+      .map((item) => screen.getByText(item.name))
+      .map((element) => {
+        return {
+          top: Number.parseFloat(element.getAttribute('style')?.match(/top:\s*([^;]+)/)?.[1] ?? '0'),
+          side: element.getAttribute('style')?.includes('text-align: right') ? 'right' : 'left',
+        };
+      });
+
+    expect(labelElements.length).toBe(20);
+
+    const assertMinGap = (side: 'left' | 'right') => {
+      const tops = labelElements
+        .filter((item) => item.side === side)
+        .map((item) => item.top)
+        .sort((a, b) => a - b);
+
+      for (let index = 1; index < tops.length; index++) {
+        expect(tops[index] - tops[index - 1]).toBeGreaterThanOrEqual(9.5);
+      }
+    };
+
+    assertMinGap('left');
+    assertMinGap('right');
   });
 });

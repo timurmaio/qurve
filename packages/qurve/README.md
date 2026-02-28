@@ -280,6 +280,7 @@ Composed charts use deterministic layering and tooltip payload order:
 - Use `colors` to provide a deterministic per-slice palette
 - Use `label` with `labelMode`/`labelFormatter` for HTML labels around arcs
 - Use `labelLine` to draw connector lines and `labelMinGap` to reduce overlaps
+- For narrow cards, increase `labelMinGap` and tune `labelOffset` for cleaner outside labels
 - Use `startAngle`/`endAngle` and `paddingAngle` for custom arc layouts
 
 ```tsx
@@ -294,6 +295,28 @@ Composed charts use deterministic layering and tooltip payload order:
     paddingAngle={1}
   />
   <Legend />
+  <Tooltip />
+</Chart>
+```
+
+Dense layout example with connector lines:
+
+```tsx
+<Chart data={data} width={420} height={280} margin={{ top: 8, right: 12, left: 12, bottom: 8 }}>
+  <Pie
+    dataKey="value"
+    nameKey="segment"
+    innerRadius={56}
+    outerRadius={92}
+    colors={["#60a5fa", "#34d399", "#f59e0b", "#f97316", "#8b5cf6", "#14b8a6"]}
+    label
+    labelMode="namePercent"
+    labelLine
+    labelOffset={20}
+    labelMinGap={12}
+    startAngle={210}
+    endAngle={-150}
+  />
   <Tooltip />
 </Chart>
 ```

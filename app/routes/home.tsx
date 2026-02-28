@@ -432,21 +432,30 @@ function LegendDemo({ palette }: { palette: ChartPalette }) {
 function PieDemo({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
     return [
-      { name: "Desktop", value: 42 },
-      { name: "Mobile", value: 35 },
-      { name: "Tablet", value: 23 },
+      { name: "Desktop", value: 31 },
+      { name: "Mobile Web", value: 26 },
+      { name: "Mobile App", value: 19 },
+      { name: "Tablet", value: 10 },
+      { name: "Smart TV", value: 8 },
+      { name: "Other", value: 6 },
     ];
   }, []);
 
   return (
-    <ChartDemo height={160}>
+    <ChartDemo height={168}>
       <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
         <Pie
           dataKey="value"
           nameKey="name"
-          innerRadius={24}
-          outerRadius={52}
-          fill={palette.pie1}
+          innerRadius={22}
+          outerRadius={50}
+          colors={[palette.pie1, palette.pie2, palette.pie3, '#f97316', '#8b5cf6', '#14b8a6']}
+          label
+          labelMode="namePercent"
+          labelLine
+          labelMinGap={10}
+          startAngle={210}
+          endAngle={-150}
         />
         <Legend />
         <Tooltip />
@@ -747,7 +756,7 @@ export default function Home() {
               />
               <PrimitiveCard
                 name="<Pie />"
-                description="Pie and donut charts with tooltip hit-testing, legend integration, and slice hover opacity."
+                description="Pie and donut charts with palette-driven slices, outside labels, connector lines, and tooltip hit-testing."
                 status="implemented"
                 example={<PieDemo palette={palette} />}
               />
