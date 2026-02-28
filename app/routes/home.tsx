@@ -117,7 +117,7 @@ function PrimitiveCard({
       </div>
       <p className="text-[var(--text-muted)] text-sm leading-relaxed flex-grow">{description}</p>
       {example && (
-        <div className="mt-4 pt-4 border-t border-[var(--border)] opacity-80 group-hover:opacity-100 transition-opacity">
+        <div className="mt-4 pt-4 border-t border-[var(--border)]">
           {example}
         </div>
       )}
@@ -141,28 +141,36 @@ function FeatureCard({
   );
 }
 
-// Planned primitives data
-const PLANNED_PRIMITIVES: { name: string; description: string }[] = [];
+// Shared wrapper for responsive chart demos
+function ChartDemo({ height = 140, children }: { height?: number; children: React.ReactNode }) {
+  return (
+    <div className="w-full" style={{ height }}>
+      <ResponsiveContainer>{children as React.ReactElement}</ResponsiveContainer>
+    </div>
+  );
+}
 
 // Demo charts
 function SimpleChartDemo({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
     return Array.from({ length: 10 }, (_, i) => ({
       x: i,
-      y: 30 + Math.sin(i * 0.7) * 20 + Math.random() * 10,
+      y: 30 + Math.sin(i * 0.7) * 20 + (((i * 7 + 3) % 11) / 11) * 10,
     }));
   }, []);
 
   return (
-    <Chart data={data} width={280} height={120}>
-      <Line
-        dataKey="y"
-        type="linear"
-        stroke={palette.linePrimary}
-        strokeWidth={2}
-        dot={{ r: 3 }}
-      />
-    </Chart>
+    <ChartDemo>
+      <Chart data={data}>
+        <Line
+          dataKey="y"
+          type="linear"
+          stroke={palette.linePrimary}
+          strokeWidth={2}
+          dot={{ r: 3 }}
+        />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -175,18 +183,20 @@ function LineChartDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <Chart data={data} width={280} height={120}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Line
-        dataKey="value"
-        type="monotone"
-        stroke={palette.linePrimary}
-        strokeWidth={2}
-        dot={false}
-      />
-    </Chart>
+    <ChartDemo>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Line
+          dataKey="value"
+          type="monotone"
+          stroke={palette.linePrimary}
+          strokeWidth={2}
+          dot={false}
+        />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -200,13 +210,15 @@ function MultiLineDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <Chart data={data} width={280} height={120}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Line dataKey="value1" type="monotone" stroke={palette.linePrimary} dot={false} />
-      <Line dataKey="value2" type="monotone" stroke={palette.lineSecondary} dot={false} />
-    </Chart>
+    <ChartDemo>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Line dataKey="value1" type="monotone" stroke={palette.linePrimary} dot={false} />
+        <Line dataKey="value2" type="monotone" stroke={palette.lineSecondary} dot={false} />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -219,18 +231,20 @@ function AxisDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <Chart data={data} width={280} height={120}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="ts" type="time" tickCount={4} locale="en-US" timeZone="UTC" timeFormat="date" />
-      <YAxis />
-      <Line
-        dataKey="value"
-        type="monotone"
-        stroke={palette.linePrimary}
-        strokeWidth={2}
-        dot={false}
-      />
-    </Chart>
+    <ChartDemo>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="ts" type="time" tickCount={4} locale="en-US" timeZone="UTC" timeFormat="date" />
+        <YAxis />
+        <Line
+          dataKey="value"
+          type="monotone"
+          stroke={palette.linePrimary}
+          strokeWidth={2}
+          dot={false}
+        />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -238,48 +252,54 @@ function GridDemo({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
     return Array.from({ length: 8 }, (_, i) => ({
       x: i,
-      y: 40 + Math.random() * 40,
+      y: 40 + ((i * 13 + 7) % 40),
     }));
   }, []);
 
   return (
-    <Chart data={data} width={280} height={120}>
-      <CartesianGrid strokeDasharray="5 5" stroke={palette.grid} />
-      <Line
-        dataKey="y"
-        type="linear"
-        stroke={palette.linePrimary}
-        strokeWidth={2}
-        dot={{ r: 4 }}
-      />
-    </Chart>
+    <ChartDemo>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="5 5" stroke={palette.grid} />
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line
+          dataKey="y"
+          type="linear"
+          stroke={palette.linePrimary}
+          strokeWidth={2}
+          dot={{ r: 4 }}
+        />
+      </Chart>
+    </ChartDemo>
   );
 }
 
 function TooltipDemo({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
-    return appleStock.slice(0, 30).map((d, i) => ({
+    return appleStock.slice(0, 30).map((d) => ({
       date: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       price: d.close,
     }));
   }, []);
 
   return (
-    <Chart data={data} width={280} height={120}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="date" />
-      <YAxis />
-      <Line
-        dataKey="price"
-        type="monotone"
-        stroke={palette.linePrimary}
-        strokeWidth={2}
-        dot={false}
-        activeDot={{ r: 6 }}
-        name="Price"
-      />
-      <Tooltip />
-    </Chart>
+    <ChartDemo>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Line
+          dataKey="price"
+          type="monotone"
+          stroke={palette.linePrimary}
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 6 }}
+          name="Price"
+        />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -297,32 +317,34 @@ function BarDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <Chart data={data} width={280} height={120}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="name" />
-      <YAxis />
-      <Bar
-        dataKey="sales"
-        fill={palette.barPrimary}
-        radius={4}
-        stackId="net"
-        maxBarSize={24}
-        minPointSize={3}
-        tooltipName="Sales"
-        tooltipFormatter={(value) => value === null ? "-" : `$${value.toFixed(0)}k`}
-      />
-      <Bar
-        dataKey="refunds"
-        fill={palette.barSecondary}
-        radius={4}
-        stackId="net"
-        maxBarSize={24}
-        minPointSize={3}
-        tooltipName="Refunds"
-        tooltipFormatter={(value) => value === null ? "-" : `$${Math.abs(value).toFixed(0)}k`}
-      />
-      <Tooltip />
-    </Chart>
+    <ChartDemo>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Bar
+          dataKey="sales"
+          fill={palette.barPrimary}
+          radius={4}
+          stackId="net"
+          maxBarSize={24}
+          minPointSize={3}
+          tooltipName="Sales"
+          tooltipFormatter={(value) => value === null ? "-" : `$${value.toFixed(0)}k`}
+        />
+        <Bar
+          dataKey="refunds"
+          fill={palette.barSecondary}
+          radius={4}
+          stackId="net"
+          maxBarSize={24}
+          minPointSize={3}
+          tooltipName="Refunds"
+          tooltipFormatter={(value) => value === null ? "-" : `$${Math.abs(value).toFixed(0)}k`}
+        />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -337,28 +359,30 @@ function AreaDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <Chart data={data} width={280} height={120}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="name" />
-      <YAxis domain={[0, 50]} />
-      <Area
-        dataKey="productA"
-        stackId="total"
-        fill={palette.areaPrimary}
-        fillOpacity={0.28}
-        stroke={palette.linePrimary}
-        tooltipName="Product A"
-      />
-      <Area
-        dataKey="productB"
-        stackId="total"
-        fill={palette.areaSecondary}
-        fillOpacity={0.28}
-        stroke={palette.areaSecondary}
-        tooltipName="Product B"
-      />
-      <Tooltip />
-    </Chart>
+    <ChartDemo>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="name" />
+        <YAxis domain={[0, 50]} />
+        <Area
+          dataKey="productA"
+          stackId="total"
+          fill={palette.areaPrimary}
+          fillOpacity={0.28}
+          stroke={palette.linePrimary}
+          tooltipName="Product A"
+        />
+        <Area
+          dataKey="productB"
+          stackId="total"
+          fill={palette.areaSecondary}
+          fillOpacity={0.28}
+          stroke={palette.areaSecondary}
+          tooltipName="Product B"
+        />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -371,16 +395,14 @@ function ResponsiveDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <div className="w-full h-[120px]">
-      <ResponsiveContainer>
-        <Chart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Area dataKey="value" fill={palette.areaSecondary} fillOpacity={0.3} stroke={palette.areaSecondary} />
-        </Chart>
-      </ResponsiveContainer>
-    </div>
+    <ChartDemo>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="month" />
+        <YAxis />
+        <Area dataKey="value" fill={palette.areaSecondary} fillOpacity={0.3} stroke={palette.areaSecondary} />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -394,14 +416,16 @@ function LegendDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <Chart data={data} width={280} height={140} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="day" />
-      <YAxis />
-      <Bar dataKey="bars" fill={palette.barPrimary} maxBarSize={20} />
-      <Line dataKey="line" stroke={palette.linePrimary} dot={false} />
-      <Legend />
-    </Chart>
+    <ChartDemo height={160}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="day" />
+        <YAxis />
+        <Bar dataKey="bars" fill={palette.barPrimary} maxBarSize={20} />
+        <Line dataKey="line" stroke={palette.linePrimary} dot={false} />
+        <Legend />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -415,40 +439,48 @@ function PieDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <Chart data={data} width={280} height={140} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
-      <Pie
-        dataKey="value"
-        nameKey="name"
-        innerRadius={24}
-        outerRadius={50}
-        fill={palette.pie1}
-      />
-      <Legend />
-      <Tooltip />
-    </Chart>
+    <ChartDemo height={160}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
+        <Pie
+          dataKey="value"
+          nameKey="name"
+          innerRadius={24}
+          outerRadius={52}
+          fill={palette.pie1}
+        />
+        <Legend />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
   );
 }
 
 function ScatterDemo({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
-    return [
-      { hours: 1, score: 22 },
-      { hours: 2, score: 28 },
-      { hours: 3, score: 35 },
-      { hours: 4, score: 41 },
-      { hours: 5, score: 55 },
-      { hours: 6, score: 60 },
+    // Three clusters of study hours vs test scores
+    const clusters = [
+      { centerHours: 1.5, centerScore: 28, count: 12 },
+      { centerHours: 4, centerScore: 52, count: 14 },
+      { centerHours: 7, centerScore: 74, count: 14 },
     ];
+    return clusters.flatMap(({ centerHours, centerScore, count }, ci) =>
+      Array.from({ length: count }, (_, i) => ({
+        hours: Math.max(0.2, centerHours + ((((ci * 17 + i * 7) % 20) / 10) - 1) * 1.2),
+        score: Math.min(100, Math.max(10, centerScore + ((((ci * 11 + i * 13) % 20) / 10) - 1) * 14)),
+      }))
+    );
   }, []);
 
   return (
-    <Chart data={data} width={280} height={140}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="hours" domain={[0, 7]} />
-      <YAxis dataKey="score" domain={[0, 70]} />
-      <Scatter xKey="hours" yKey="score" fill={palette.scatter} size={5} name="Samples" />
-      <Tooltip />
-    </Chart>
+    <ChartDemo height={160}>
+      <Chart data={data}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="hours" domain={[0, 9]} />
+        <YAxis dataKey="score" domain={[0, 100]} />
+        <Scatter xKey="hours" yKey="score" fill={palette.scatter} size={5} name="Samples" />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
   );
 }
 
@@ -461,13 +493,142 @@ function BrushDemo({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <Chart data={data} width={280} height={150} margin={{ top: 6, right: 8, left: 8, bottom: 26 }}>
-      <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-      <XAxis dataKey="day" />
-      <YAxis />
-      <Line dataKey="value" stroke={palette.linePrimary} dot={false} strokeWidth={2} />
-      <Brush />
-    </Chart>
+    <ChartDemo height={160}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 26 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+        <XAxis dataKey="day" />
+        <YAxis />
+        <Line dataKey="value" stroke={palette.linePrimary} dot={false} strokeWidth={2} />
+        <Brush />
+      </Chart>
+    </ChartDemo>
+  );
+}
+
+// Example: Stock Dashboard — Line + Brush + Tooltip
+function StockDashboardExample({ palette }: { palette: ChartPalette }) {
+  const data = useMemo(() => {
+    return appleStock.slice(0, 90).map((d, i) => ({
+      day: i + 1,
+      price: d.close,
+      date: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+    }));
+  }, []);
+
+  return (
+    <div className="bg-[var(--surface)] rounded-lg p-8 shadow-[var(--shadow)]">
+      <div className="mb-6">
+        <h3 className="text-sm font-medium text-[var(--text)] mb-1">Stock Dashboard</h3>
+        <p className="text-xs text-[var(--text-muted)]">Line + CartesianGrid + Tooltip + Brush — 90 data points</p>
+      </div>
+      <div className="h-[220px] mb-6">
+        <ResponsiveContainer>
+          <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+            <XAxis dataKey="day" />
+            <YAxis />
+            <Line
+              dataKey="price"
+              type="monotone"
+              stroke={palette.linePrimary}
+              strokeWidth={2}
+              dot={false}
+              activeDot={{ r: 5 }}
+              name="AAPL"
+            />
+            <Tooltip />
+            <Brush />
+          </Chart>
+        </ResponsiveContainer>
+      </div>
+      <pre className="text-xs text-[var(--text-muted)] bg-[var(--surface-muted)] p-4 rounded-lg overflow-x-auto font-mono leading-relaxed">{`<Chart data={data}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="day" />
+  <YAxis />
+  <Line
+    dataKey="price"
+    type="monotone"
+    stroke="#60a5fa"
+    strokeWidth={2}
+    dot={false}
+    activeDot={{ r: 5 }}
+    name="AAPL"
+  />
+  <Tooltip />
+  <Brush />
+</Chart>`}</pre>
+    </div>
+  );
+}
+
+// Example: Sales Overview — Bar + Line + Legend + Tooltip
+function SalesOverviewExample({ palette }: { palette: ChartPalette }) {
+  const data = useMemo(() => {
+    return [
+      { month: "Jan", revenue: 42, target: 38 },
+      { month: "Feb", revenue: 38, target: 40 },
+      { month: "Mar", revenue: 55, target: 45 },
+      { month: "Apr", revenue: 48, target: 48 },
+      { month: "May", revenue: 62, target: 52 },
+      { month: "Jun", revenue: 58, target: 55 },
+      { month: "Jul", revenue: 71, target: 60 },
+      { month: "Aug", revenue: 65, target: 63 },
+    ];
+  }, []);
+
+  return (
+    <div className="bg-[var(--surface)] rounded-lg p-8 shadow-[var(--shadow)]">
+      <div className="mb-6">
+        <h3 className="text-sm font-medium text-[var(--text)] mb-1">Sales Overview</h3>
+        <p className="text-xs text-[var(--text-muted)]">Bar + Line + Legend + Tooltip — revenue vs target</p>
+      </div>
+      <div className="h-[220px] mb-6">
+        <ResponsiveContainer>
+          <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 28 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Bar
+              dataKey="revenue"
+              fill={palette.barPrimary}
+              radius={4}
+              maxBarSize={32}
+              tooltipName="Revenue"
+              tooltipFormatter={(v) => v === null ? "-" : `$${v}k`}
+            />
+            <Line
+              dataKey="target"
+              type="monotone"
+              stroke={palette.lineSecondary}
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              name="Target"
+            />
+            <Legend />
+            <Tooltip />
+          </Chart>
+        </ResponsiveContainer>
+      </div>
+      <pre className="text-xs text-[var(--text-muted)] bg-[var(--surface-muted)] p-4 rounded-lg overflow-x-auto font-mono leading-relaxed">{`<Chart data={data}>
+  <CartesianGrid strokeDasharray="3 3" />
+  <XAxis dataKey="month" />
+  <YAxis />
+  <Bar
+    dataKey="revenue"
+    fill="#60a5fa"
+    radius={4}
+    tooltipName="Revenue"
+  />
+  <Line
+    dataKey="target"
+    stroke="#f97316"
+    strokeWidth={2}
+    name="Target"
+  />
+  <Legend />
+  <Tooltip />
+</Chart>`}</pre>
+    </div>
   );
 }
 
@@ -497,12 +658,12 @@ export default function Home() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <header className="mb-24">
-          <div className="flex items-end justify-between gap-4 mb-6">
+          <div className="flex items-center justify-between gap-4 mb-10">
             <div className="flex items-end gap-4">
               <div className="translate-y-1 sm:translate-y-2">
                 <Logo size={72} />
               </div>
-              <h1 className="sr-only">Qurve</h1>
+              <h1 className="text-xl font-semibold tracking-tight text-[var(--text)]">Qurve</h1>
             </div>
             <button
               type="button"
@@ -514,22 +675,29 @@ export default function Home() {
           </div>
           <div className="max-w-2xl">
             <p
-              className="text-2xl text-[var(--text)] leading-relaxed mb-4"
+              className="text-4xl sm:text-5xl font-semibold text-[var(--text)] leading-tight mb-5"
               style={{ textWrap: "balance" }}
             >
               Canvas-powered charts that actually{" "}
-              <em className="not-italic font-serif italic">perform</em>.
+              <em className="font-serif font-normal italic">perform</em>.
             </p>
-            <p className="text-[var(--text-muted)] leading-relaxed mb-8">
+            <p className="text-[var(--text-muted)] text-lg leading-relaxed mb-10">
               A high-performance React charting library. No DOM bloat. No SVG
               overhead. Just fast, crisp, Recharts-compatible visuals.
             </p>
             {/* CTA */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               <code className="text-sm font-mono bg-[var(--accent)] text-white px-4 py-2.5 rounded-lg select-all">
                 npm install qurve
               </code>
-              <span className="text-[var(--text-muted)] text-sm">or check the source below</span>
+              <a
+                href="https://github.com/tnbt/qurve"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium px-4 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] hover:border-[var(--accent)] transition-colors"
+              >
+                View on GitHub
+              </a>
             </div>
           </div>
         </header>
@@ -540,7 +708,7 @@ export default function Home() {
             <h2 className="text-sm uppercase tracking-wider text-[var(--text-muted)] mb-8 font-medium">
               Primitives
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <PrimitiveCard
                 name="<Chart />"
                 description="The root container. Manages canvas context and coordinates all child components."
@@ -616,24 +784,6 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Planned Primitives — compact list */}
-          <section className="mb-20">
-            <h2 className="text-sm uppercase tracking-wider text-[var(--text-muted)] mb-4 font-medium">
-              Planned
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {PLANNED_PRIMITIVES.map((p) => (
-                <span
-                  key={p.name}
-                  className="text-sm font-mono text-[var(--text-muted)] bg-[var(--surface)] px-3 py-1.5 rounded-lg border border-[var(--border)] hover:border-[var(--border-strong)] transition-colors"
-                  title={p.description}
-                >
-                  {"<"}{p.name}{" />"}
-                </span>
-              ))}
-            </div>
-          </section>
-
           {/* Features */}
           <section className="mb-20">
             <h2 className="text-sm uppercase tracking-wider text-[var(--text-muted)] mb-8 font-medium">
@@ -673,44 +823,8 @@ export default function Home() {
               Examples
             </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-[var(--surface)] rounded-lg p-8 shadow-[var(--shadow)]">
-                <h3 className="text-sm font-medium mb-6 text-[var(--text)]">
-                  Single Line
-                </h3>
-                <div className="mb-6">
-                  <LineChartDemo palette={palette} />
-                </div>
-                <pre className="text-xs text-[var(--text-muted)] bg-[var(--surface-muted)] p-4 rounded-lg overflow-x-auto font-mono">
-                  {`<Chart data={data} width={600} height={300}>
-  <CartesianGrid strokeDasharray="3 3" />
-  <XAxis dataKey="name" />
-  <YAxis />
-  <Line
-    dataKey="price"
-    type="monotone"
-    stroke="#3b82f6"
-  />
-</Chart>`}
-                </pre>
-              </div>
-
-              <div className="bg-[var(--surface)] rounded-lg p-8 shadow-[var(--shadow)]">
-                <h3 className="text-sm font-medium mb-6 text-[var(--text)]">
-                  Multiple Lines
-                </h3>
-                <div className="mb-6">
-                  <MultiLineDemo palette={palette} />
-                </div>
-                <pre className="text-xs text-[var(--text-muted)] bg-[var(--surface-muted)] p-4 rounded-lg overflow-x-auto font-mono">
-                  {`<Chart data={data} width={600} height={300}>
-  <CartesianGrid strokeDasharray="3 3" />
-  <XAxis dataKey="name" />
-  <YAxis />
-  <Line dataKey="value1" stroke="#3b82f6" />
-  <Line dataKey="value2" stroke="#ef4444" />
-</Chart>`}
-                </pre>
-              </div>
+              <StockDashboardExample palette={palette} />
+              <SalesOverviewExample palette={palette} />
             </div>
           </section>
 
@@ -719,13 +833,17 @@ export default function Home() {
             <h2 className="text-sm uppercase tracking-wider text-[var(--text-muted)] mb-8 font-medium">
               Performance
             </h2>
+            <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-8 max-w-xl">
+              Canvas rendering unlocks a fundamentally different performance ceiling.
+              Here's how Qurve compares against SVG-based alternatives at scale.
+            </p>
             <LineBenchmark />
           </section>
         </main>
 
         <footer className="mt-24 pt-8 border-t border-[var(--border)]">
           <div className="flex items-center justify-between">
-            <p className="text-[var(--text-muted)] text-sm">Proof of concept</p>
+            <p className="text-[var(--text-muted)] text-sm">Open source. MIT license.</p>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[var(--success)]" />
               <span className="text-[var(--text-muted)] text-sm">Canvas ready</span>
