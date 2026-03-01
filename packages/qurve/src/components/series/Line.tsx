@@ -102,6 +102,7 @@ export function Line({
         name: seriesName,
         value: Number.isFinite(point.value) ? point.value : null,
         color: stroke,
+        anchor: { x: point.x, y: point.y },
       };
     }, { layer: LINE_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, payloadDataKey, seriesName, stroke, isSeriesVisible, legendVersion]);

@@ -354,12 +354,18 @@ export function Pie({
       const slice = slicesRef.current.find((item) => item.index === index);
       if (!slice) return null;
 
+      const midAngleRad = ((slice.startAngle + slice.endAngle) / 2 * Math.PI) / 180;
+      const anchorRadius = (slice.innerRadius + slice.outerRadius) / 2;
+      const anchorX = slice.cx + Math.cos(midAngleRad) * anchorRadius;
+      const anchorY = slice.cy + Math.sin(midAngleRad) * anchorRadius;
+
       return {
         dataKey: typeof dataKey === 'string' ? dataKey : 'value',
         name: slice.name,
         value: Number.isFinite(slice.value) ? slice.value : null,
         color: slice.color,
         formatter: tooltipFormatter,
+        anchor: { x: anchorX, y: anchorY },
       };
     }, { layer: PIE_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, dataKey, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);

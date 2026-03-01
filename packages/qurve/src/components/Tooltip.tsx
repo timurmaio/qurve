@@ -205,11 +205,12 @@ export function Tooltip({
 
     const updateTooltipFromMouse = (mouseX: number, mouseY: number) => {
       const customIndex = getTooltipIndexFromMouse(mouseX, mouseY);
-      const closestPoint = customIndex === null
-        ? findClosestPointByX(pointsRef.current, mouseX)
-        : pointsRef.current.find((point) => point.index === customIndex) ?? null;
-      const activeIndex = customIndex ?? closestPoint?.index ?? null;
-      hoveredPointRef.current = closestPoint;
+      const useCustomIndex = customIndex !== null;
+      const closestPoint = useCustomIndex
+        ? null
+        : findClosestPointByX(pointsRef.current, mouseX);
+      const activeIndex = useCustomIndex ? customIndex : (closestPoint?.index ?? null);
+      hoveredPointRef.current = useCustomIndex ? null : closestPoint;
 
       if (activeIndex === null) {
         if (isVisibleRef.current) {
@@ -245,8 +246,9 @@ export function Tooltip({
 
       const fixedX = position?.x;
       const fixedY = position?.y;
-      const anchorX = closestPoint?.x ?? mouseX;
-      const anchorY = closestPoint?.y ?? mouseY;
+      const payloadAnchor = sortedPayload.find((item) => item.anchor)?.anchor;
+      const anchorX = payloadAnchor?.x ?? closestPoint?.x ?? mouseX;
+      const anchorY = payloadAnchor?.y ?? closestPoint?.y ?? mouseY;
       const nextX = fixedX
         ?? (reverse.x
           ? anchorX - offset - TOOLTIP_CONSTANTS.ESTIMATED_WIDTH

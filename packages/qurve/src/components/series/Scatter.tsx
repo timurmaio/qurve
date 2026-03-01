@@ -129,6 +129,7 @@ export function Scatter({
         value: Number.isFinite(point.value) ? point.value : null,
         color: fill,
         formatter: tooltipFormatter,
+        anchor: { x: point.x, y: point.y },
       };
     }, { layer: SCATTER_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);

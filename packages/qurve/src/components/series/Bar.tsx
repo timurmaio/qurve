@@ -345,6 +345,7 @@ export function Bar({
         value: Number.isFinite(bar.value) ? bar.value : null,
         color: fill,
         formatter: tooltipFormatter,
+        anchor: { x: bar.x + bar.width / 2, y: bar.y },
       };
     }, { layer: BAR_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);

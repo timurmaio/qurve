@@ -199,6 +199,7 @@ export function Area({
         value: Number.isFinite(area.value) ? area.value : null,
         color: stroke ?? fill,
         formatter: tooltipFormatter,
+        anchor: { x: area.x, y: area.y1 },
       };
     }, { layer: AREA_CONSTANTS.TOOLTIP_LAYER });
   }, [registerTooltipSeries, payloadDataKey, seriesName, stroke, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);

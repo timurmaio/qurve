@@ -89,6 +89,7 @@ export interface TooltipPayloadItem {
   value: number | null;
   color?: string;
   formatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
+  anchor?: { x: number; y: number };
 }
 
 export interface AxisConfig {
