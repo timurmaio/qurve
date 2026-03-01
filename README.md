@@ -73,6 +73,7 @@ function App() {
 
 - Package docs: `packages/qurve/README.md`
 - Migration guide: `packages/qurve/MIGRATION.md`
+- Interactive comparison page (Qurve vs Recharts): run `pnpm dev` and open `/comparison`
 
 ## Philosophy
 

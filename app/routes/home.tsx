@@ -1,6 +1,6 @@
 import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend, Brush } from "qurve";
-import { LineBenchmark } from "../../src/components/Benchmarks";
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
 import { appleStock } from "../../src/mock";
 
 type ThemeMode = "light" | "dark";
@@ -844,9 +844,14 @@ export default function Home() {
             </h2>
             <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-8 max-w-xl">
               Canvas rendering unlocks a fundamentally different performance ceiling.
-              Here's how Qurve compares against SVG-based alternatives at scale.
+              Open the dedicated comparison page to inspect Qurve and Recharts side-by-side on the same datasets.
             </p>
-            <LineBenchmark />
+            <Link
+              to="/comparison"
+              className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:border-[var(--accent)]"
+            >
+              Open comparison page
+            </Link>
           </section>
         </main>
 
