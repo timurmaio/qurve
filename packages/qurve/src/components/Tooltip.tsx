@@ -8,6 +8,8 @@ import {
   formatDefaultLabel,
   nodeToText,
   payloadToA11yText,
+  sortPayload,
+  toReverseConfig,
   type TooltipLabel,
 } from './chart/core/tooltipUtils';
 
@@ -57,34 +59,6 @@ export interface TooltipProps {
 interface TooltipPosition {
   x: number;
   y: number;
-}
-
-function sortPayload(payload: TooltipPayloadItem[], sorter?: TooltipProps['itemSorter']): TooltipPayloadItem[] {
-  if (!sorter) return payload;
-
-  const next = [...payload];
-  if (typeof sorter === 'function') {
-    next.sort(sorter);
-    return next;
-  }
-
-  if (sorter === 'value') {
-    next.sort((a, b) => (b.value ?? Number.NEGATIVE_INFINITY) - (a.value ?? Number.NEGATIVE_INFINITY));
-    return next;
-  }
-
-  next.sort((a, b) => a.name.localeCompare(b.name));
-  return next;
-}
-
-function toReverseConfig(reverseDirection: TooltipProps['reverseDirection']): { x: boolean; y: boolean } {
-  if (typeof reverseDirection === 'boolean') {
-    return { x: reverseDirection, y: reverseDirection };
-  }
-  return {
-    x: reverseDirection?.x ?? false,
-    y: reverseDirection?.y ?? false,
-  };
 }
 
 export function Tooltip({

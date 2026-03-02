@@ -55,3 +55,33 @@ export function payloadToA11yText(
     })
     .join('. ');
 }
+
+export type TooltipSorter = 'value' | 'name' | ((a: TooltipPayloadItem, b: TooltipPayloadItem) => number) | undefined;
+
+export function sortPayload(payload: TooltipPayloadItem[], sorter: TooltipSorter): TooltipPayloadItem[] {
+  if (!sorter) return payload;
+
+  const next = [...payload];
+  if (typeof sorter === 'function') {
+    next.sort(sorter);
+    return next;
+  }
+
+  if (sorter === 'value') {
+    next.sort((a, b) => (b.value ?? Number.NEGATIVE_INFINITY) - (a.value ?? Number.NEGATIVE_INFINITY));
+    return next;
+  }
+
+  next.sort((a, b) => a.name.localeCompare(b.name));
+  return next;
+}
+
+export function toReverseConfig(reverseDirection: boolean | { x?: boolean; y?: boolean } | undefined): { x: boolean; y: boolean } {
+  if (typeof reverseDirection === 'boolean') {
+    return { x: reverseDirection, y: reverseDirection };
+  }
+  return {
+    x: reverseDirection?.x ?? false,
+    y: reverseDirection?.y ?? false,
+  };
+}

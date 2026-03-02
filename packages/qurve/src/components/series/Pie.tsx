@@ -16,6 +16,7 @@ import {
   type PieLabelContext,
   type PieLabelLayoutItem,
 } from '../chart/core/pieMath';
+import { normalizeOpacity } from '../chart/core/chartMath';
 
 const PIE_CONSTANTS = {
   DEFAULT_HOVER_OPACITY: 0.45,
@@ -62,11 +63,6 @@ export interface PieProps {
 
 interface PieSlice extends PieDrawSlice {
   midAngle: number;
-}
-
-function normalizeHoverOpacity(opacity: number): number {
-  if (!Number.isFinite(opacity)) return PIE_CONSTANTS.DEFAULT_HOVER_OPACITY;
-  return Math.max(0, Math.min(1, opacity));
 }
 
 export function Pie({
@@ -116,7 +112,7 @@ export function Pie({
   const seriesId = useMemo(() => Symbol('pie-series'), []);
   const slicesRef = useRef<PieSlice[]>([]);
   const [labelSlices, setLabelSlices] = useState<PieSlice[]>([]);
-  const hoverOpacityValue = normalizeHoverOpacity(hoverOpacity);
+  const hoverOpacityValue = normalizeOpacity(hoverOpacity, PIE_CONSTANTS.DEFAULT_HOVER_OPACITY);
   const defaultSeriesName = tooltipName ?? name ?? (typeof dataKey === 'string' ? dataKey : 'Pie');
   const legendColor = pickColor(0, fill, colors);
   const labelLineStroke = labelLineColor ?? stroke ?? '#94a3b8';
