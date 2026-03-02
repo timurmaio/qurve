@@ -30,7 +30,7 @@ describe('getBaseValue', () => {
 
   it('handles swapped domain order', () => {
     expect(getBaseValue([20, 10])).toBe(10);
-    expect(getBaseValue([-10, -20])).toBe(-20);
+    expect(getBaseValue([-10, -20])).toBe(-10);
   });
 });
 

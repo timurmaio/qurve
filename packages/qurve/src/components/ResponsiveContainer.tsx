@@ -1,16 +1,5 @@
 import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from 'react';
-
-type SizeValue = number | string;
-
-function toCssValue(value: SizeValue | undefined, fallback: string): string {
-  if (value === undefined) return fallback;
-  return typeof value === 'number' ? `${value}px` : value;
-}
-
-function resolveNumericSize(value: SizeValue | undefined, measured: number): number {
-  if (typeof value === 'number') return value;
-  return measured;
-}
+import { resolveNumericSize, toCssValue, type SizeValue } from './chart/core/responsiveUtils';
 
 export interface ResponsiveContainerProps {
   width?: SizeValue;

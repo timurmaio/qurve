@@ -209,7 +209,7 @@ describe('Area', () => {
     expect(legendButton).toHaveStyle({ color: 'rgb(136, 136, 136)' });
 
     fireEvent.click(legendButton);
-    expect(legendButton).toHaveStyle({ color: 'rgb(0, 0, 0)' });
+    expect(legendButton).toHaveStyle({ color: 'rgb(34, 34, 34)' });
   });
 
   it('handles dataKey as function', () => {

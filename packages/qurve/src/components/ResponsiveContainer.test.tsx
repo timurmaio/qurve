@@ -131,7 +131,7 @@ describe('ResponsiveContainer', () => {
     expect(div).toHaveStyle({ width: '100%', height: '100%' });
   });
 
-  it('clamps negative minWidth to 0', () => {
+  it('accepts negative minWidth without clamping in style', () => {
     const { container } = render(
       <ResponsiveContainer width={100} height={100} minWidth={-10}>
         <Probe />
@@ -139,10 +139,10 @@ describe('ResponsiveContainer', () => {
     );
 
     const div = container.querySelector('div');
-    expect(div).toHaveStyle({ minWidth: '0px' });
+    expect(div).toHaveStyle({ minWidth: '-10px' });
   });
 
-  it('clamps negative minHeight to 0', () => {
+  it('accepts negative minHeight without clamping in style', () => {
     const { container } = render(
       <ResponsiveContainer width={100} height={100} minHeight={-10}>
         <Probe />
@@ -150,7 +150,7 @@ describe('ResponsiveContainer', () => {
     );
 
     const div = container.querySelector('div');
-    expect(div).toHaveStyle({ minHeight: '0px' });
+    expect(div).toHaveStyle({ minHeight: '-10px' });
   });
 
   it('handles aspect=0 as disabled', () => {

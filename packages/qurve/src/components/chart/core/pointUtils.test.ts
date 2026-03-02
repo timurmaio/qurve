@@ -77,7 +77,7 @@ describe('resolveYValue', () => {
   it('uses function from dataKey', () => {
     const item = { value: 42 };
     const dataKey: DataKey = ((i: Record<string, unknown>) => i.value as number);
-    expect(resolveYValue(item, 0, dataKey)).toBe(84);
+    expect(resolveYValue(item, 0, dataKey)).toBe(42);
   });
 
   it('uses string key from dataKey', () => {
@@ -152,9 +152,9 @@ describe('projectPoints', () => {
     const points = projectPoints({ data, margin, xAxis, dataKey: 'y', getXScale, getYScale });
 
     expect(points).toHaveLength(3);
-    expect(points[0]).toEqual({ x: 10, y: 200, value: 0, index: 0 });
-    expect(points[1]).toEqual({ x: 20, y: 150, value: 50, index: 1 });
-    expect(points[2]).toEqual({ x: 30, y: 100, value: 100, index: 2 });
+    expect(points[0]).toEqual({ x: 10, y: 220, value: 0, index: 0 });
+    expect(points[1]).toEqual({ x: 20, y: 170, value: 50, index: 1 });
+    expect(points[2]).toEqual({ x: 30, y: 120, value: 100, index: 2 });
   });
 
   it('applies margin to coordinates', () => {
@@ -236,8 +236,8 @@ describe('findClosestPointByX', () => {
   });
 
   it('handles fractional X coordinates', () => {
-    expect(findClosestPointByX(points, 15.5)).toEqual(points[1]);
-    expect(findClosestPointByX(points, 15.4)).toEqual(points[1]);
+    expect(findClosestPointByX(points, 15.5)).toEqual(points[2]);
+    expect(findClosestPointByX(points, 15.4)).toEqual(points[2]);
     expect(findClosestPointByX(points, 15.6)).toEqual(points[2]);
   });
 

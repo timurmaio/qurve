@@ -4,7 +4,12 @@ import { drawActiveDot } from './chart/core/drawLine';
 import { drawCrosshair } from './chart/core/drawCrosshair';
 import { findClosestPointByX, projectPoints, resolveXValue } from './chart/core/pointUtils';
 import type { TooltipPayloadItem } from './chart/chartContext';
-import { formatTimeTick, toTimeNumber, type TimeFormatMode } from './chart/core/timeUtils';
+import {
+  formatDefaultLabel,
+  nodeToText,
+  payloadToA11yText,
+  type TooltipLabel,
+} from './chart/core/tooltipUtils';
 
 const TOOLTIP_CONSTANTS = {
   POINT_RADIUS: 6,
@@ -18,31 +23,6 @@ const TOOLTIP_CONSTANTS = {
   CURSOR_DEFAULT_DASH: '4 4',
   RENDER_LAYER: 1000,
 };
-
-type TooltipLabel = string | number;
-
-function formatDefaultLabel(
-  label: TooltipLabel,
-  axis: {
-    type?: 'number' | 'category' | 'band' | 'time';
-    locale?: string;
-    timeZone?: string;
-    timeFormat?: TimeFormatMode;
-  } | null,
-): React.ReactNode {
-  if (axis?.type !== 'time') return label;
-
-  const value = toTimeNumber(label);
-  if (value === null) return label;
-
-  const day = 24 * 60 * 60 * 1000;
-  const domain: [number, number] = [value - day, value + day];
-  return formatTimeTick(value, domain, {
-    locale: axis.locale,
-    timeZone: axis.timeZone,
-    timeFormat: axis.timeFormat,
-  });
-}
 
 export interface TooltipContentProps {
   active?: boolean;
@@ -72,33 +52,6 @@ export interface TooltipProps {
   contentStyle?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
   itemStyle?: React.CSSProperties;
-}
-
-function nodeToText(node: React.ReactNode): string {
-  if (node === null || node === undefined || typeof node === 'boolean') return '';
-  if (typeof node === 'string' || typeof node === 'number') return String(node);
-  if (Array.isArray(node)) return node.map(nodeToText).join(' ');
-  if (isValidElement(node)) {
-    return nodeToText((node.props as { children?: React.ReactNode }).children);
-  }
-  return '';
-}
-
-function payloadToA11yText(payload: TooltipPayloadItem[], formatter?: TooltipProps['formatter']): string {
-  return payload
-    .map((item) => {
-      const valueFormatter = item.formatter ?? formatter;
-      const formatted = valueFormatter ? valueFormatter(item.value, item.name, item) : null;
-      const valueNode = Array.isArray(formatted)
-        ? formatted[0]
-        : formatted ?? (item.value === null ? '-' : item.value.toFixed(2));
-      const nameNode = Array.isArray(formatted) ? formatted[1] : item.name;
-
-      const nameText = nodeToText(nameNode) || item.name;
-      const valueText = nodeToText(valueNode) || (item.value === null ? '-' : item.value.toFixed(2));
-      return `${nameText}: ${valueText}`;
-    })
-    .join('. ');
 }
 
 interface TooltipPosition {

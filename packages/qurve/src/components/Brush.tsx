@@ -8,6 +8,8 @@ import {
   type WheelEventHandler,
 } from 'react';
 import { useChartContext } from './chart/chartContext';
+import { clamp } from './chart/core/chartMath';
+import { getTouchDistance, getTouchX } from './chart/core/brushUtils';
 
 type DragMode = 'window' | 'start' | 'end' | null;
 type InputMode = 'mouse' | 'touch';
@@ -28,21 +30,6 @@ export interface BrushProps {
   fill?: string;
   stroke?: string;
   onChange?: (range: { startIndex: number; endIndex: number }) => void;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
-
-function getTouchX(event: TouchEvent): number | null {
-  const touch = event.touches[0] ?? event.changedTouches[0];
-  return touch ? touch.clientX : null;
-}
-
-function getTouchDistance(touchA: { clientX: number; clientY: number }, touchB: { clientX: number; clientY: number }): number {
-  const dx = touchB.clientX - touchA.clientX;
-  const dy = touchB.clientY - touchA.clientY;
-  return Math.sqrt(dx * dx + dy * dy);
 }
 
 export function Brush({

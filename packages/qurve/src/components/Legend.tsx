@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useChartContext } from './chart/chartContext';
+import { justifyByAlign } from './chart/core/legendUtils';
 
 export interface LegendProps {
   align?: 'left' | 'center' | 'right';
@@ -8,12 +9,6 @@ export interface LegendProps {
   wrapperStyle?: React.CSSProperties;
   ariaLabel?: string;
   selectionMode?: 'multiple' | 'single';
-}
-
-function justifyByAlign(align: LegendProps['align']): React.CSSProperties['justifyContent'] {
-  if (align === 'left') return 'flex-start';
-  if (align === 'right') return 'flex-end';
-  return 'center';
 }
 
 export function Legend({
