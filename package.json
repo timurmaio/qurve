@@ -6,8 +6,9 @@
     "build": "pnpm --filter qurve build && react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
+    "test": "pnpm --filter qurve test",
     "typecheck": "pnpm --filter qurve build && pnpm --filter qurve typecheck && react-router typegen && tsc",
-    "verify": "pnpm --filter qurve test && pnpm typecheck && pnpm build"
+    "verify": "pnpm test && pnpm typecheck && pnpm build"
   },
   "dependencies": {
     "@react-router/node": "^7.13.0",
