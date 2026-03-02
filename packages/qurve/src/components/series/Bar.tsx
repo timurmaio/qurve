@@ -3,6 +3,16 @@ import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 import { drawBars, type BarRect } from '../chart/core/drawBar';
 import { projectPoints, resolveYValue } from '../chart/core/pointUtils';
+import {
+  getBaseValue,
+  clamp,
+  normalizeHoverOpacity,
+  stackKey,
+  isStacked,
+  resolveRadius,
+  hasSameSign,
+  resolveStackedRadius,
+} from '../chart/core/chartMath';
 
 const BAR_CONSTANTS = {
   DEFAULT_FILL: '#8884d8',
@@ -39,55 +49,6 @@ interface BarGeometry extends BarRect {
 interface Slot {
   key: string;
   stackId?: string | number;
-}
-
-function getBaseValue(domain: [number, number]): number {
-  const min = Math.min(domain[0], domain[1]);
-  const max = Math.max(domain[0], domain[1]);
-
-  if (min <= 0 && max >= 0) return 0;
-  return min > 0 ? min : max;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
-
-function normalizeHoverOpacity(opacity: number): number {
-  if (!Number.isFinite(opacity)) return BAR_CONSTANTS.DEFAULT_HOVER_OPACITY;
-  return clamp(opacity, 0, 1);
-}
-
-function stackKey(stackId: string | number): string {
-  return `stack:${String(stackId)}`;
-}
-
-function isStacked(stackId: string | number | undefined): stackId is string | number {
-  return stackId !== undefined;
-}
-
-function resolveRadius(
-  radius: BarProps['radius'],
-  isPositive: boolean,
-): number | [number, number, number, number] | undefined {
-  if (radius === undefined) return undefined;
-  if (typeof radius === 'number') {
-    return isPositive ? [radius, radius, 0, 0] : [0, 0, radius, radius];
-  }
-  return radius;
-}
-
-function hasSameSign(v: number, targetSign: 'positive' | 'negative'): boolean {
-  return targetSign === 'positive' ? v > 0 : v < 0;
-}
-
-function resolveStackedRadius(
-  radius: BarProps['radius'],
-  value: number,
-  isOuterSegment: boolean,
-): number | [number, number, number, number] | undefined {
-  if (!isOuterSegment) return undefined;
-  return resolveRadius(radius, value >= 0);
 }
 
 export function Bar({

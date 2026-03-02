@@ -3,6 +3,7 @@ import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 import { drawArea, type AreaPoint } from '../chart/core/drawArea';
 import { resolveXValue, resolveYValue } from '../chart/core/pointUtils';
+import { getBaseValue, clamp, normalizeOpacity } from '../chart/core/chartMath';
 
 const AREA_CONSTANTS = {
   DEFAULT_FILL: '#8884d8',
@@ -16,22 +17,6 @@ const AREA_CONSTANTS = {
 interface AreaGeometry extends AreaPoint {
   value: number;
   index: number;
-}
-
-function getBaseValue(domain: [number, number]): number {
-  const min = Math.min(domain[0], domain[1]);
-  const max = Math.max(domain[0], domain[1]);
-  if (min <= 0 && max >= 0) return 0;
-  return min > 0 ? min : max;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
-
-function normalizeOpacity(value: number, fallback: number): number {
-  if (!Number.isFinite(value)) return fallback;
-  return clamp(value, 0, 1);
 }
 
 export interface AreaProps {
