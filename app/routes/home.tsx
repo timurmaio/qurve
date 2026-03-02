@@ -161,7 +161,7 @@ function SimpleChartDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 8, right: 10, bottom: 8, left: 10 }}>
         <Line
           dataKey="y"
           type="linear"
@@ -184,7 +184,7 @@ function LineChartDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="name" />
         <YAxis />
@@ -211,7 +211,7 @@ function MultiLineDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="name" />
         <YAxis />
@@ -232,7 +232,7 @@ function AxisDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="ts" type="time" tickCount={4} locale="en-US" timeZone="UTC" timeFormat="date" />
         <YAxis />
@@ -258,7 +258,7 @@ function GridDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="5 5" stroke={palette.grid} />
         <XAxis dataKey="x" />
         <YAxis />
@@ -284,7 +284,7 @@ function TooltipDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="date" />
         <YAxis />
@@ -318,7 +318,7 @@ function BarDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="name" />
         <YAxis />
@@ -360,7 +360,7 @@ function AreaDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="name" />
         <YAxis domain={[0, 50]} />
@@ -396,7 +396,7 @@ function ResponsiveDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="month" />
         <YAxis />
@@ -482,7 +482,7 @@ function ScatterDemo({ palette }: { palette: ChartPalette }) {
 
   return (
     <ChartDemo height={160}>
-      <Chart data={data}>
+      <Chart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="hours" domain={[0, 9]} />
         <YAxis dataKey="score" domain={[0, 100]} />
