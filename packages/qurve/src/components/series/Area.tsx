@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { drawArea, resolveXValue, resolveYValue, getBaseValue, clamp, normalizeOpacity } from '@qurve/core';
+import type { AreaPoint } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
-import { drawArea, type AreaPoint } from '../chart/core/drawArea';
-import { resolveXValue, resolveYValue } from '../chart/core/pointUtils';
-import { getBaseValue, clamp, normalizeOpacity } from '../chart/core/chartMath';
 
 const AREA_CONSTANTS = {
   DEFAULT_FILL: '#8884d8',

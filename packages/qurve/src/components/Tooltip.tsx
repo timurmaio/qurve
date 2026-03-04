@@ -1,17 +1,21 @@
 import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  drawActiveDot,
+  drawCrosshair,
+  findClosestPointByX,
+  projectPoints,
+  resolveXValue,
+} from '@qurve/core';
 import { useChartContext } from './chart/chartContext';
-import { drawActiveDot } from './chart/core/drawLine';
-import { drawCrosshair } from './chart/core/drawCrosshair';
-import { findClosestPointByX, projectPoints, resolveXValue } from './chart/core/pointUtils';
 import type { TooltipPayloadItem } from './chart/chartContext';
 import {
-  formatDefaultLabel,
+  formatTooltipLabel,
   nodeToText,
   payloadToA11yText,
   sortPayload,
   toReverseConfig,
   type TooltipLabel,
-} from './chart/core/tooltipUtils';
+} from '@qurve/core';
 
 const TOOLTIP_CONSTANTS = {
   POINT_RADIUS: 6,
@@ -336,7 +340,7 @@ export function Tooltip({
     ? (a11yLabelFormatter
       ? a11yLabelFormatter(tooltipProps.label, activePayload)
       : [
-          tooltipProps.label !== undefined ? `Label: ${nodeToText(formatDefaultLabel(tooltipProps.label, xAxis))}` : '',
+          tooltipProps.label !== undefined ? `Label: ${nodeToText(formatTooltipLabel(tooltipProps.label, xAxis))}` : '',
           payloadToA11yText(activePayload, formatter),
           a11yIncludeSummary
             ? (a11ySummaryFormatter
@@ -431,7 +435,7 @@ export function Tooltip({
         >
           {tooltipProps.label !== undefined && (
               <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1a1a1a', ...labelStyle }}>
-              {labelFormatter ? labelFormatter(tooltipProps.label) : formatDefaultLabel(tooltipProps.label, xAxis)}
+              {labelFormatter ? labelFormatter(tooltipProps.label) : formatTooltipLabel(tooltipProps.label, xAxis)}
               </div>
             )}
 

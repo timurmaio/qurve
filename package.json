@@ -3,11 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm --filter qurve build && react-router build",
+    "build": "pnpm --filter @qurve/core build && pnpm --filter qurve build && react-router build",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "test": "pnpm --filter qurve test",
-    "typecheck": "pnpm --filter qurve build && pnpm --filter qurve typecheck && react-router typegen && tsc",
+    "typecheck": "pnpm --filter @qurve/core build && pnpm --filter qurve build && pnpm --filter qurve typecheck && react-router typegen && tsc",
     "verify": "pnpm test && pnpm typecheck && pnpm build"
   },
   "dependencies": {

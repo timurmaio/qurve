@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
+import { drawXAxis, createTimeTicks, formatTimeTick, toTimeNumber } from '@qurve/core';
+import type { TimeFormatMode } from '@qurve/core';
 import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
-import { drawXAxis } from '../chart/core/drawAxis';
-import { createTimeTicks, formatTimeTick, toTimeNumber, type TimeFormatMode } from '../chart/core/timeUtils';
 
 const AXIS_RENDER_LAYER = 20;
 

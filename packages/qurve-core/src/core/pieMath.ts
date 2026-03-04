@@ -1,3 +1,7 @@
+/**
+ * Framework-agnostic pie chart math. The `content` in PieLabelLayoutItem
+ * can be React.ReactNode, Vue.VNode, or any framework-specific type.
+ */
 export type PieNameKey = string | ((data: Record<string, unknown>, index: number) => string);
 export type PieLabelMode = 'namePercent' | 'name' | 'value' | 'percent' | 'nameValue' | 'valuePercent';
 
@@ -14,7 +18,7 @@ export interface PieLabelLayoutItem {
   x: number;
   y: number;
   anchor: 'left' | 'right';
-  content: React.ReactNode;
+  content: unknown;
   lineStartX: number;
   lineStartY: number;
   lineBendX: number;

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { drawLinePath } from './drawLine';
+import { drawLinePath } from '@qurve/core';
 
 function createMockContext() {
   return {

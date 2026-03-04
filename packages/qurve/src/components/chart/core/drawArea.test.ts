@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { drawArea } from './drawArea';
+import { drawArea } from '@qurve/core';
 
 function createMockContext() {
   return {

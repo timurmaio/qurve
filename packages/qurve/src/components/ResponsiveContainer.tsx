@@ -1,5 +1,5 @@
 import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from 'react';
-import { resolveNumericSize, toCssValue, type SizeValue } from './chart/core/responsiveUtils';
+import { resolveNumericSize, toCssValue, type SizeValue } from '@qurve/core';
 
 export interface ResponsiveContainerProps {
   width?: SizeValue;

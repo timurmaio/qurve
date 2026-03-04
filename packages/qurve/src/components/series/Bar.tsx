@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { drawBars, projectPoints, resolveYValue } from '@qurve/core';
+import type { BarRect } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
-import { drawBars, type BarRect } from '../chart/core/drawBar';
-import { projectPoints, resolveYValue } from '../chart/core/pointUtils';
 import {
   getBaseValue,
   clamp,
@@ -12,7 +12,7 @@ import {
   resolveRadius,
   hasSameSign,
   resolveStackedRadius,
-} from '../chart/core/chartMath';
+} from '@qurve/core';
 
 const BAR_CONSTANTS = {
   DEFAULT_FILL: '#8884d8',

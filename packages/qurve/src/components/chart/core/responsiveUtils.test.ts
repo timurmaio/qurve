@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveNumericSize, toCssValue } from './responsiveUtils';
+import { resolveNumericSize, toCssValue } from '@qurve/core';
 
 describe('responsiveUtils', () => {
   it('converts size values to css values', () => {

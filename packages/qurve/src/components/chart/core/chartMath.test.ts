@@ -9,7 +9,7 @@ import {
   resolveRadius,
   hasSameSign,
   resolveStackedRadius,
-} from './chartMath';
+} from '@qurve/core';
 
 describe('getBaseValue', () => {
   it('returns 0 when domain crosses zero', () => {

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
+import { justifyByAlign } from '@qurve/core';
 import { useChartContext } from './chart/chartContext';
-import { justifyByAlign } from './chart/core/legendUtils';
 
 export interface LegendProps {
   align?: 'left' | 'center' | 'right';

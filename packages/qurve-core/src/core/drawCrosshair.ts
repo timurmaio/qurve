@@ -1,4 +1,4 @@
-import type { ProjectedPoint } from './pointUtils';
+import type { ProjectedPoint } from '../types';
 
 export interface CursorConfig {
   stroke?: string;

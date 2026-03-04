@@ -1,8 +1,15 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, useRef, useEffect, useSyncExternalStore, type Context } from 'react';
-import { normalizeTimeDomain, toTimeNumber, type TimeFormatMode } from './core/timeUtils';
-
-export type ChartData = Record<string, unknown>[];
-export type DataKey = string | ((data: Record<string, unknown>, index: number) => number | string);
+import {
+  normalizeTimeDomain,
+  toTimeNumber,
+  type ChartData,
+  type DataKey,
+  type AxisConfig,
+  type TooltipPayloadItem,
+  type BarSeriesRegistration,
+  type AreaSeriesRegistration,
+  type LegendItemRegistration,
+} from '@qurve/core';
 
 export interface ChartLayoutContextValue {
   data: ChartData;
@@ -32,18 +39,6 @@ export interface ChartScaleContextValue {
   getYScale: (dataKey?: DataKey) => ReturnType<typeof createLinearScale>;
 }
 
-export interface BarSeriesRegistration {
-  id: symbol;
-  stackId?: string | number;
-  getValue: (item: Record<string, unknown>, index: number) => number;
-}
-
-export interface AreaSeriesRegistration {
-  id: symbol;
-  stackId?: string | number;
-  getValue: (item: Record<string, unknown>, index: number) => number;
-}
-
 export interface ChartSeriesContextValue {
   registerBarSeries: (registration: BarSeriesRegistration) => () => void;
   getBarSeriesRegistrations: () => BarSeriesRegistration[];
@@ -56,13 +51,6 @@ export interface ChartSeriesContextValue {
   legendVersion: number;
   isSeriesVisible: (id: symbol) => boolean;
   setSeriesVisible: (id: symbol, visible: boolean) => void;
-}
-
-export interface LegendItemRegistration {
-  id: symbol;
-  name: string;
-  color: string;
-  type: 'line' | 'bar' | 'area' | 'pie' | 'scatter';
 }
 
 export interface ChartInteractionContextValue {
@@ -83,30 +71,15 @@ export type ChartContextValue =
   ChartInteractionContextValue &
   ChartSeriesContextValue;
 
-export interface TooltipPayloadItem {
-  dataKey: string;
-  name: string;
-  value: number | null;
-  color?: string;
-  formatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
-  anchor?: { x: number; y: number };
-}
-
-export interface AxisConfig {
-  dataKey: DataKey;
-  type?: 'number' | 'category' | 'band' | 'time';
-  domain?: [number | Date, number | Date] | 'auto';
-  range?: [number, number];
-  tickCount?: number;
-  tickValues?: Array<number | Date>;
-  interval?: number;
-  padding?: number | { left?: number; right?: number; top?: number; bottom?: number };
-  tickFormatter?: (value: unknown) => string;
-  locale?: string;
-  timeZone?: string;
-  timeFormat?: TimeFormatMode;
-  reversed?: boolean;
-}
+export type {
+  ChartData,
+  DataKey,
+  AxisConfig,
+  TooltipPayloadItem,
+  BarSeriesRegistration,
+  AreaSeriesRegistration,
+  LegendItemRegistration,
+} from '@qurve/core';
 
 function createLinearScale(config: { domain: [number, number]; range: [number, number] }) {
   const { domain, range } = config;

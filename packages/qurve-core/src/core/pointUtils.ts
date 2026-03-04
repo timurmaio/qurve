@@ -1,12 +1,7 @@
-import type { AxisConfig, ChartData, DataKey } from '../chartContext';
+import type { AxisConfig, ChartData, DataKey, ProjectedPoint } from '../types';
 import { toTimeNumber } from './timeUtils';
 
-export interface ProjectedPoint {
-  x: number;
-  y: number;
-  value: number;
-  index: number;
-}
+export type { ProjectedPoint } from '../types';
 
 export function resolveXValue(item: Record<string, unknown>, index: number, xAxis: AxisConfig | null): number {
   const raw = typeof xAxis?.dataKey === 'function'
@@ -62,7 +57,10 @@ export function projectPoints(params: {
   return points;
 }
 
-export function findClosestPointByX(points: ProjectedPoint[], mouseX: number): ProjectedPoint | null {
+export function findClosestPointByX(
+  points: ProjectedPoint[],
+  mouseX: number,
+): ProjectedPoint | null {
   if (points.length === 0) return null;
   if (points.length === 1) return points[0];
 

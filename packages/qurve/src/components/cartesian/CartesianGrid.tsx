@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
+import { drawGrid } from '@qurve/core';
 import { useChartLayoutContext, useChartRenderContext } from '../chart/chartContext';
-import { drawGrid } from '../chart/core/drawGrid';
 
 export interface CartesianGridProps {
   stroke?: string;

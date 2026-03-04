@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { drawBars } from './drawBar';
+import { drawBars } from '@qurve/core';
 
 function createMockContext() {
   const alphaValues: number[] = [];
@@ -14,8 +14,7 @@ function createMockContext() {
     quadraticCurveTo: vi.fn(),
     closePath: vi.fn(),
     fill: vi.fn(),
-    fillRect: vi.fn(),
-    strokeRect: vi.fn(),
+    stroke: vi.fn(),
     fillStyle: '#000',
     strokeStyle: '#000',
     lineWidth: 1,
@@ -51,7 +50,7 @@ describe('drawBar', () => {
       hoverOpacity: 0.25,
     });
 
-    expect(ctx.fillRect).toHaveBeenCalledTimes(2);
+    expect(ctx.fill).toHaveBeenCalledTimes(2);
     expect(ctx.__alphaValues).toContain(1);
     expect(ctx.__alphaValues).toContain(0.25);
   });
@@ -71,7 +70,7 @@ describe('drawBar', () => {
 
     expect(ctx.beginPath).toHaveBeenCalled();
     expect(ctx.quadraticCurveTo).toHaveBeenCalled();
-    expect(ctx.fillRect).not.toHaveBeenCalled();
-    expect(ctx.strokeRect).toHaveBeenCalledTimes(1);
+    expect(ctx.fill).toHaveBeenCalled();
+    expect(ctx.stroke).toHaveBeenCalledTimes(1);
   });
 });

@@ -7,7 +7,7 @@ import {
   normalizeName,
   pickColor,
   toNumber,
-} from './pieMath';
+} from '@qurve/core';
 
 describe('pieMath', () => {
   it('normalizes finite/undefined numbers', () => {

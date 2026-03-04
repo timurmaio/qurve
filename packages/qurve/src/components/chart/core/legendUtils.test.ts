@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { justifyByAlign } from './legendUtils';
+import { justifyByAlign } from '@qurve/core';
 
 describe('legendUtils', () => {
   it('maps align to justifyContent', () => {

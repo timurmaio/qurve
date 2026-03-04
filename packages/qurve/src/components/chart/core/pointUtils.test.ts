@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { findClosestPointByX, projectPoints, resolveXValue, resolveYValue } from './pointUtils';
-import { toTimeNumber, normalizeTimeDomain, createTimeTicks, formatTimeTick } from './timeUtils';
-import type { AxisConfig, DataKey } from '../chartContext';
+import {
+  findClosestPointByX,
+  projectPoints,
+  resolveXValue,
+  resolveYValue,
+  toTimeNumber,
+  normalizeTimeDomain,
+  createTimeTicks,
+  formatTimeTick,
+} from '@qurve/core';
+import type { AxisConfig, DataKey } from '@qurve/core';
 
 describe('resolveXValue', () => {
   it('uses index fallback when xAxis is null', () => {

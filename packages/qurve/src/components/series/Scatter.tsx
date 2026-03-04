@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { drawScatterPoints, resolveXValue, resolveYValue } from '@qurve/core';
+import type { ScatterPoint } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
-import { drawScatterPoints, type ScatterPoint } from '../chart/core/drawScatter';
-import { resolveXValue, resolveYValue } from '../chart/core/pointUtils';
 
 const SCATTER_CONSTANTS = {
   DEFAULT_FILL: '#3b82f6',

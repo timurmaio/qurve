@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
-  formatDefaultLabel,
+  formatTooltipLabel,
   nodeToText,
   payloadToA11yText,
   sortPayload,
   toReverseConfig,
-} from './tooltipUtils';
+} from '@qurve/core';
 
 describe('tooltipUtils', () => {
   it('formats default label for non-time axis as-is', () => {
-    expect(formatDefaultLabel('abc', { type: 'category' })).toBe('abc');
-    expect(formatDefaultLabel(42, null)).toBe(42);
+    expect(formatTooltipLabel('abc', { type: 'category' })).toBe('abc');
+    expect(formatTooltipLabel(42, null)).toBe('42');
   });
 
   it('formats default label for time axis', () => {
     const value = Date.parse('2024-01-01T00:00:00.000Z');
-    const label = formatDefaultLabel(value, { type: 'time', locale: 'en-US', timeZone: 'UTC', timeFormat: 'date' });
+    const label = formatTooltipLabel(value, { type: 'time', locale: 'en-US', timeZone: 'UTC', timeFormat: 'date' });
     expect(typeof label).toBe('string');
     expect(String(label).length).toBeGreaterThan(0);
   });

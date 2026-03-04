@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { drawYAxis } from '@qurve/core';
 import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
-import { drawYAxis } from '../chart/core/drawAxis';
 
 const AXIS_RENDER_LAYER = 20;
 

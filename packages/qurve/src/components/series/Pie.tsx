@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useChartContext } from '../chart/chartContext';
-import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
-import { drawPieSlices, type PieDrawSlice } from '../chart/core/drawPie';
-import { resolveYValue } from '../chart/core/pointUtils';
 import {
+  drawPieSlices,
+  resolveYValue,
   pickColor,
   toNumber,
   normalizeName,
@@ -11,12 +9,11 @@ import {
   isAngleInArc,
   formatDefaultLabel,
   distributeLabels,
-  type PieNameKey,
-  type PieLabelMode,
-  type PieLabelContext,
-  type PieLabelLayoutItem,
-} from '../chart/core/pieMath';
-import { normalizeOpacity } from '../chart/core/chartMath';
+  normalizeOpacity,
+} from '@qurve/core';
+import type { PieDrawSlice, PieNameKey, PieLabelMode, PieLabelContext, PieLabelLayoutItem } from '@qurve/core';
+import { useChartContext } from '../chart/chartContext';
+import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 
 const PIE_CONSTANTS = {
   DEFAULT_HOVER_OPACITY: 0.45,
@@ -410,7 +407,7 @@ export function Pie({
         whiteSpace: 'nowrap',
       }}
     >
-      {item.content}
+      {item.content as React.ReactNode}
     </div>
   ));
 

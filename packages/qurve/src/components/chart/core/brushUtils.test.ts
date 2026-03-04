@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getTouchDistance, getTouchX } from './brushUtils';
+import { getTouchDistance, getTouchX } from '@qurve/core';
 
 describe('brushUtils', () => {
   it('returns touch x from touches/changedTouches', () => {

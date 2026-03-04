@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { drawActiveDot, drawLineDots, drawLinePath, projectPoints } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
-import { drawActiveDot, drawLineDots, drawLinePath } from '../chart/core/drawLine';
-import { projectPoints } from '../chart/core/pointUtils';
 
 // Constants for consistent styling
 const LINE_CONSTANTS = {

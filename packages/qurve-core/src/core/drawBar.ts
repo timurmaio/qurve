@@ -60,16 +60,12 @@ export function drawBars(params: {
 
     ctx.globalAlpha = hoveredIndex === null || hoveredIndex === index ? 1 : hoverOpacity;
     ctx.fillStyle = fill;
-    if (bar.radius !== undefined) {
-      fillRoundedRect(ctx, bar);
-    } else {
-      ctx.fillRect(bar.x, bar.y, bar.width, bar.height);
-    }
+    fillRoundedRect(ctx, bar);
 
     if (stroke && strokeWidth > 0) {
       ctx.strokeStyle = stroke;
       ctx.lineWidth = strokeWidth;
-      ctx.strokeRect(bar.x, bar.y, bar.width, bar.height);
+      ctx.stroke();
     }
   }
 

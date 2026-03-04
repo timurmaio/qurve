@@ -1,6 +1,5 @@
-import { isValidElement } from 'react';
 import { formatTimeTick, toTimeNumber, type TimeFormatMode } from './timeUtils';
-import type { TooltipPayloadItem } from '../chartContext';
+import type { TooltipPayloadItem } from '../types';
 
 export type TooltipLabel = string | number;
 
@@ -11,11 +10,11 @@ type TimeAxisConfig = {
   timeFormat?: TimeFormatMode;
 } | null;
 
-export function formatDefaultLabel(label: TooltipLabel, axis: TimeAxisConfig): React.ReactNode {
-  if (axis?.type !== 'time') return label;
+export function formatTooltipLabel(label: TooltipLabel, axis: TimeAxisConfig): string {
+  if (axis?.type !== 'time') return String(label);
 
   const value = toTimeNumber(label);
-  if (value === null) return label;
+  if (value === null) return String(label);
 
   const day = 24 * 60 * 60 * 1000;
   const domain: [number, number] = [value - day, value + day];
@@ -26,19 +25,25 @@ export function formatDefaultLabel(label: TooltipLabel, axis: TimeAxisConfig): R
   });
 }
 
-export function nodeToText(node: React.ReactNode): string {
+/**
+ * Extract text from formatter output - framework-agnostic.
+ * Handles primitives, arrays, and React-like/Vue-like element objects.
+ */
+export function nodeToText(node: unknown): string {
   if (node === null || node === undefined || typeof node === 'boolean') return '';
   if (typeof node === 'string' || typeof node === 'number') return String(node);
   if (Array.isArray(node)) return node.map(nodeToText).join(' ');
-  if (isValidElement(node)) {
-    return nodeToText((node.props as { children?: React.ReactNode }).children);
+  // React-like: { type, props: { children } } or Vue-like VNode
+  if (node && typeof node === 'object' && 'props' in node) {
+    const props = (node as { props?: { children?: unknown } }).props;
+    return nodeToText(props?.children);
   }
   return '';
 }
 
 export function payloadToA11yText(
   payload: TooltipPayloadItem[],
-  formatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode],
+  formatter?: (value: number | null, name: string, item: TooltipPayloadItem) => unknown,
 ): string {
   return payload
     .map((item) => {
@@ -46,11 +51,11 @@ export function payloadToA11yText(
       const formatted = valueFormatter ? valueFormatter(item.value, item.name, item) : null;
       const valueNode = Array.isArray(formatted)
         ? formatted[0]
-        : formatted ?? (item.value === null ? '-' : item.value.toFixed(2));
+        : formatted ?? (item.value == null || !Number.isFinite(item.value) ? '-' : item.value.toFixed(2));
       const nameNode = Array.isArray(formatted) ? formatted[1] : item.name;
 
       const nameText = nodeToText(nameNode) || item.name;
-      const valueText = nodeToText(valueNode) || (item.value === null ? '-' : item.value.toFixed(2));
+      const valueText = nodeToText(valueNode) || (item.value == null || !Number.isFinite(item.value) ? '-' : item.value.toFixed(2));
       return `${nameText}: ${valueText}`;
     })
     .join('. ');

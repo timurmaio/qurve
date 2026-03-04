@@ -1,4 +1,4 @@
-import type { ProjectedPoint } from './pointUtils';
+import type { ProjectedPoint } from '../types';
 
 export function drawLinePath(params: {
   ctx: CanvasRenderingContext2D;

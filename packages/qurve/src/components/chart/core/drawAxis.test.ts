@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { drawXAxis, drawYAxis } from './drawAxis';
+import { drawXAxis, drawYAxis } from '@qurve/core';
 
 function createMockContext() {
   return {
