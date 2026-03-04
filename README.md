@@ -13,8 +13,22 @@
 [![npm version](https://img.shields.io/npm/v/qurve.svg)](https://www.npmjs.com/package/qurve)
 [![CI](https://github.com/timurmaio/qurve/actions/workflows/ci.yml/badge.svg)](https://github.com/timurmaio/qurve/actions/workflows/ci.yml)
 [![coverage](https://img.shields.io/badge/coverage-89%25-brightgreen)](./packages/qurve/coverage)
+[![Status](https://img.shields.io/badge/status-proof%20of%20concept-orange)](#project-status)
 
 </div>
+
+> **⚠️ Project Status: Not ready for use**  
+> This is an experimental proof of concept. The API is unstable and may change without notice. Do not use in production. See [Project Status](#project-status) for details.
+
+## Project Status
+
+| Aspect | Status |
+|--------|--------|
+| **Stability** | Proof of concept — not production-ready |
+| **API** | Unstable; breaking changes expected |
+| **Recommendation** | For experimentation and feedback only |
+
+This repository exists to validate the approach and gather feedback. If you're looking for a stable, battle-tested charting solution, consider [Recharts](https://recharts.org/), [Visx](https://airbnb.io/visx), or [Chart.js](https://www.chartjs.org/) instead.
 
 ## Why Qurve?
 
@@ -26,6 +40,8 @@ Most React charting libraries render to SVG—and it shows. As your datasets gro
 - **TypeScript-first** — Full type safety out of the box.
 
 ## Quick Start
+
+*For experimentation only. See [Project Status](#project-status) before using.*
 
 ```bash
 npm install qurve
@@ -77,7 +93,7 @@ function App() {
 
 ## Philosophy
 
-Qurve isn't a drop-in replacement for Recharts or Chart.js. It's for developers who want:
+Qurve isn't a drop-in replacement for Recharts or Chart.js—and in its current proof-of-concept state, it's not intended to be. The goal is to validate an approach: React charting that offers:
 
 1. **Full control** — Need a custom axis? Build it from primitives.
 2. **Performance** — SVG choking on 50K+ points? Canvas laughs.
