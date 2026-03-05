@@ -496,6 +496,7 @@ function useChartModel(params: {
       if (shouldClearOnLeaveRef.current?.() === false) return;
       dispatch({ type: 'setHoveredIndex', payload: null });
       dispatch({ type: 'setPointer', payload: null });
+      requestOverlayRender();
     };
 
     eventCanvas.addEventListener('mousemove', handleMouseMove, { passive: true });
@@ -509,7 +510,7 @@ function useChartModel(params: {
         pointerRafRef.current = null;
       }
     };
-  }, [ctx, getTooltipIndexFromMouse, requestOverlayRender]);
+  }, [ctx, overlayCtx, getTooltipIndexFromMouse, requestOverlayRender]);
 
   const registerShouldClearOnLeave = useCallback((fn: () => boolean) => {
     shouldClearOnLeaveRef.current = fn;

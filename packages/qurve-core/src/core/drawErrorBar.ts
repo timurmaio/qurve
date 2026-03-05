@@ -57,60 +57,62 @@ export function drawErrorBars(params: {
   const yScale = getYScale(dataKey);
 
   ctx.save();
-  ctx.strokeStyle = stroke;
-  ctx.lineWidth = strokeWidth;
+  try {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeWidth;
 
-  for (let i = 0; i < points.length; i++) {
-    const point = points[i];
-    const item = data[i] ?? {};
-    const err = resolveError(item, i, errorKey);
-    if (!err) continue;
+    for (let i = 0; i < points.length; i++) {
+      const point = points[i];
+      const item = data[i] ?? {};
+      const err = resolveError(item, i, errorKey);
+      if (!err) continue;
 
-    const [errLo, errHi] = err;
-    const yVal = resolveYValue(item, i, dataKey);
+      const [errLo, errHi] = err;
+      const yVal = resolveYValue(item, i, dataKey);
 
-    if (direction === 'y') {
-      const yLow = margin.top + yScale(yVal - errLo);
-      const yHigh = margin.top + yScale(yVal + errHi);
-      const x = point.x;
+      if (direction === 'y') {
+        const yLow = margin.top + yScale(yVal - errLo);
+        const yHigh = margin.top + yScale(yVal + errHi);
+        const x = point.x;
 
-      ctx.beginPath();
-      ctx.moveTo(x, yLow);
-      ctx.lineTo(x, yHigh);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, yLow);
+        ctx.lineTo(x, yHigh);
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(x - width / 2, yLow);
-      ctx.lineTo(x + width / 2, yLow);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x - width / 2, yLow);
+        ctx.lineTo(x + width / 2, yLow);
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(x - width / 2, yHigh);
-      ctx.lineTo(x + width / 2, yHigh);
-      ctx.stroke();
-    } else {
-      const xScale = getXScale();
-      const xVal = resolveXValue(item, i, xAxis);
-      const xLow = margin.left + xScale(xVal - errLo);
-      const xHigh = margin.left + xScale(xVal + errHi);
-      const y = point.y;
+        ctx.beginPath();
+        ctx.moveTo(x - width / 2, yHigh);
+        ctx.lineTo(x + width / 2, yHigh);
+        ctx.stroke();
+      } else {
+        const xScale = getXScale();
+        const xVal = resolveXValue(item, i, xAxis);
+        const xLow = margin.left + xScale(xVal - errLo);
+        const xHigh = margin.left + xScale(xVal + errHi);
+        const y = point.y;
 
-      ctx.beginPath();
-      ctx.moveTo(xLow, y);
-      ctx.lineTo(xHigh, y);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(xLow, y);
+        ctx.lineTo(xHigh, y);
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(xLow, y - width / 2);
-      ctx.lineTo(xLow, y + width / 2);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(xLow, y - width / 2);
+        ctx.lineTo(xLow, y + width / 2);
+        ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(xHigh, y - width / 2);
-      ctx.lineTo(xHigh, y + width / 2);
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(xHigh, y - width / 2);
+        ctx.lineTo(xHigh, y + width / 2);
+        ctx.stroke();
+      }
     }
+  } finally {
+    ctx.restore();
   }
-
-  ctx.restore();
 }

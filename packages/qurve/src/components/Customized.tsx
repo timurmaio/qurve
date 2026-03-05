@@ -15,7 +15,7 @@ export interface CustomizedDrawProps {
 }
 
 export interface CustomizedProps {
-  /** Custom draw function. Receives ctx and chart layout. Use registerRender internally — this component handles it. */
+  /** Custom draw function. Receives ctx and chart layout. Prefer useCallback to avoid effect churn. */
   draw?: (props: CustomizedDrawProps) => void;
   /** Layer order. Default: LayerOrder.overlays (80). Use lower for background, higher for on-top. */
   layer?: number;
@@ -23,12 +23,15 @@ export interface CustomizedProps {
 
 /**
  * Allows custom canvas drawing within the chart. Use for annotations, highlights, or any custom graphics.
+ * The component registers your draw function internally; you only provide the draw implementation.
+ *
  * @example
- * <Customized draw={(props) => {
+ * const draw = useCallback((props: CustomizedDrawProps) => {
  *   const { ctx, margin, innerWidth, innerHeight } = props;
  *   ctx.fillStyle = 'rgba(255,0,0,0.2)';
  *   ctx.fillRect(margin.left, margin.top, innerWidth, innerHeight);
- * }} layer={LayerOrder.overlays} />
+ * }, []);
+ * <Customized draw={draw} layer={LayerOrder.overlays} />
  */
 export function Customized({ draw, layer = LayerOrder.overlays }: CustomizedProps) {
   const {

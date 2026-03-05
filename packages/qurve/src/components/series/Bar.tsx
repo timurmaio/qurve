@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { drawBars, projectPoints, resolveYValue, LayerOrder } from '@qurve/core';
 import type { BarRect, CellOverride } from '@qurve/core';
+import { CELL_TYPE } from './Cell';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 import {
@@ -93,8 +94,8 @@ export function Bar({
     const arr = Array.isArray(children) ? children : [children];
     for (const child of arr) {
       if (child && typeof child === 'object' && 'type' in child) {
-        const c = child as { type?: { displayName?: string }; props?: CellOverride };
-        if (c.type?.displayName === 'Cell' && c.props) {
+        const c = child as { type?: { [CELL_TYPE]?: boolean }; props?: CellOverride };
+        if ((c.type as { [CELL_TYPE]?: boolean })?.[CELL_TYPE] && c.props) {
           items.push({
             fill: c.props.fill,
             stroke: c.props.stroke,

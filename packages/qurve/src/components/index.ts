@@ -33,7 +33,7 @@ export { Area } from './series/Area';
 export type { AreaProps } from './series/Area';
 export { Pie } from './series/Pie';
 export type { PieProps } from './series/Pie';
-export { Cell } from './series/Cell';
+export { Cell, CELL_TYPE } from './series/Cell';
 export type { CellProps } from './series/Cell';
 export { Scatter } from './series/Scatter';
 export type { ScatterProps } from './series/Scatter';
