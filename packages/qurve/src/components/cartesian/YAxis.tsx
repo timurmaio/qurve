@@ -104,7 +104,7 @@ export function YAxis({
         tickValues,
         interval,
         tickFormatter: tickSlot
-          ? (value: unknown, index: number) => tickSlot(value, index)
+          ? (value: unknown, index?: number) => tickSlot(value, index ?? 0)
           : tickFormatter,
         fontSize,
         fontFamily: effectiveFontFamily,

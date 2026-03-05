@@ -99,7 +99,7 @@ export function XAxis({
         : undefined);
 
     const resolvedTickFormatter = tickSlot
-      ? (value: unknown, index: number) => tickSlot(value, index)
+      ? (value: unknown, index?: number) => tickSlot(value, index ?? 0)
       : baseFormatter;
 
     const render = () => {

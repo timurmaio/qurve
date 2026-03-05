@@ -198,7 +198,7 @@ export function Tooltip({
 
   const tooltipProps = useMemo(() => {
     if (!data.length || hoveredIndex === null || hoveredIndex < 0 || hoveredIndex >= data.length) {
-      return { active: false, payload: [] as TooltipPayloadItem[], label: undefined as TooltipLabel };
+      return { active: false, payload: [] as TooltipPayloadItem[], label: undefined as unknown as TooltipLabel };
     }
 
     const rawPayload = getTooltipPayload(hoveredIndex);
@@ -223,10 +223,12 @@ export function Tooltip({
     };
   }, [data, hoveredIndex, getTooltipPayload, filterNull, itemSorter, xAxis]);
 
-  const cursorPoint = useMemo(() => {
+  const cursorPoint = useMemo((): { x: number; y: number; value: number; index: number } | null => {
     if (hoveredIndex === null || !tooltipProps.active) return null;
     const payloadAnchor = tooltipProps.payload?.find((i) => i.anchor)?.anchor;
-    if (payloadAnchor) return payloadAnchor;
+    if (payloadAnchor) {
+      return { x: payloadAnchor.x, y: payloadAnchor.y, value: 0, index: hoveredIndex };
+    }
     const point = pointsRef.current.find((p) => p.index === hoveredIndex);
     return point ?? null;
   }, [hoveredIndex, tooltipProps.active, tooltipProps.payload]);
