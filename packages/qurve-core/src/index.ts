@@ -44,6 +44,8 @@ export {
 export * from './core/legendUtils';
 export * from './core/brushUtils';
 export * from './core/responsiveUtils';
+export { getRelativePosition } from './core/canvasUtils';
+export { LayerOrder } from './core/layerOrder';
 export {
   formatTooltipLabel,
   nodeToText,

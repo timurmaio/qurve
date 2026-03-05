@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { drawScatterPoints } from '@qurve/core';
+import { drawScatterPoints } from './drawScatter';
 
 function createMockContext() {
   return {

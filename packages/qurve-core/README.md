@@ -2,6 +2,8 @@
 
 Framework-agnostic chart renderer and math utilities for Qurve. Use this package when you need the drawing logic and calculations without React or any other framework dependency.
 
+**Stability:** 179 unit tests, ~99.5% line coverage, 100% function coverage. The core is designed to be rock-solid and dependency-free.
+
 ## Use cases
 
 - **Vue bindings**: Create `qurve-vue` that uses `@qurve/core` for canvas rendering

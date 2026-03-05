@@ -1,3 +1,9 @@
+function buildAxisFont(fontSize: number, fontFamily: string, fontWeight?: string | number): string {
+  const weight = fontWeight != null ? String(fontWeight) : '';
+  const parts = [weight, `${fontSize}px`, fontFamily].filter(Boolean);
+  return parts.join(' ');
+}
+
 function createTicks(min: number, max: number, tickCount: number): number[] {
   const safeCount = Math.max(2, tickCount);
   const step = (max - min) / (safeCount - 1);
@@ -24,6 +30,9 @@ export function drawXAxis(params: {
   tickValues?: number[];
   interval?: number;
   tickFormatter?: (value: unknown) => string;
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string | number;
 }): void {
   const {
     ctx,
@@ -41,6 +50,9 @@ export function drawXAxis(params: {
     tickValues,
     interval = 0,
     tickFormatter,
+    fontSize = 12,
+    fontFamily = 'sans-serif',
+    fontWeight,
   } = params;
 
   const [min, max] = domain;
@@ -53,7 +65,7 @@ export function drawXAxis(params: {
   ctx.save();
   ctx.strokeStyle = stroke;
   ctx.fillStyle = stroke;
-  ctx.font = '12px sans-serif';
+  ctx.font = buildAxisFont(fontSize, fontFamily, fontWeight);
   ctx.textAlign = 'center';
   ctx.textBaseline = position === 'top' ? 'bottom' : 'top';
 
@@ -102,6 +114,9 @@ export function drawYAxis(params: {
   tickValues?: number[];
   interval?: number;
   tickFormatter?: (value: unknown) => string;
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string | number;
 }): void {
   const {
     ctx,
@@ -119,6 +134,9 @@ export function drawYAxis(params: {
     tickValues,
     interval = 0,
     tickFormatter,
+    fontSize = 12,
+    fontFamily = 'sans-serif',
+    fontWeight,
   } = params;
 
   const [min, max] = domain;
@@ -131,7 +149,7 @@ export function drawYAxis(params: {
   ctx.save();
   ctx.strokeStyle = stroke;
   ctx.fillStyle = stroke;
-  ctx.font = '12px sans-serif';
+  ctx.font = buildAxisFont(fontSize, fontFamily, fontWeight);
   ctx.textAlign = position === 'left' ? 'right' : 'left';
   ctx.textBaseline = 'middle';
 

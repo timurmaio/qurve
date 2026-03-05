@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Chart } from './chart/chartContext';
 import { XAxis } from './cartesian/XAxis';
@@ -37,7 +37,7 @@ describe('Tooltip', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
 
@@ -58,7 +58,7 @@ describe('Tooltip', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement, 20, 20);
 
@@ -83,7 +83,7 @@ describe('Tooltip', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
 
@@ -108,7 +108,7 @@ describe('Tooltip', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
 
     hoverCanvas(canvas as HTMLCanvasElement, 20, 20);
@@ -134,9 +134,13 @@ describe('Tooltip', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+
+    await act(async () => {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    });
 
     const status = await screen.findByRole('status');
     expect(status).toHaveAttribute('aria-live', 'assertive');
@@ -154,7 +158,7 @@ describe('Tooltip', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement, 20, 20);
 
@@ -175,13 +179,52 @@ describe('Tooltip', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement, 20, 20);
+
+    await act(async () => {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    });
 
     const status = await screen.findByRole('status');
     expect(status.textContent).toContain('A: 10.00');
     expect(status.textContent).toContain('B: 5.00');
     expect(status.textContent).toContain('Sum=15');
+  });
+
+  it('applies wrapperClassName, contentClassName, contentStyle, itemStyle', async () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }, { x: 1, y: 20 }]} width={320} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Tooltip
+          wrapperClassName="custom-tooltip-wrapper"
+          contentClassName="custom-tooltip-content"
+          contentStyle={{ backgroundColor: 'rgb(240, 240, 240)' }}
+          itemStyle={{ marginTop: '4px' }}
+        />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+    hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+
+    await act(async () => {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    });
+
+    const wrapper = container.querySelector('.custom-tooltip-wrapper');
+    expect(wrapper).toBeInTheDocument();
+
+    const content = container.querySelector('.custom-tooltip-content');
+    expect(content).toBeInTheDocument();
+    expect(content).toHaveStyle({ backgroundColor: 'rgb(240, 240, 240)' });
+
+    const valueSpan = screen.getByText('20.00');
+    const itemDiv = valueSpan.closest('div');
+    expect(itemDiv).toHaveStyle({ marginTop: '4px' });
   });
 });

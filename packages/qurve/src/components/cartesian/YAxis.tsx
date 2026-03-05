@@ -1,9 +1,7 @@
 import { useEffect } from 'react';
-import { drawYAxis } from '@qurve/core';
+import { drawYAxis, LayerOrder } from '@qurve/core';
 import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
-
-const AXIS_RENDER_LAYER = 20;
 
 export interface YAxisProps {
   dataKey?: DataKey;
@@ -23,6 +21,9 @@ export interface YAxisProps {
   tickLine?: boolean;
   axisLine?: boolean;
   width?: number;
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string | number;
 }
 
 export function YAxis({
@@ -42,6 +43,9 @@ export function YAxis({
   tickLine = true,
   axisLine = true,
   width: axisWidth = 60,
+  fontSize,
+  fontFamily,
+  fontWeight,
 }: YAxisProps) {
   const { margin, innerWidth, innerHeight } = useChartLayoutContext();
   const { registerRender, ctx } = useChartRenderContext();
@@ -95,11 +99,14 @@ export function YAxis({
         tickValues,
         interval,
         tickFormatter,
+        fontSize,
+        fontFamily,
+        fontWeight,
       });
     };
 
-    return registerRender(render, { layer: AXIS_RENDER_LAYER });
-  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender]);
+    return registerRender(render, { layer: LayerOrder.axes });
+  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender]);
 
   return null;
 }

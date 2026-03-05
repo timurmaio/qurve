@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { drawArea, resolveXValue, resolveYValue, getBaseValue, clamp, normalizeOpacity } from '@qurve/core';
+import { drawArea, resolveXValue, resolveYValue, getBaseValue, clamp, normalizeOpacity, LayerOrder } from '@qurve/core';
 import type { AreaPoint } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 
 const AREA_CONSTANTS = {
-  DEFAULT_FILL: '#8884d8',
   DEFAULT_FILL_OPACITY: 0.25,
   DEFAULT_STROKE_WIDTH: 2,
   DEFAULT_HOVER_OPACITY: 0.55,
-  RENDER_LAYER: 30,
-  TOOLTIP_LAYER: 30,
 };
 
 interface AreaGeometry extends AreaPoint {
@@ -34,9 +31,9 @@ export interface AreaProps {
 export function Area({
   dataKey,
   stackId,
-  fill = AREA_CONSTANTS.DEFAULT_FILL,
+  fill: fillProp,
   fillOpacity = AREA_CONSTANTS.DEFAULT_FILL_OPACITY,
-  stroke,
+  stroke: strokeProp,
   strokeWidth = AREA_CONSTANTS.DEFAULT_STROKE_WIDTH,
   hoverOpacity = AREA_CONSTANTS.DEFAULT_HOVER_OPACITY,
   name,
@@ -55,12 +52,15 @@ export function Area({
     getAreaSeriesRegistrations,
     areaSeriesVersion,
     registerLegendItem,
+    getSeriesColor,
     isSeriesVisible,
     legendVersion,
     ctx,
     hoveredIndex,
     requestRender,
   } = useChartContext();
+  const fill = fillProp ?? getSeriesColor();
+  const stroke = strokeProp ?? fill;
 
   const seriesId = useMemo(() => Symbol('area-series'), []);
   const areasRef = useRef<AreaGeometry[]>([]);
@@ -185,7 +185,7 @@ export function Area({
         formatter: tooltipFormatter,
         anchor: { x: area.x, y: area.y1 },
       };
-    }, { layer: AREA_CONSTANTS.TOOLTIP_LAYER });
+    }, { layer: LayerOrder.area });
   }, [registerTooltipSeries, payloadDataKey, seriesName, stroke, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -217,7 +217,7 @@ export function Area({
       }
     };
 
-    return registerRender(render, { layer: AREA_CONSTANTS.RENDER_LAYER });
+    return registerRender(render, { layer: LayerOrder.area });
   }, [
     ctx,
     data,

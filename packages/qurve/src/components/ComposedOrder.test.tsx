@@ -48,7 +48,7 @@ describe('composed ordering', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
 

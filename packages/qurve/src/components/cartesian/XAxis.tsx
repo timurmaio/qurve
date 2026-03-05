@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
-import { drawXAxis, createTimeTicks, formatTimeTick, toTimeNumber } from '@qurve/core';
+import { drawXAxis, createTimeTicks, formatTimeTick, toTimeNumber, LayerOrder } from '@qurve/core';
 import type { TimeFormatMode } from '@qurve/core';
 import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
-
-const AXIS_RENDER_LAYER = 20;
 
 export interface XAxisProps {
   dataKey?: DataKey;
@@ -26,6 +24,9 @@ export interface XAxisProps {
   tick?: boolean;
   tickLine?: boolean;
   axisLine?: boolean;
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string | number;
 }
 
 export function XAxis({
@@ -47,6 +48,9 @@ export function XAxis({
   tick = true,
   tickLine = true,
   axisLine = true,
+  fontSize,
+  fontFamily,
+  fontWeight,
 }: XAxisProps) {
   const { margin, innerWidth, innerHeight } = useChartLayoutContext();
   const { registerRender, ctx } = useChartRenderContext();
@@ -108,11 +112,14 @@ export function XAxis({
         tickValues: numericTickValues,
         interval,
         tickFormatter: resolvedTickFormatter,
+        fontSize,
+        fontFamily,
+        fontWeight,
       });
     };
 
-    return registerRender(render, { layer: AXIS_RENDER_LAYER });
-  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender, type, locale, timeZone, timeFormat]);
+    return registerRender(render, { layer: LayerOrder.axes });
+  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender, type, locale, timeZone, timeFormat]);
 
   return null;
 }

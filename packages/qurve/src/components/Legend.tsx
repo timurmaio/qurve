@@ -6,7 +6,9 @@ export interface LegendProps {
   align?: 'left' | 'center' | 'right';
   verticalAlign?: 'top' | 'bottom';
   iconSize?: number;
+  wrapperClassName?: string;
   wrapperStyle?: React.CSSProperties;
+  itemStyle?: React.CSSProperties;
   ariaLabel?: string;
   selectionMode?: 'multiple' | 'single';
 }
@@ -15,7 +17,9 @@ export function Legend({
   align = 'center',
   verticalAlign = 'bottom',
   iconSize = 10,
+  wrapperClassName,
   wrapperStyle,
+  itemStyle,
   ariaLabel = 'Chart legend',
   selectionMode = 'multiple',
 }: LegendProps) {
@@ -27,6 +31,7 @@ export function Legend({
 
   return (
     <div
+      className={wrapperClassName}
       style={{
         position: 'absolute',
         left: 0,
@@ -98,6 +103,7 @@ export function Legend({
                 cursor: 'pointer',
                 outline: 'none',
                 boxShadow: isFocused ? '0 0 0 2px rgba(37, 99, 235, 0.45)' : 'none',
+                ...itemStyle,
               }}
             >
               <span

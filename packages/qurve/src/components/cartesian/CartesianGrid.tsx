@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { drawGrid } from '@qurve/core';
+import { drawGrid, LayerOrder } from '@qurve/core';
 import { useChartLayoutContext, useChartRenderContext } from '../chart/chartContext';
 
 export interface CartesianGridProps {
@@ -10,8 +10,6 @@ export interface CartesianGridProps {
   horizontalCount?: number;
   verticalCount?: number;
 }
-
-const GRID_RENDER_LAYER = 10;
 
 export function CartesianGrid({
   stroke = '#e5e5e5',
@@ -42,7 +40,7 @@ export function CartesianGrid({
       });
     };
 
-    return registerRender(render, { layer: GRID_RENDER_LAYER });
+    return registerRender(render, { layer: LayerOrder.grid });
   }, [ctx, margin, innerWidth, innerHeight, stroke, strokeDasharray, horizontal, vertical, horizontalCount, verticalCount, registerRender]);
 
   return null;

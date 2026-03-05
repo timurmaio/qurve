@@ -1,17 +1,13 @@
 import { useEffect, useRef } from 'react';
-import { drawActiveDot, drawLineDots, drawLinePath, projectPoints } from '@qurve/core';
+import { drawActiveDot, drawLineDots, drawLinePath, projectPoints, LayerOrder } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
 
-// Constants for consistent styling
 const LINE_CONSTANTS = {
   DEFAULT_DOT_RADIUS: 3,
   DEFAULT_ACTIVE_DOT_RADIUS: 6,
   DEFAULT_DOT_STROKE: '#fff',
-  DEFAULT_STROKE: '#8884d8',
   DEFAULT_STROKE_WIDTH: 2,
-  RENDER_LAYER: 50,
-  TOOLTIP_LAYER: 50,
 };
 
 export interface LineProps {
@@ -34,7 +30,7 @@ interface Point {
 export function Line({
   dataKey,
   type = 'linear',
-  stroke = LINE_CONSTANTS.DEFAULT_STROKE,
+  stroke: strokeProp,
   strokeWidth = LINE_CONSTANTS.DEFAULT_STROKE_WIDTH,
   dot = false,
   activeDot = true,
@@ -48,6 +44,7 @@ export function Line({
     xAxis,
     registerRender,
     registerTooltipSeries,
+    getSeriesColor,
     ctx,
     hoveredIndex,
     requestRender,
@@ -55,6 +52,7 @@ export function Line({
     isSeriesVisible,
     legendVersion,
   } = useChartContext();
+  const stroke = strokeProp ?? getSeriesColor();
   const seriesIdRef = useRef(Symbol('line-series'));
   const pointsRef = useRef<Point[]>([]);
   const hoveredIndexRef = useRef<number | null>(null);
@@ -103,7 +101,7 @@ export function Line({
         color: stroke,
         anchor: { x: point.x, y: point.y },
       };
-    }, { layer: LINE_CONSTANTS.TOOLTIP_LAYER });
+    }, { layer: LayerOrder.line });
   }, [registerTooltipSeries, payloadDataKey, seriesName, stroke, isSeriesVisible, legendVersion]);
 
   // Sync hoveredIndex to ref - avoids re-registering render function
@@ -151,7 +149,7 @@ export function Line({
       }
     };
 
-    return registerRender(render, { layer: LINE_CONSTANTS.RENDER_LAYER });
+    return registerRender(render, { layer: LayerOrder.line });
   }, [ctx, data, margin, getXScale, getYScale, xAxis, dataKey, type, stroke, strokeWidth, dot, registerRender, activeDot, isSeriesVisible, legendVersion]);
 
   return null;

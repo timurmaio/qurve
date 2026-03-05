@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { drawBars, projectPoints, resolveYValue } from '@qurve/core';
+import { drawBars, projectPoints, resolveYValue, LayerOrder } from '@qurve/core';
 import type { BarRect } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
@@ -15,14 +15,11 @@ import {
 } from '@qurve/core';
 
 const BAR_CONSTANTS = {
-  DEFAULT_FILL: '#8884d8',
   DEFAULT_STROKE_WIDTH: 0,
   DEFAULT_HOVER_OPACITY: 0.5,
   DEFAULT_BAND_RATIO: 0.72,
   DEFAULT_SLOT_PADDING_RATIO: 0.12,
   DEFAULT_SINGLE_BAR_RATIO: 0.62,
-  RENDER_LAYER: 40,
-  TOOLTIP_LAYER: 40,
 };
 
 export interface BarProps {
@@ -53,7 +50,7 @@ interface Slot {
 
 export function Bar({
   dataKey,
-  fill = BAR_CONSTANTS.DEFAULT_FILL,
+  fill: fillProp,
   stroke,
   strokeWidth = BAR_CONSTANTS.DEFAULT_STROKE_WIDTH,
   barSize,
@@ -79,12 +76,14 @@ export function Bar({
     getBarSeriesRegistrations,
     barSeriesVersion,
     registerLegendItem,
+    getSeriesColor,
     isSeriesVisible,
     legendVersion,
     ctx,
     hoveredIndex,
     requestRender,
   } = useChartContext();
+  const fill = fillProp ?? getSeriesColor();
 
   const seriesId = useMemo(() => Symbol('bar-series'), []);
   const barsRef = useRef<BarGeometry[]>([]);
@@ -308,7 +307,7 @@ export function Bar({
         formatter: tooltipFormatter,
         anchor: { x: bar.x + bar.width / 2, y: bar.y },
       };
-    }, { layer: BAR_CONSTANTS.TOOLTIP_LAYER });
+    }, { layer: LayerOrder.bar });
   }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -339,8 +338,9 @@ export function Bar({
       }
     };
 
-    return registerRender(render, { layer: BAR_CONSTANTS.RENDER_LAYER });
+    return registerRender(render, { layer: LayerOrder.bar });
   }, [ctx, data, fill, stroke, strokeWidth, normalizedHoverOpacity, registerRender, isSeriesVisible, seriesId, legendVersion]);
 
   return null;
 }
+

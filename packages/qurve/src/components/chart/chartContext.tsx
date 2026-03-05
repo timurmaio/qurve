@@ -2,6 +2,9 @@ import { createContext, useContext, useReducer, useCallback, useMemo, useRef, us
 import {
   normalizeTimeDomain,
   toTimeNumber,
+  getRelativePosition,
+  PIE_COLORS,
+  LayerOrder,
   type ChartData,
   type DataKey,
   type AxisConfig,
@@ -21,13 +24,19 @@ export interface ChartLayoutContextValue {
   innerWidth: number;
   innerHeight: number;
   visibleRange: { start: number; end: number };
+  colors: string[];
+  getSeriesColor: () => string;
+  resetSeriesColorIndex: () => void;
 }
 
 export interface ChartRenderContextValue {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  overlayCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   ctx: CanvasRenderingContext2D | null;
+  overlayCtx: CanvasRenderingContext2D | null;
   registerRender: (fn: () => void, options?: { layer?: number }) => () => void;
   requestRender: () => void;
+  requestOverlayRender: () => void;
 }
 
 export interface ChartScaleContextValue {
@@ -55,12 +64,14 @@ export interface ChartSeriesContextValue {
 
 export interface ChartInteractionContextValue {
   hoveredIndex: number | null;
+  pointer: { x: number; y: number } | null;
   setHoveredIndex: (index: number | null) => void;
-  subscribeToMouse: (callback: (mouseX: number, mouseY: number) => void) => () => void;
+  setPointer: (p: { x: number; y: number } | null) => void;
   registerTooltipSeries: (resolver: (index: number) => TooltipPayloadItem | null, options?: { layer?: number }) => () => void;
   getTooltipPayload: (index: number) => TooltipPayloadItem[];
   registerTooltipIndexResolver: (resolver: (mouseX: number, mouseY: number) => number | null) => () => void;
   getTooltipIndexFromMouse: (mouseX: number, mouseY: number) => number | null;
+  registerShouldClearOnLeave: (fn: () => boolean) => () => void;
   setVisibleRange: (range: { start: number; end: number }) => void;
 }
 
@@ -167,6 +178,8 @@ export interface ChartProps {
   width?: number;
   height?: number;
   margin?: { top?: number; right?: number; bottom?: number; left?: number };
+  backgroundColor?: string;
+  colors?: string[];
   children: React.ReactNode;
 }
 
@@ -174,7 +187,9 @@ interface ChartState {
   xAxis: AxisConfig | null;
   yAxis: AxisConfig | null;
   ctx: CanvasRenderingContext2D | null;
+  overlayCtx: CanvasRenderingContext2D | null;
   hoveredIndex: number | null;
+  pointer: { x: number; y: number } | null;
   barSeriesVersion: number;
   areaSeriesVersion: number;
   legendVersion: number;
@@ -199,7 +214,9 @@ type ChartAction =
   | { type: 'setXAxis'; payload: AxisConfig | null }
   | { type: 'setYAxis'; payload: AxisConfig | null }
   | { type: 'setCtx'; payload: CanvasRenderingContext2D | null }
+  | { type: 'setOverlayCtx'; payload: CanvasRenderingContext2D | null }
   | { type: 'setHoveredIndex'; payload: number | null }
+  | { type: 'setPointer'; payload: { x: number; y: number } | null }
   | { type: 'setVisibleRange'; payload: { start: number; end: number } }
   | { type: 'bumpBarSeriesVersion' }
   | { type: 'bumpAreaSeriesVersion' }
@@ -209,7 +226,9 @@ const initialChartState: ChartState = {
   xAxis: null,
   yAxis: null,
   ctx: null,
+  overlayCtx: null,
   hoveredIndex: null,
+  pointer: null,
   barSeriesVersion: 0,
   areaSeriesVersion: 0,
   legendVersion: 0,
@@ -224,8 +243,12 @@ function chartReducer(state: ChartState, action: ChartAction): ChartState {
       return { ...state, yAxis: action.payload };
     case 'setCtx':
       return { ...state, ctx: action.payload };
+    case 'setOverlayCtx':
+      return { ...state, overlayCtx: action.payload };
     case 'setHoveredIndex':
       return { ...state, hoveredIndex: action.payload };
+    case 'setPointer':
+      return { ...state, pointer: action.payload };
     case 'setVisibleRange':
       return { ...state, visibleRange: action.payload };
     case 'bumpBarSeriesVersion':
@@ -266,16 +289,29 @@ function useChartModel(params: {
   width: number;
   height: number;
   marginProp: { top?: number; right?: number; bottom?: number; left?: number };
+  backgroundColor?: string;
+  colors?: string[];
 }) {
-  const { data: sourceData, width, height, marginProp } = params;
+  const { data: sourceData, width, height, marginProp, backgroundColor = '#fff', colors: colorsProp } = params;
+  const colors = useMemo(() => colorsProp?.length ? colorsProp : PIE_COLORS, [colorsProp]);
+  const seriesColorIndexRef = useRef(0);
+  const resetSeriesColorIndex = useCallback(() => {
+    seriesColorIndexRef.current = 0;
+  }, []);
+  const getSeriesColor = useCallback(() => {
+    const index = seriesColorIndexRef.current++;
+    return colors[index % colors.length];
+  }, [colors]);
   const [state, dispatch] = useReducer(chartReducer, initialChartState);
-  const { xAxis, yAxis, ctx, hoveredIndex, barSeriesVersion, areaSeriesVersion, legendVersion, visibleRange } = state;
+  const { xAxis, yAxis, ctx, overlayCtx, hoveredIndex, pointer, barSeriesVersion, areaSeriesVersion, legendVersion, visibleRange } = state;
+  const shouldClearOnLeaveRef = useRef<(() => boolean) | null>(null);
   const dpr = useDevicePixelRatio();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   const renderFnsRef = useRef<Map<symbol, RenderRegistration>>(new Map());
   const renderOrderRef = useRef(0);
-  const mouseSubscribersRef = useRef<Set<(mouseX: number, mouseY: number) => void>>(new Set());
   const animationFrameRef = useRef<number | null>(null);
+  const overlayAnimationFrameRef = useRef<number | null>(null);
   const tooltipSeriesRef = useRef<Map<symbol, TooltipSeriesRegistration>>(new Map());
   const tooltipOrderRef = useRef(0);
   const tooltipIndexResolversRef = useRef<Map<symbol, (mouseX: number, mouseY: number) => number | null>>(new Map());
@@ -306,8 +342,16 @@ function useChartModel(params: {
     return sourceData.slice(startIndex, endIndex + 1);
   }, [sourceData, visibleRange.end, visibleRange.start]);
 
-  const sortedRenderFns = useCallback(() => {
+  const sortedBaseRenderFns = useCallback(() => {
     return Array.from(renderFnsRef.current.values())
+      .filter((r) => (r.layer ?? 100) < LayerOrder.cursor)
+      .sort((a, b) => (a.layer - b.layer) || (a.order - b.order))
+      .map((item) => item.fn);
+  }, []);
+
+  const sortedOverlayRenderFns = useCallback(() => {
+    return Array.from(renderFnsRef.current.values())
+      .filter((r) => (r.layer ?? 100) >= LayerOrder.cursor)
       .sort((a, b) => (a.layer - b.layer) || (a.order - b.order))
       .map((item) => item.fn);
   }, []);
@@ -322,73 +366,141 @@ function useChartModel(params: {
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
 
         ctx.save();
         ctx.scale(dpr, dpr);
-        for (const fn of sortedRenderFns()) {
+        for (const fn of sortedBaseRenderFns()) {
           fn();
         }
         ctx.restore();
       }
     });
-  }, [ctx, dpr, sortedRenderFns]);
+  }, [ctx, dpr, sortedBaseRenderFns, backgroundColor]);
+
+  const requestOverlayRender = useCallback(() => {
+    if (overlayAnimationFrameRef.current) return;
+
+    overlayAnimationFrameRef.current = requestAnimationFrame(() => {
+      overlayAnimationFrameRef.current = null;
+      const overlayCtxValue = overlayCtx ?? ctx;
+      const overlayCanvas = overlayCanvasRef.current ?? canvasRef.current;
+      if (overlayCtxValue && overlayCanvas) {
+        overlayCtxValue.save();
+        overlayCtxValue.setTransform(1, 0, 0, 1, 0, 0);
+        overlayCtxValue.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        overlayCtxValue.restore();
+
+        overlayCtxValue.save();
+        overlayCtxValue.scale(dpr, dpr);
+        for (const fn of sortedOverlayRenderFns()) {
+          fn();
+        }
+        overlayCtxValue.restore();
+      }
+    });
+  }, [ctx, overlayCtx, dpr, sortedOverlayRenderFns]);
 
   const registerRender = useCallback((fn: () => void, options?: { layer?: number }) => {
     const id = Symbol('render-fn');
+    const layer = options?.layer ?? 100;
     renderFnsRef.current.set(id, {
       id,
       fn,
-      layer: options?.layer ?? 100,
+      layer,
       order: renderOrderRef.current++,
     });
-    requestRender();
+    if (layer >= LayerOrder.cursor) {
+      requestOverlayRender();
+    } else {
+      requestRender();
+    }
     return () => {
       renderFnsRef.current.delete(id);
     };
-  }, [requestRender]);
+  }, [requestRender, requestOverlayRender]);
+
+  const registerTooltipIndexResolver = useCallback((resolver: (mouseX: number, mouseY: number) => number | null) => {
+    const id = Symbol('tooltip-index-resolver');
+    tooltipIndexResolversRef.current.set(id, resolver);
+    return () => {
+      tooltipIndexResolversRef.current.delete(id);
+    };
+  }, []);
+
+  const getTooltipIndexFromMouse = useCallback((mouseX: number, mouseY: number): number | null => {
+    for (const resolver of tooltipIndexResolversRef.current.values()) {
+      const index = resolver(mouseX, mouseY);
+      if (index !== null && Number.isFinite(index) && index >= 0) {
+        return index;
+      }
+    }
+    return null;
+  }, []);
+
+  const pendingPointerRef = useRef<{ x: number; y: number } | null>(null);
+  const pointerRafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !ctx) return;
+    const eventCanvas = overlayCanvasRef.current ?? canvasRef.current;
+    if (!eventCanvas || !ctx) return;
+
+    const processPendingPointer = () => {
+      pointerRafRef.current = null;
+      const pending = pendingPointerRef.current;
+      if (pending === null) return;
+      pendingPointerRef.current = null;
+      const { x: mouseX, y: mouseY } = pending;
+      const index = getTooltipIndexFromMouse(mouseX, mouseY);
+      dispatch({ type: 'setHoveredIndex', payload: index });
+      dispatch({ type: 'setPointer', payload: { x: mouseX, y: mouseY } });
+      requestOverlayRender();
+    };
+
+    const schedulePointerUpdate = (x: number, y: number) => {
+      pendingPointerRef.current = { x, y };
+      if (pointerRafRef.current === null) {
+        pointerRafRef.current = requestAnimationFrame(processPendingPointer);
+      }
+    };
 
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      mouseSubscribersRef.current.forEach(callback => {
-        try {
-          callback(mouseX, mouseY);
-        } catch (error) {
-          console.error('Mouse subscriber error:', error);
-        }
-      });
+      const { x, y } = getRelativePosition(e.clientX, e.clientY, eventCanvas);
+      schedulePointerUpdate(x, y);
     };
 
     const handleMouseLeave = () => {
+      pendingPointerRef.current = null;
+      if (pointerRafRef.current !== null) {
+        cancelAnimationFrame(pointerRafRef.current);
+        pointerRafRef.current = null;
+      }
+      if (shouldClearOnLeaveRef.current?.() === false) return;
       dispatch({ type: 'setHoveredIndex', payload: null });
+      dispatch({ type: 'setPointer', payload: null });
     };
 
-    canvas.addEventListener('mousemove', handleMouseMove, { passive: true });
-    canvas.addEventListener('mouseleave', handleMouseLeave);
+    eventCanvas.addEventListener('mousemove', handleMouseMove, { passive: true });
+    eventCanvas.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
+      eventCanvas.removeEventListener('mousemove', handleMouseMove);
+      eventCanvas.removeEventListener('mouseleave', handleMouseLeave);
+      if (pointerRafRef.current !== null) {
+        cancelAnimationFrame(pointerRafRef.current);
+        pointerRafRef.current = null;
       }
     };
-  }, [ctx]);
+  }, [ctx, getTooltipIndexFromMouse, requestOverlayRender]);
 
-  const subscribeToMouse = useCallback((callback: (mouseX: number, mouseY: number) => void) => {
-    mouseSubscribersRef.current.add(callback);
+  const registerShouldClearOnLeave = useCallback((fn: () => boolean) => {
+    shouldClearOnLeaveRef.current = fn;
     return () => {
-      mouseSubscribersRef.current.delete(callback);
+      if (shouldClearOnLeaveRef.current === fn) {
+        shouldClearOnLeaveRef.current = null;
+      }
     };
   }, []);
 
@@ -420,24 +532,6 @@ function useChartModel(params: {
       }
     }
     return items;
-  }, []);
-
-  const registerTooltipIndexResolver = useCallback((resolver: (mouseX: number, mouseY: number) => number | null) => {
-    const id = Symbol('tooltip-index-resolver');
-    tooltipIndexResolversRef.current.set(id, resolver);
-    return () => {
-      tooltipIndexResolversRef.current.delete(id);
-    };
-  }, []);
-
-  const getTooltipIndexFromMouse = useCallback((mouseX: number, mouseY: number): number | null => {
-    for (const resolver of tooltipIndexResolversRef.current.values()) {
-      const index = resolver(mouseX, mouseY);
-      if (index !== null && Number.isFinite(index) && index >= 0) {
-        return index;
-      }
-    }
-    return null;
   }, []);
 
   const registerBarSeries = useCallback((registration: BarSeriesRegistration) => {
@@ -523,6 +617,32 @@ function useChartModel(params: {
   }, [width, height, dpr]);
 
   useEffect(() => {
+    const overlay = overlayCanvasRef.current;
+    if (!overlay) return;
+
+    overlay.width = width * dpr;
+    overlay.height = height * dpr;
+    overlay.style.width = `${width}px`;
+    overlay.style.height = `${height}px`;
+
+    const context = overlay.getContext('2d');
+    if (context) {
+      dispatch({ type: 'setOverlayCtx', payload: context });
+    }
+
+    return () => {
+      if (context) {
+        context.clearRect(0, 0, overlay.width, overlay.height);
+        dispatch({ type: 'setOverlayCtx', payload: null });
+      }
+      if (overlayAnimationFrameRef.current) {
+        cancelAnimationFrame(overlayAnimationFrameRef.current);
+        overlayAnimationFrameRef.current = null;
+      }
+    };
+  }, [width, height, dpr]);
+
+  useEffect(() => {
     if (!ctx) return;
 
     const render = () => {
@@ -530,13 +650,13 @@ function useChartModel(params: {
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, width * dpr, height * dpr);
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, width * dpr, height * dpr);
         ctx.restore();
 
         ctx.save();
         ctx.scale(dpr, dpr);
-        for (const fn of sortedRenderFns()) {
+        for (const fn of sortedBaseRenderFns()) {
           fn();
         }
         ctx.restore();
@@ -546,7 +666,7 @@ function useChartModel(params: {
     };
 
     requestAnimationFrame(render);
-  }, [ctx, width, height, dpr, sortedRenderFns]);
+  }, [ctx, width, height, dpr, sortedBaseRenderFns, backgroundColor]);
 
   const getXScale = useCallback(() => {
     const xAxisKey = xAxis?.dataKey;
@@ -651,6 +771,9 @@ function useChartModel(params: {
   const setHoveredIndexStable = useCallback((index: number | null) => {
     dispatch({ type: 'setHoveredIndex', payload: index });
   }, []);
+  const setPointerStable = useCallback((p: { x: number; y: number } | null) => {
+    dispatch({ type: 'setPointer', payload: p });
+  }, []);
   const setVisibleRange = useCallback((range: { start: number; end: number }) => {
     const start = Math.max(0, Math.min(1, range.start));
     const end = Math.max(start, Math.min(1, range.end));
@@ -667,14 +790,20 @@ function useChartModel(params: {
     innerWidth,
     innerHeight,
     visibleRange,
-  }), [data, sourceData, width, height, dpr, margin, innerWidth, innerHeight, visibleRange]);
+    colors,
+    getSeriesColor,
+    resetSeriesColorIndex,
+  }), [data, sourceData, width, height, dpr, margin, innerWidth, innerHeight, visibleRange, colors, getSeriesColor, resetSeriesColorIndex]);
 
   const renderValue = useMemo<ChartRenderContextValue>(() => ({
     canvasRef,
+    overlayCanvasRef,
     ctx,
+    overlayCtx,
     registerRender,
     requestRender,
-  }), [canvasRef, ctx, registerRender, requestRender]);
+    requestOverlayRender,
+  }), [canvasRef, overlayCanvasRef, ctx, overlayCtx, registerRender, requestRender, requestOverlayRender]);
 
   const scaleValue = useMemo<ChartScaleContextValue>(() => ({
     xAxis,
@@ -687,21 +816,25 @@ function useChartModel(params: {
 
   const interactionValue = useMemo<ChartInteractionContextValue>(() => ({
     hoveredIndex,
+    pointer,
     setHoveredIndex: setHoveredIndexStable,
-    subscribeToMouse,
+    setPointer: setPointerStable,
     registerTooltipSeries,
     getTooltipPayload,
     registerTooltipIndexResolver,
     getTooltipIndexFromMouse,
+    registerShouldClearOnLeave,
     setVisibleRange,
   }), [
     hoveredIndex,
+    pointer,
     setHoveredIndexStable,
-    subscribeToMouse,
+    setPointerStable,
     registerTooltipSeries,
     getTooltipPayload,
     registerTooltipIndexResolver,
     getTooltipIndexFromMouse,
+    registerShouldClearOnLeave,
     setVisibleRange,
   ]);
 
@@ -746,6 +879,8 @@ export function Chart({
   width = 600,
   height = 300,
   margin: marginProp = { top: 0, right: 0, bottom: 0, left: 0 },
+  backgroundColor,
+  colors,
   children,
 }: ChartProps) {
   const {
@@ -755,7 +890,9 @@ export function Chart({
     scaleValue,
     interactionValue,
     seriesValue,
-  } = useChartModel({ data, width, height, marginProp });
+  } = useChartModel({ data, width, height, marginProp, backgroundColor, colors });
+
+  layoutValue.resetSeriesColorIndex();
 
   return (
     <ChartLayoutContext.Provider value={layoutValue}>
@@ -768,7 +905,22 @@ export function Chart({
                   ref={canvasRef}
                   width={width}
                   height={height}
-                  style={{ width: `${width}px`, height: `${height}px`, display: 'block' }}
+                  style={{ width: `${width}px`, height: `${height}px`, display: 'block', pointerEvents: 'none' }}
+                />
+                <canvas
+                  ref={renderValue.overlayCanvasRef}
+                  data-testid="chart-event-canvas"
+                  width={width}
+                  height={height}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    width: `${width}px`,
+                    height: `${height}px`,
+                    display: 'block',
+                    pointerEvents: 'auto',
+                  }}
                 />
                 {children}
               </div>

@@ -4,12 +4,14 @@ import {
   projectPoints,
   resolveXValue,
   resolveYValue,
+} from './pointUtils';
+import {
   toTimeNumber,
   normalizeTimeDomain,
   createTimeTicks,
   formatTimeTick,
-} from '@qurve/core';
-import type { AxisConfig, DataKey } from '@qurve/core';
+} from './timeUtils';
+import type { AxisConfig, DataKey } from '../types';
 
 describe('resolveXValue', () => {
   it('uses index fallback when xAxis is null', () => {
@@ -31,7 +33,7 @@ describe('resolveXValue', () => {
 
   it('returns index when dataKey is undefined', () => {
     const item = { x: 10 };
-    expect(resolveXValue(item, 7, null)).toBe(7); // null xAxis returns index
+    expect(resolveXValue(item, 7, null)).toBe(7);
   });
 
   it('returns index for time type when value is invalid', () => {
@@ -172,8 +174,8 @@ describe('projectPoints', () => {
 
     const points = projectPoints({ data, margin, xAxis, dataKey: 'y', getXScale, getYScale });
 
-    expect(points[0].x).toBe(15); // margin.left (10) + xScale(5)
-    expect(points[0].y).toBe(45); // margin.top (20) + yScale(25)
+    expect(points[0].x).toBe(15);
+    expect(points[0].y).toBe(45);
   });
 
   it('handles empty data', () => {
@@ -203,7 +205,7 @@ describe('projectPoints', () => {
 
     const points = projectPoints({ data, margin, xAxis, dataKey: undefined, getXScale, getYScale });
 
-    expect(points[0].value).toBe(5); // uses x value when y dataKey is undefined
+    expect(points[0].value).toBe(5);
   });
 });
 
@@ -235,8 +237,8 @@ describe('findClosestPointByX', () => {
   });
 
   it('returns closest point by X coordinate', () => {
-    expect(findClosestPointByX(points, 12)).toEqual(points[1]); // closer to x=10 than x=20
-    expect(findClosestPointByX(points, 18)).toEqual(points[2]); // closer to x=20 than x=10
+    expect(findClosestPointByX(points, 12)).toEqual(points[1]);
+    expect(findClosestPointByX(points, 18)).toEqual(points[2]);
   });
 
   it('returns point at exact X coordinate', () => {
@@ -250,7 +252,26 @@ describe('findClosestPointByX', () => {
   });
 
   it('handles boundary cases at midpoint', () => {
-    expect(findClosestPointByX(points, 15)).toEqual(points[1]); // exactly at midpoint, left is chosen
+    expect(findClosestPointByX(points, 15)).toEqual(points[1]);
+  });
+
+  it('prefers right point when equidistant', () => {
+    const threePoints = [
+      { x: 0, y: 0, value: 0, index: 0 },
+      { x: 10, y: 10, value: 10, index: 1 },
+      { x: 20, y: 20, value: 20, index: 2 },
+    ];
+    expect(findClosestPointByX(threePoints, 10.6)).toEqual(threePoints[1]);
+    expect(findClosestPointByX(threePoints, 9.4)).toEqual(threePoints[1]);
+  });
+
+  it('chooses right point when closer than left', () => {
+    const threePoints = [
+      { x: 0, y: 0, value: 0, index: 0 },
+      { x: 10, y: 10, value: 10, index: 1 },
+      { x: 20, y: 20, value: 20, index: 2 },
+    ];
+    expect(findClosestPointByX(threePoints, 10.5)).toEqual(threePoints[1]);
   });
 });
 
@@ -312,7 +333,7 @@ describe('toTimeNumber', () => {
   });
 
   it('handles negative timestamp', () => {
-    expect(toTimeNumber(-86400000)).toBe(-86400000); // Negative timestamps are valid
+    expect(toTimeNumber(-86400000)).toBe(-86400000);
   });
 });
 
@@ -425,6 +446,12 @@ describe('createTimeTicks', () => {
     const ticks = createTimeTicks([0, 5.5 * hourMs], 5);
     expect(ticks[ticks.length - 1]).toBe(5.5 * hourMs);
   });
+
+  it('returns min and max when no ticks generated in span', () => {
+    const ticks = createTimeTicks([100000000000000, 100000000000001], 100);
+    expect(ticks[0]).toBe(100000000000000);
+    expect(ticks[ticks.length - 1]).toBe(100000000000001);
+  });
 });
 
 describe('formatTimeTick', () => {
@@ -473,6 +500,39 @@ describe('formatTimeTick', () => {
 
   it('accepts Intl.DateTimeFormatOptions object', () => {
     const result = formatTimeTick(domain[0], domain, { timeFormat: { weekday: 'short', month: 'short', day: 'numeric' } });
+    expect(typeof result).toBe('string');
+  });
+
+  it('formats with hour span for pickAutoOptions', () => {
+    const hourMs = 60 * 60 * 1000;
+    const domain: [number, number] = [0, hourMs];
+    const result = formatTimeTick(hourMs / 2, domain);
+    expect(typeof result).toBe('string');
+  });
+
+  it('formats with 90-day span for pickAutoOptions', () => {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const domain: [number, number] = [0, 60 * dayMs];
+    const result = formatTimeTick(30 * dayMs, domain);
+    expect(typeof result).toBe('string');
+  });
+
+  it('formats with 2-year span for pickAutoOptions', () => {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const domain: [number, number] = [0, 800 * dayMs];
+    const result = formatTimeTick(400 * dayMs, domain);
+    expect(typeof result).toBe('string');
+  });
+
+  it('formats with month format option', () => {
+    const result = formatTimeTick(domain[0], domain, { timeFormat: 'month' });
+    expect(typeof result).toBe('string');
+  });
+
+  it('formats with year span for pickAutoOptions', () => {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const domain: [number, number] = [0, 1000 * dayMs];
+    const result = formatTimeTick(500 * dayMs, domain);
     expect(typeof result).toBe('string');
   });
 });

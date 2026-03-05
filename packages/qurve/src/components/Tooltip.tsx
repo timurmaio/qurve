@@ -1,10 +1,12 @@
-import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from 'react';
+import { cloneElement, isValidElement, useEffect, useMemo, useRef } from 'react';
 import {
   drawActiveDot,
   drawCrosshair,
   findClosestPointByX,
+  getRelativePosition,
   projectPoints,
   resolveXValue,
+  LayerOrder,
 } from '@qurve/core';
 import { useChartContext } from './chart/chartContext';
 import type { TooltipPayloadItem } from './chart/chartContext';
@@ -27,7 +29,6 @@ const TOOLTIP_CONSTANTS = {
   CURSOR_DEFAULT_STROKE: '#666',
   CURSOR_DEFAULT_WIDTH: 1,
   CURSOR_DEFAULT_DASH: '4 4',
-  RENDER_LAYER: 1000,
 };
 
 export interface TooltipContentProps {
@@ -54,7 +55,9 @@ export interface TooltipProps {
   a11ySummaryFormatter?: (payload: TooltipPayloadItem[]) => string;
   a11yIncludeSummary?: boolean;
   hideA11yRegion?: boolean;
+  wrapperClassName?: string;
   wrapperStyle?: React.CSSProperties;
+  contentClassName?: string;
   contentStyle?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
   itemStyle?: React.CSSProperties;
@@ -81,7 +84,9 @@ export function Tooltip({
   a11ySummaryFormatter,
   a11yIncludeSummary = false,
   hideA11yRegion = false,
+  wrapperClassName,
   wrapperStyle,
+  contentClassName,
   contentStyle,
   labelStyle,
   itemStyle,
@@ -97,214 +102,174 @@ export function Tooltip({
     getYScale,
     xAxis,
     ctx,
+    overlayCtx,
     registerRender,
     requestRender,
-    subscribeToMouse,
+    requestOverlayRender,
+    pointer,
+    hoveredIndex,
     setHoveredIndex,
+    setPointer,
     getTooltipPayload,
     getTooltipIndexFromMouse,
+    registerTooltipIndexResolver,
+    registerShouldClearOnLeave,
   } = useChartContext();
 
   const pointsRef = useRef(projectPoints({ data: [], margin, xAxis, getXScale, getYScale }));
-  const hoveredPointRef = useRef<(typeof pointsRef.current)[number] | null>(null);
-  const tooltipDataRef = useRef<TooltipContentProps>({ active: false, payload: [] });
-  const tooltipPositionRef = useRef<TooltipPosition>({ x: 0, y: 0 });
-  const isVisibleRef = useRef(false);
   const isLockedRef = useRef(false);
-  const [, forceUpdate] = useState({});
 
   const reverse = useMemo(() => toReverseConfig(reverseDirection), [reverseDirection]);
 
   useEffect(() => {
     if (!data.length) {
       pointsRef.current = [];
-      isVisibleRef.current = false;
       isLockedRef.current = false;
-      tooltipDataRef.current = { active: false, payload: [] };
       setHoveredIndex(null);
-      requestRender();
-      forceUpdate({});
+      setPointer(null);
+      requestOverlayRender();
       return;
     }
 
     pointsRef.current = projectPoints({ data, margin, xAxis, getXScale, getYScale });
     requestRender();
-  }, [data, margin, xAxis, getXScale, getYScale, requestRender, setHoveredIndex]);
+  }, [data, margin, xAxis, getXScale, getYScale, requestRender, requestOverlayRender, setHoveredIndex, setPointer]);
 
   useEffect(() => {
-    if (!ctx) return;
+    if (!xAxis) return;
+    return registerTooltipIndexResolver((mouseX, mouseY) => {
+      const points = pointsRef.current;
+      if (!points.length) return null;
+      const closest = findClosestPointByX(points, mouseX);
+      return closest?.index ?? null;
+    });
+  }, [registerTooltipIndexResolver, xAxis]);
 
-    const updateTooltipFromMouse = (mouseX: number, mouseY: number) => {
-      const customIndex = getTooltipIndexFromMouse(mouseX, mouseY);
-      const useCustomIndex = customIndex !== null;
-      const closestPoint = useCustomIndex
-        ? null
-        : findClosestPointByX(pointsRef.current, mouseX);
-      const activeIndex = useCustomIndex ? customIndex : (closestPoint?.index ?? null);
-      hoveredPointRef.current = useCustomIndex ? null : closestPoint;
+  useEffect(() => {
+    return registerShouldClearOnLeave(() => sticky && isLockedRef.current);
+  }, [registerShouldClearOnLeave, sticky]);
 
-      if (activeIndex === null) {
-        if (isVisibleRef.current) {
-          isVisibleRef.current = false;
-          tooltipDataRef.current = { active: false, payload: [] };
-          setHoveredIndex(null);
-          requestRender();
-          forceUpdate({});
-        }
-        return null;
-      }
+  useEffect(() => {
+    const eventCanvas = (overlayCtx ?? ctx)?.canvas as HTMLCanvasElement | undefined;
+    if (!eventCanvas) return;
 
-      const rawPayload = getTooltipPayload(activeIndex);
-      const filteredPayload = filterNull
-        ? rawPayload.filter((item) => item.value !== null)
-        : rawPayload;
-      const sortedPayload = sortPayload(filteredPayload, itemSorter);
-
-      const item = data[activeIndex] ?? {};
-      const rawLabel = xAxis?.dataKey
-        ? (typeof xAxis.dataKey === 'function'
-          ? xAxis.dataKey(item, activeIndex)
-          : item[xAxis.dataKey as string])
-        : item?.name ?? resolveXValue(item, activeIndex, xAxis);
-
-      tooltipDataRef.current = {
-        active: true,
-        payload: sortedPayload,
-        label: typeof rawLabel === 'number' || typeof rawLabel === 'string'
-          ? rawLabel
-          : String(rawLabel),
-      };
-
-      const fixedX = position?.x;
-      const fixedY = position?.y;
-      const payloadAnchor = sortedPayload.find((item) => item.anchor)?.anchor;
-      const anchorX = payloadAnchor?.x ?? closestPoint?.x ?? mouseX;
-      const anchorY = payloadAnchor?.y ?? closestPoint?.y ?? mouseY;
-      const nextX = fixedX
-        ?? (reverse.x
-          ? anchorX - offset - TOOLTIP_CONSTANTS.ESTIMATED_WIDTH
-          : anchorX + offset);
-      const nextY = fixedY
-        ?? (reverse.y
-          ? anchorY + offset
-          : anchorY - offset - TOOLTIP_CONSTANTS.ESTIMATED_HEIGHT);
-
-      tooltipPositionRef.current = {
-        x: Math.max(0, Math.min(nextX, width - TOOLTIP_CONSTANTS.ESTIMATED_WIDTH)),
-        y: Math.max(0, Math.min(nextY, height - TOOLTIP_CONSTANTS.ESTIMATED_HEIGHT)),
-      };
-
-      setHoveredIndex(activeIndex);
-      requestRender();
-
-      if (!isVisibleRef.current) {
-        isVisibleRef.current = true;
-        forceUpdate({});
-      } else {
-        forceUpdate({});
-      }
-
-      return activeIndex;
-    };
-
-    const handleMouseMove = (mouseX: number, mouseY: number) => {
-      if (sticky && isLockedRef.current) return;
-      updateTooltipFromMouse(mouseX, mouseY);
-    };
-
+    const canvas = eventCanvas;
     const handleClick = (event: MouseEvent) => {
       if (!sticky) return;
 
-      const canvas = ctx.canvas as HTMLCanvasElement;
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = event.clientX - rect.left;
-      const mouseY = event.clientY - rect.top;
+      const { x: mouseX, y: mouseY } = getRelativePosition(event.clientX, event.clientY, canvas);
 
       if (isLockedRef.current) {
         isLockedRef.current = false;
-        isVisibleRef.current = false;
-        tooltipDataRef.current = { active: false, payload: [] };
-        hoveredPointRef.current = null;
         setHoveredIndex(null);
-        requestRender();
-        forceUpdate({});
+        setPointer(null);
+        requestOverlayRender();
         return;
       }
 
-      const activeIndex = updateTooltipFromMouse(mouseX, mouseY);
-      if (activeIndex !== null) {
+      const activeIndex = getTooltipIndexFromMouse(mouseX, mouseY);
+      if (activeIndex !== null && Number.isFinite(activeIndex) && activeIndex >= 0) {
         isLockedRef.current = true;
+        setHoveredIndex(activeIndex);
+        setPointer({ x: mouseX, y: mouseY });
       }
+      requestOverlayRender();
     };
 
-    const handleMouseLeave = () => {
-      if (sticky && isLockedRef.current) return;
-      hoveredPointRef.current = null;
-      tooltipDataRef.current = { active: false, payload: [] };
-      isVisibleRef.current = false;
-      setHoveredIndex(null);
-      requestRender();
-      forceUpdate({});
-    };
-
-    const unsubscribe = subscribeToMouse(handleMouseMove);
-    const canvas = ctx.canvas as HTMLCanvasElement;
-    canvas.addEventListener('mouseleave', handleMouseLeave);
     canvas.addEventListener('click', handleClick);
+    return () => canvas.removeEventListener('click', handleClick);
+  }, [ctx, overlayCtx, sticky, getTooltipIndexFromMouse, setHoveredIndex, setPointer, requestOverlayRender]);
+
+  useEffect(() => {
+    if (!sticky) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!sticky) return;
       if (event.key !== 'Escape' || !isLockedRef.current) return;
 
       isLockedRef.current = false;
-      isVisibleRef.current = false;
-      tooltipDataRef.current = { active: false, payload: [] };
-      hoveredPointRef.current = null;
       setHoveredIndex(null);
-      requestRender();
-      forceUpdate({});
+      setPointer(null);
+      requestOverlayRender();
     };
 
     window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sticky, setHoveredIndex, setPointer, requestOverlayRender]);
 
-    return () => {
-      unsubscribe();
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
-      canvas.removeEventListener('click', handleClick);
-      window.removeEventListener('keydown', handleKeyDown);
+  const tooltipProps = useMemo(() => {
+    if (!data.length || hoveredIndex === null || hoveredIndex < 0 || hoveredIndex >= data.length) {
+      return { active: false, payload: [] as TooltipPayloadItem[], label: undefined as TooltipLabel };
+    }
+
+    const rawPayload = getTooltipPayload(hoveredIndex);
+    const filteredPayload = filterNull
+      ? rawPayload.filter((item) => item.value !== null)
+      : rawPayload;
+    const sortedPayload = sortPayload(filteredPayload, itemSorter);
+
+    const item = data[hoveredIndex] ?? {};
+    const rawLabel = xAxis?.dataKey
+      ? (typeof xAxis.dataKey === 'function'
+        ? xAxis.dataKey(item, hoveredIndex)
+        : item[xAxis.dataKey as string])
+      : item?.name ?? resolveXValue(item, hoveredIndex, xAxis);
+
+    return {
+      active: true,
+      payload: sortedPayload,
+      label: typeof rawLabel === 'number' || typeof rawLabel === 'string'
+        ? rawLabel
+        : String(rawLabel),
     };
-  }, [
-    ctx,
-    data,
-    filterNull,
-    getTooltipPayload,
-    getTooltipIndexFromMouse,
-    height,
-    itemSorter,
-    offset,
-    position?.x,
-    position?.y,
-    requestRender,
-    reverse.x,
-    reverse.y,
-    setHoveredIndex,
-    sticky,
-    subscribeToMouse,
-    width,
-    xAxis,
-  ]);
+  }, [data, hoveredIndex, getTooltipPayload, filterNull, itemSorter, xAxis]);
+
+  const cursorPoint = useMemo(() => {
+    if (hoveredIndex === null || !tooltipProps.active) return null;
+    const payloadAnchor = tooltipProps.payload?.find((i) => i.anchor)?.anchor;
+    if (payloadAnchor) return payloadAnchor;
+    const point = pointsRef.current.find((p) => p.index === hoveredIndex);
+    return point ?? null;
+  }, [hoveredIndex, tooltipProps.active, tooltipProps.payload]);
+
+  const tooltipPosition = useMemo((): TooltipPosition => {
+    if (!pointer || hoveredIndex === null || !tooltipProps.active) {
+      return { x: 0, y: 0 };
+    }
+
+    const fixedX = position?.x;
+    const fixedY = position?.y;
+    const payloadAnchor = tooltipProps.payload?.find((i) => i.anchor)?.anchor;
+    const point = pointsRef.current.find((p) => p.index === hoveredIndex);
+    const anchorX = payloadAnchor?.x ?? point?.x ?? pointer.x;
+    const anchorY = payloadAnchor?.y ?? point?.y ?? pointer.y;
+    const nextX = fixedX
+      ?? (reverse.x
+        ? anchorX - offset - TOOLTIP_CONSTANTS.ESTIMATED_WIDTH
+        : anchorX + offset);
+    const nextY = fixedY
+      ?? (reverse.y
+        ? anchorY + offset
+        : anchorY - offset - TOOLTIP_CONSTANTS.ESTIMATED_HEIGHT);
+
+    return {
+      x: Math.max(0, Math.min(nextX, width - TOOLTIP_CONSTANTS.ESTIMATED_WIDTH)),
+      y: Math.max(0, Math.min(nextY, height - TOOLTIP_CONSTANTS.ESTIMATED_HEIGHT)),
+    };
+  }, [pointer, hoveredIndex, tooltipProps.active, tooltipProps.payload, position, reverse, offset, width, height]);
+
+  const drawCtx = overlayCtx ?? ctx;
 
   useEffect(() => {
-    if (!ctx) return;
+    if (!drawCtx) return;
 
     const render = () => {
-      const point = hoveredPointRef.current;
+      const point = cursorPoint;
       if (!point) return;
 
       try {
-        ctx.save();
+        drawCtx.save();
         drawCrosshair({
-          ctx,
+          ctx: drawCtx,
           point,
           margin,
           innerWidth,
@@ -318,25 +283,25 @@ export function Tooltip({
         });
 
         drawActiveDot({
-          ctx,
+          ctx: drawCtx,
           point,
           radius: TOOLTIP_CONSTANTS.POINT_RADIUS,
           fill: '#fff',
           stroke: '#3b82f6',
           lineWidth: TOOLTIP_CONSTANTS.POINT_STROKE_WIDTH,
         });
-        ctx.restore();
+        drawCtx.restore();
       } catch (error) {
         console.error('Tooltip render error:', error);
       }
     };
 
-    return registerRender(render, { layer: TOOLTIP_CONSTANTS.RENDER_LAYER });
-  }, [ctx, cursor, innerHeight, innerWidth, margin, registerRender]);
+    return registerRender(render, { layer: LayerOrder.tooltip });
+  }, [drawCtx, cursor, cursorPoint, innerHeight, innerWidth, margin, registerRender]);
 
-  const tooltipProps = tooltipDataRef.current;
   const activePayload = tooltipProps.payload ?? [];
-  const a11yText = tooltipProps.active && isVisibleRef.current
+  const isVisible = tooltipProps.active;
+  const a11yText = tooltipProps.active && isVisible
     ? (a11yLabelFormatter
       ? a11yLabelFormatter(tooltipProps.label, activePayload)
       : [
@@ -355,7 +320,7 @@ export function Tooltip({
         ].filter(Boolean).join('. '))
     : '';
 
-  if (!isVisibleRef.current || !tooltipProps.active) {
+  if (!isVisible || !tooltipProps.active) {
     if (hideA11yRegion) return null;
     return (
       <div
@@ -412,16 +377,18 @@ export function Tooltip({
         </div>
       )}
       <div
+        className={wrapperClassName}
         style={{
           position: 'absolute',
-          left: tooltipPositionRef.current.x,
-          top: tooltipPositionRef.current.y,
+          left: tooltipPosition.x,
+          top: tooltipPosition.y,
           pointerEvents: 'none',
           zIndex: TOOLTIP_CONSTANTS.Z_INDEX,
           ...wrapperStyle,
         }}
       >
         <div
+          className={contentClassName}
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
             border: '1px solid #e0e0e0',

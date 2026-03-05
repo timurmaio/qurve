@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { drawBars } from '@qurve/core';
+import { drawBars } from './drawBar';
 
 function createMockContext() {
   const alphaValues: number[] = [];
@@ -34,7 +34,7 @@ function createMockContext() {
   return ctx;
 }
 
-describe('drawBar', () => {
+describe('drawBars', () => {
   it('applies hover opacity for non-hovered bars', () => {
     const ctx = createMockContext();
 
@@ -72,5 +72,20 @@ describe('drawBar', () => {
     expect(ctx.quadraticCurveTo).toHaveBeenCalled();
     expect(ctx.fill).toHaveBeenCalled();
     expect(ctx.stroke).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses array radius for per-corner rounding', () => {
+    const ctx = createMockContext();
+
+    drawBars({
+      ctx,
+      bars: [{ x: 0, y: 0, width: 20, height: 20, radius: [2, 4, 6, 8] }],
+      fill: '#333',
+      strokeWidth: 0,
+      hoveredIndex: null,
+      hoverOpacity: 0.5,
+    });
+
+    expect(ctx.quadraticCurveTo).toHaveBeenCalled();
   });
 });

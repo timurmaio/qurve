@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { drawLinePath } from '@qurve/core';
+import { drawLinePath } from './drawLine';
 
 function createMockContext() {
   return {
@@ -42,5 +42,12 @@ describe('drawLinePath', () => {
     drawLinePath({ ctx, points, type: 'step', stroke: '#333', strokeWidth: 2 });
 
     expect(ctx.lineTo).toHaveBeenCalledTimes(4);
+  });
+
+  it('returns early for empty points', () => {
+    const ctx = createMockContext();
+    drawLinePath({ ctx, points: [], type: 'linear', stroke: '#333', strokeWidth: 2 });
+
+    expect(ctx.stroke).not.toHaveBeenCalled();
   });
 });

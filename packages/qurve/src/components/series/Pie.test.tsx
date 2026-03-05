@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Chart } from '../chart/chartContext';
 import { Tooltip } from '../Tooltip';
@@ -24,6 +24,12 @@ function hoverCanvas(canvas: HTMLCanvasElement, clientX = 180, clientY = 80) {
   fireEvent.mouseMove(canvas, { clientX, clientY });
 }
 
+async function flushPointerRAF() {
+  await act(async () => {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+  });
+}
+
 describe('Pie', () => {
   it('renders tooltip payload and supports legend toggle', async () => {
     const { container } = render(
@@ -41,9 +47,10 @@ describe('Pie', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
+    await flushPointerRAF();
 
     expect(await screen.findByText('Alpha:')).toBeInTheDocument();
     expect(screen.getByText('40.00')).toBeInTheDocument();
@@ -100,9 +107,10 @@ describe('Pie', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
+    await flushPointerRAF();
 
     expect(await screen.findByText('Alpha color:')).toBeInTheDocument();
     expect(screen.getByText('#111111')).toBeInTheDocument();

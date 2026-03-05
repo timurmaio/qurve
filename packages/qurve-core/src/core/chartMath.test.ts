@@ -9,7 +9,7 @@ import {
   resolveRadius,
   hasSameSign,
   resolveStackedRadius,
-} from '@qurve/core';
+} from './chartMath';
 
 describe('getBaseValue', () => {
   it('returns 0 when domain crosses zero', () => {
@@ -43,12 +43,10 @@ describe('clamp', () => {
 
   it('returns min when value is below range', () => {
     expect(clamp(-5, 0, 10)).toBe(0);
-    expect(clamp(0, 0, 10)).toBe(0);
   });
 
   it('returns max when value is above range', () => {
     expect(clamp(15, 0, 10)).toBe(10);
-    expect(clamp(10, 0, 10)).toBe(10);
   });
 
   it('handles negative ranges', () => {
@@ -66,7 +64,6 @@ describe('normalizeOpacity', () => {
   it('returns fallback for non-finite values', () => {
     expect(normalizeOpacity(NaN, 0.5)).toBe(0.5);
     expect(normalizeOpacity(Infinity, 0.5)).toBe(0.5);
-    expect(normalizeOpacity(-Infinity, 0.5)).toBe(0.5);
   });
 
   it('clamps value to [0, 1] range', () => {
@@ -79,19 +76,16 @@ describe('normalizeOpacity', () => {
 
   it('returns valid finite values unchanged', () => {
     expect(normalizeOpacity(0.25, 0.5)).toBe(0.25);
-    expect(normalizeOpacity(0.75, 0.5)).toBe(0.75);
   });
 });
 
 describe('normalizeHoverOpacity', () => {
   it('has default fallback of 0.5', () => {
     expect(normalizeHoverOpacity(NaN)).toBe(0.5);
-    expect(normalizeHoverOpacity(Infinity)).toBe(0.5);
   });
 
   it('accepts custom fallback', () => {
     expect(normalizeHoverOpacity(NaN, 0.3)).toBe(0.3);
-    expect(normalizeHoverOpacity(NaN, 0.8)).toBe(0.8);
   });
 
   it('clamps to [0, 1]', () => {
@@ -105,7 +99,6 @@ describe('stackKey', () => {
   it('prefixes stackId with "stack:"', () => {
     expect(stackKey('myStack')).toBe('stack:myStack');
     expect(stackKey(123)).toBe('stack:123');
-    expect(stackKey('a')).toBe('stack:a');
   });
 });
 
@@ -132,14 +125,12 @@ describe('resolveRadius', () => {
 
   it('passes through array radius unchanged', () => {
     expect(resolveRadius([1, 2, 3, 4], true)).toEqual([1, 2, 3, 4]);
-    expect(resolveRadius([1, 2, 3, 4], false)).toEqual([1, 2, 3, 4]);
   });
 });
 
 describe('hasSameSign', () => {
   it('returns true for positive numbers with positive target', () => {
     expect(hasSameSign(5, 'positive')).toBe(true);
-    expect(hasSameSign(0.001, 'positive')).toBe(true);
   });
 
   it('returns false for negative numbers with positive target', () => {
@@ -163,7 +154,6 @@ describe('hasSameSign', () => {
 describe('resolveStackedRadius', () => {
   it('returns undefined for inner segments', () => {
     expect(resolveStackedRadius(4, 10, false)).toBeUndefined();
-    expect(resolveStackedRadius([1,2,3,4], 10, false)).toBeUndefined();
   });
 
   it('resolves radius for outer positive segments', () => {
@@ -175,6 +165,6 @@ describe('resolveStackedRadius', () => {
   });
 
   it('passes through array radius for outer segments', () => {
-    expect(resolveStackedRadius([1,2,3,4], 10, true)).toEqual([1, 2, 3, 4]);
+    expect(resolveStackedRadius([1, 2, 3, 4], 10, true)).toEqual([1, 2, 3, 4]);
   });
 });

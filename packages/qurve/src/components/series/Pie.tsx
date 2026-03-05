@@ -10,6 +10,7 @@ import {
   formatDefaultLabel,
   distributeLabels,
   normalizeOpacity,
+  LayerOrder,
 } from '@qurve/core';
 import type { PieDrawSlice, PieNameKey, PieLabelMode, PieLabelContext, PieLabelLayoutItem } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
@@ -22,9 +23,6 @@ const PIE_CONSTANTS = {
   DEFAULT_LABEL_OFFSET: 18,
   DEFAULT_LABEL_MIN_GAP: 14,
   DEFAULT_LABEL_LINE_WIDTH: 1,
-  RENDER_LAYER: 45,
-  LABEL_LINE_LAYER: 46,
-  TOOLTIP_LAYER: 45,
 };
 
 type PieDataKey = DataKey;
@@ -95,6 +93,7 @@ export function Pie({
     width,
     height,
     margin,
+    colors: chartColors,
     registerRender,
     registerTooltipSeries,
     registerTooltipIndexResolver,
@@ -105,13 +104,14 @@ export function Pie({
     requestRender,
     ctx,
   } = useChartContext();
+  const resolvedColors = colors ?? chartColors;
 
   const seriesId = useMemo(() => Symbol('pie-series'), []);
   const slicesRef = useRef<PieSlice[]>([]);
   const [labelSlices, setLabelSlices] = useState<PieSlice[]>([]);
   const hoverOpacityValue = normalizeOpacity(hoverOpacity, PIE_CONSTANTS.DEFAULT_HOVER_OPACITY);
   const defaultSeriesName = tooltipName ?? name ?? (typeof dataKey === 'string' ? dataKey : 'Pie');
-  const legendColor = pickColor(0, fill, colors);
+  const legendColor = pickColor(0, fill, resolvedColors);
   const labelLineStroke = labelLineColor ?? stroke ?? '#94a3b8';
 
   useEffect(() => {
@@ -166,7 +166,7 @@ export function Pie({
         index,
         value,
         name: normalizeName(data[index], index, nameKey),
-        color: pickColor(index, fill, colors),
+        color: pickColor(index, fill, resolvedColors),
         startAngle: sliceStart,
         endAngle: sliceEnd,
         midAngle,
@@ -190,7 +190,7 @@ export function Pie({
     dataKey,
     nameKey,
     fill,
-    colors,
+    resolvedColors,
     stroke,
     strokeWidth,
     innerRadius,
@@ -226,7 +226,7 @@ export function Pie({
         formatter: tooltipFormatter,
         anchor: { x: anchorX, y: anchorY },
       };
-    }, { layer: PIE_CONSTANTS.TOOLTIP_LAYER });
+    }, { layer: LayerOrder.pie });
   }, [registerTooltipSeries, dataKey, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -269,7 +269,7 @@ export function Pie({
       });
     };
 
-    return registerRender(render, { layer: PIE_CONSTANTS.RENDER_LAYER });
+    return registerRender(render, { layer: LayerOrder.pie });
   }, [ctx, data, registerRender, hoveredIndex, hoverOpacityValue, isSeriesVisible, seriesId, legendVersion]);
 
   const labelLayout = useMemo<PieLabelLayoutItem[]>(() => {
@@ -376,7 +376,7 @@ export function Pie({
       ctx.restore();
     };
 
-    return registerRender(renderLabelLines, { layer: PIE_CONSTANTS.LABEL_LINE_LAYER });
+    return registerRender(renderLabelLines, { layer: LayerOrder.pieLabels });
   }, [
     ctx,
     label,

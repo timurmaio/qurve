@@ -69,4 +69,54 @@ describe('Legend', () => {
     expect(buttonA).toHaveAttribute('aria-pressed', 'true');
     expect(buttonB).toHaveAttribute('aria-pressed', 'true');
   });
+
+  it('applies wrapperClassName, wrapperStyle, itemStyle', () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }]} width={280} height={140}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Legend
+          wrapperClassName="custom-legend"
+          wrapperStyle={{ padding: '12px' }}
+          itemStyle={{ borderRadius: '4px' }}
+        />
+      </Chart>,
+    );
+
+    const wrapper = container.querySelector('.custom-legend');
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper).toHaveStyle({ padding: '12px' });
+
+    const button = screen.getByRole('button', { name: 'Revenue, visible' });
+    expect(button).toHaveStyle({ borderRadius: '4px' });
+  });
+
+  it('renders with align left', () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }]} width={280} height={140}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Legend align="left" />
+      </Chart>,
+    );
+
+    const wrapper = container.querySelector('[role="group"]');
+    expect(wrapper).toHaveStyle({ justifyContent: 'flex-start' });
+  });
+
+  it('renders with align right', () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }]} width={280} height={140}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Legend align="right" />
+      </Chart>,
+    );
+
+    const wrapper = container.querySelector('[role="group"]');
+    expect(wrapper).toHaveStyle({ justifyContent: 'flex-end' });
+  });
 });
