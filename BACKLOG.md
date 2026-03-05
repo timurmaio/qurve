@@ -57,9 +57,9 @@ Ideas from analyzing react-canvas-charts and other sources that could be applied
 
 ---
 
-### 14. Cursor (crosshair) styling from Tooltip
+### 14. Cursor (crosshair) styling from Tooltip — ✅ done
 
-**Current:** `cursor: { stroke, strokeWidth, strokeDasharray }` exists. Ensure all options are documented and work correctly.
+**Current:** `cursor: boolean | { stroke, strokeWidth, strokeDasharray }` on Tooltip. Defaults applied when object partial.
 
 ---
 
@@ -217,4 +217,6 @@ Long-term idea: core in Rust, compile to WASM for web + native for TUI (ratatui)
 - [x] ReferenceDot (x, y, r, fill, stroke)
 - [x] ReferenceArea (x1/x2 or y1/y2, fill, fillOpacity)
 - [x] Cell (per-segment styling for Bar, Pie)
-- [x] LineChart / BarChart wrappers
+- [x] LineChart / BarChart / AreaChart wrappers
+- [x] ErrorBar (dataKey, errorKey, direction)
+- [x] Customized (draw prop for custom canvas)

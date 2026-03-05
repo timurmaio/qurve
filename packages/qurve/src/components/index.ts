@@ -5,6 +5,8 @@ export { LineChart } from './chart/LineChart';
 export type { LineChartProps } from './chart/LineChart';
 export { BarChart } from './chart/BarChart';
 export type { BarChartProps } from './chart/BarChart';
+export { AreaChart } from './chart/AreaChart';
+export type { AreaChartProps } from './chart/AreaChart';
 export { QURVE_CSS_VARS } from './chart/themeUtils';
 export type { QurveTheme } from './chart/themeUtils';
 
@@ -35,6 +37,8 @@ export { Cell } from './series/Cell';
 export type { CellProps } from './series/Cell';
 export { Scatter } from './series/Scatter';
 export type { ScatterProps } from './series/Scatter';
+export { ErrorBar } from './series/ErrorBar';
+export type { ErrorBarProps } from './series/ErrorBar';
 
 // Interactive components
 export { Tooltip } from './Tooltip';
@@ -43,6 +47,8 @@ export { Legend } from './Legend';
 export type { LegendProps, LegendItemProps } from './Legend';
 export { Brush } from './Brush';
 export type { BrushProps } from './Brush';
+export { Customized } from './Customized';
+export type { CustomizedProps, CustomizedDrawProps } from './Customized';
 
 // Layout components
 export { ResponsiveContainer } from './ResponsiveContainer';

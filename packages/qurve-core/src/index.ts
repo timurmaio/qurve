@@ -24,6 +24,7 @@ export { drawCrosshair, type CursorConfig } from './core/drawCrosshair';
 export { drawReferenceLine } from './core/drawReferenceLine';
 export { drawReferenceDot } from './core/drawReferenceDot';
 export { drawReferenceArea } from './core/drawReferenceArea';
+export { drawErrorBars } from './core/drawErrorBar';
 
 // Math & utilities
 export * from './core/chartMath';

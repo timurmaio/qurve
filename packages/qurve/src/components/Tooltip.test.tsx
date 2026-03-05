@@ -227,4 +227,44 @@ describe('Tooltip', () => {
     const itemDiv = valueSpan.closest('div');
     expect(itemDiv).toHaveStyle({ marginTop: '4px' });
   });
+
+  it('accepts cursor false to hide crosshair', async () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }, { x: 1, y: 20 }]} width={320} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" />
+        <Tooltip cursor={false} />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
+    hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+
+    await act(async () => {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    });
+
+    expect(screen.getByText('20.00')).toBeInTheDocument();
+  });
+
+  it('accepts custom cursor styling', async () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }]} width={320} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" />
+        <Tooltip cursor={{ stroke: '#f00', strokeWidth: 2, strokeDasharray: '2 2' }} />
+      </Chart>,
+    );
+
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
+    hoverCanvas(canvas as HTMLCanvasElement, 20, 20);
+
+    await act(async () => {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    });
+
+    expect(screen.getByText('10.00')).toBeInTheDocument();
+  });
 });
