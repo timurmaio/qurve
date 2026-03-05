@@ -17,6 +17,8 @@ export interface XAxisProps {
   interval?: number;
   padding?: number | { left?: number; right?: number };
   tickFormatter?: (value: unknown) => string;
+  /** Render prop for tick label. (value, index) => string. Overrides tickFormatter when both provided. */
+  tickRenderer?: (value: unknown, index: number) => string;
   locale?: string;
   timeZone?: string;
   timeFormat?: TimeFormatMode;
@@ -41,10 +43,11 @@ export function XAxis({
   interval = 0,
   padding,
   tickFormatter,
+  tickRenderer: tickSlot,
   locale,
   timeZone,
   timeFormat,
-  stroke = '#666',
+  stroke,
   tick = true,
   tickLine = true,
   axisLine = true,
@@ -52,8 +55,10 @@ export function XAxis({
   fontFamily,
   fontWeight,
 }: XAxisProps) {
-  const { margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { margin, innerWidth, innerHeight, theme } = useChartLayoutContext();
   const { registerRender, ctx } = useChartRenderContext();
+  const effectiveStroke = stroke ?? theme?.axisStroke ?? '#666';
+  const effectiveFontFamily = fontFamily ?? theme?.fontFamily;
   const { setXAxis, getXScale } = useChartScaleContext();
 
   useEffect(() => {
@@ -88,10 +93,14 @@ export function XAxis({
           ?.map((value) => toTimeNumber(value))
           .filter((value): value is number => value !== null) ?? createTimeTicks(axisDomain, tickCount))
       : (tickValues as number[] | undefined);
-    const resolvedTickFormatter = tickFormatter
+    const baseFormatter = tickFormatter
       ?? (type === 'time'
         ? (value: unknown) => formatTimeTick(Number(value), axisDomain, { locale, timeZone, timeFormat })
         : undefined);
+
+    const resolvedTickFormatter = tickSlot
+      ? (value: unknown, index: number) => tickSlot(value, index)
+      : baseFormatter;
 
     const render = () => {
       if (!ctx) return;
@@ -104,7 +113,7 @@ export function XAxis({
         innerWidth,
         innerHeight,
         position,
-        stroke,
+        stroke: effectiveStroke,
         tick,
         tickLine,
         axisLine,
@@ -113,13 +122,13 @@ export function XAxis({
         interval,
         tickFormatter: resolvedTickFormatter,
         fontSize,
-        fontFamily,
+        fontFamily: effectiveFontFamily,
         fontWeight,
       });
     };
 
     return registerRender(render, { layer: LayerOrder.axes });
-  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender, type, locale, timeZone, timeFormat]);
+  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, tickSlot, stroke, effectiveStroke, effectiveFontFamily, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender, type, locale, timeZone, timeFormat, theme]);
 
   return null;
 }

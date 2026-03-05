@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback, useMemo, useRef, useEffect, useSyncExternalStore, type Context } from 'react';
+import { createContext, useContext, useReducer, useCallback, useMemo, useRef, useEffect, useState, useSyncExternalStore, type Context } from 'react';
 import {
   normalizeTimeDomain,
   toTimeNumber,
@@ -13,6 +13,7 @@ import {
   type AreaSeriesRegistration,
   type LegendItemRegistration,
 } from '@qurve/core';
+import { readThemeFromElement, type QurveTheme } from './themeUtils';
 
 export interface ChartLayoutContextValue {
   data: ChartData;
@@ -27,6 +28,7 @@ export interface ChartLayoutContextValue {
   colors: string[];
   getSeriesColor: () => string;
   resetSeriesColorIndex: () => void;
+  theme: QurveTheme;
 }
 
 export interface ChartRenderContextValue {
@@ -181,6 +183,8 @@ export interface ChartProps {
   backgroundColor?: string;
   colors?: string[];
   children: React.ReactNode;
+  /** Called when overlay canvas is ready. Receives a redraw function for overlay-only updates (no React re-render). */
+  onOverlayRedrawReady?: (redraw: () => void) => void;
 }
 
 interface ChartState {
@@ -291,8 +295,10 @@ function useChartModel(params: {
   marginProp: { top?: number; right?: number; bottom?: number; left?: number };
   backgroundColor?: string;
   colors?: string[];
+  onOverlayRedrawReady?: (redraw: () => void) => void;
+  theme?: QurveTheme;
 }) {
-  const { data: sourceData, width, height, marginProp, backgroundColor = '#fff', colors: colorsProp } = params;
+  const { data: sourceData, width, height, marginProp, backgroundColor = '#fff', colors: colorsProp, onOverlayRedrawReady, theme = {} } = params;
   const colors = useMemo(() => colorsProp?.length ? colorsProp : PIE_COLORS, [colorsProp]);
   const seriesColorIndexRef = useRef(0);
   const resetSeriesColorIndex = useCallback(() => {
@@ -380,28 +386,38 @@ function useChartModel(params: {
     });
   }, [ctx, dpr, sortedBaseRenderFns, backgroundColor]);
 
+  const overlayRedraw = useCallback(() => {
+    const overlayCtxValue = overlayCtx ?? ctx;
+    const overlayCanvas = overlayCanvasRef.current ?? canvasRef.current;
+    if (overlayCtxValue && overlayCanvas) {
+      overlayCtxValue.save();
+      overlayCtxValue.setTransform(1, 0, 0, 1, 0, 0);
+      overlayCtxValue.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      overlayCtxValue.restore();
+
+      overlayCtxValue.save();
+      overlayCtxValue.scale(dpr, dpr);
+      for (const fn of sortedOverlayRenderFns()) {
+        fn();
+      }
+      overlayCtxValue.restore();
+    }
+  }, [ctx, overlayCtx, dpr, sortedOverlayRenderFns]);
+
+  useEffect(() => {
+    if (onOverlayRedrawReady && overlayCtx) {
+      onOverlayRedrawReady(overlayRedraw);
+    }
+  }, [onOverlayRedrawReady, overlayCtx, overlayRedraw]);
+
   const requestOverlayRender = useCallback(() => {
     if (overlayAnimationFrameRef.current) return;
 
     overlayAnimationFrameRef.current = requestAnimationFrame(() => {
       overlayAnimationFrameRef.current = null;
-      const overlayCtxValue = overlayCtx ?? ctx;
-      const overlayCanvas = overlayCanvasRef.current ?? canvasRef.current;
-      if (overlayCtxValue && overlayCanvas) {
-        overlayCtxValue.save();
-        overlayCtxValue.setTransform(1, 0, 0, 1, 0, 0);
-        overlayCtxValue.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-        overlayCtxValue.restore();
-
-        overlayCtxValue.save();
-        overlayCtxValue.scale(dpr, dpr);
-        for (const fn of sortedOverlayRenderFns()) {
-          fn();
-        }
-        overlayCtxValue.restore();
-      }
+      overlayRedraw();
     });
-  }, [ctx, overlayCtx, dpr, sortedOverlayRenderFns]);
+  }, [overlayRedraw]);
 
   const registerRender = useCallback((fn: () => void, options?: { layer?: number }) => {
     const id = Symbol('render-fn');
@@ -793,7 +809,8 @@ function useChartModel(params: {
     colors,
     getSeriesColor,
     resetSeriesColorIndex,
-  }), [data, sourceData, width, height, dpr, margin, innerWidth, innerHeight, visibleRange, colors, getSeriesColor, resetSeriesColorIndex]);
+    theme,
+  }), [data, sourceData, width, height, dpr, margin, innerWidth, innerHeight, visibleRange, colors, getSeriesColor, resetSeriesColorIndex, theme]);
 
   const renderValue = useMemo<ChartRenderContextValue>(() => ({
     canvasRef,
@@ -882,7 +899,18 @@ export function Chart({
   backgroundColor,
   colors,
   children,
+  onOverlayRedrawReady,
 }: ChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [theme, setTheme] = useState<QurveTheme>({});
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (el) setTheme(readThemeFromElement(el));
+  }, []);
+
+  const effectiveBg = backgroundColor ?? theme.chartBg ?? '#fff';
+
   const {
     canvasRef,
     layoutValue,
@@ -890,7 +918,7 @@ export function Chart({
     scaleValue,
     interactionValue,
     seriesValue,
-  } = useChartModel({ data, width, height, marginProp, backgroundColor, colors });
+  } = useChartModel({ data, width, height, marginProp, backgroundColor: effectiveBg, colors, onOverlayRedrawReady, theme });
 
   layoutValue.resetSeriesColorIndex();
 
@@ -900,7 +928,7 @@ export function Chart({
         <ChartScaleContext.Provider value={scaleValue}>
           <ChartInteractionContext.Provider value={interactionValue}>
             <ChartSeriesContext.Provider value={seriesValue}>
-              <div style={{ position: 'relative', width: `${width}px`, height: `${height}px`, display: 'inline-block' }}>
+              <div ref={containerRef} style={{ position: 'relative', width: `${width}px`, height: `${height}px`, display: 'inline-block' }}>
                 <canvas
                   ref={canvasRef}
                   width={width}

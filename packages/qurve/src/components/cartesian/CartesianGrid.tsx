@@ -4,6 +4,8 @@ import { useChartLayoutContext, useChartRenderContext } from '../chart/chartCont
 
 export interface CartesianGridProps {
   stroke?: string;
+  horizontalStroke?: string;
+  verticalStroke?: string;
   strokeDasharray?: string;
   horizontal?: boolean;
   vertical?: boolean;
@@ -12,15 +14,18 @@ export interface CartesianGridProps {
 }
 
 export function CartesianGrid({
-  stroke = '#e5e5e5',
+  stroke,
+  horizontalStroke,
+  verticalStroke,
   strokeDasharray = '3 3',
   horizontal = true,
   vertical = true,
   horizontalCount = 5,
   verticalCount = 5,
 }: CartesianGridProps) {
-  const { margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { margin, innerWidth, innerHeight, theme } = useChartLayoutContext();
   const { registerRender, ctx } = useChartRenderContext();
+  const effectiveStroke = stroke ?? theme?.gridStroke ?? '#e5e5e5';
 
   useEffect(() => {
     if (!ctx) return;
@@ -28,7 +33,9 @@ export function CartesianGrid({
     const render = () => {
       drawGrid({
         ctx,
-        stroke,
+        stroke: effectiveStroke,
+        horizontalStroke,
+        verticalStroke,
         strokeDasharray,
         horizontal,
         vertical,
@@ -41,7 +48,7 @@ export function CartesianGrid({
     };
 
     return registerRender(render, { layer: LayerOrder.grid });
-  }, [ctx, margin, innerWidth, innerHeight, stroke, strokeDasharray, horizontal, vertical, horizontalCount, verticalCount, registerRender]);
+  }, [ctx, margin, innerWidth, innerHeight, stroke, horizontalStroke, verticalStroke, effectiveStroke, strokeDasharray, horizontal, vertical, horizontalCount, verticalCount, registerRender, theme]);
 
   return null;
 }

@@ -16,6 +16,8 @@ export interface YAxisProps {
   interval?: number;
   padding?: number | { top?: number; bottom?: number };
   tickFormatter?: (value: unknown) => string;
+  /** Render prop for tick label. (value, index) => string. Overrides tickFormatter when both provided. */
+  tickRenderer?: (value: unknown, index: number) => string;
   stroke?: string;
   tick?: boolean;
   tickLine?: boolean;
@@ -38,7 +40,8 @@ export function YAxis({
   interval = 0,
   padding,
   tickFormatter,
-  stroke = '#666',
+  tickRenderer: tickSlot,
+  stroke,
   tick = true,
   tickLine = true,
   axisLine = true,
@@ -47,8 +50,10 @@ export function YAxis({
   fontFamily,
   fontWeight,
 }: YAxisProps) {
-  const { margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { margin, innerWidth, innerHeight, theme } = useChartLayoutContext();
   const { registerRender, ctx } = useChartRenderContext();
+  const effectiveStroke = stroke ?? theme?.axisStroke ?? '#666';
+  const effectiveFontFamily = fontFamily ?? theme?.fontFamily;
   const { setYAxis, getYScale } = useChartScaleContext();
 
   useEffect(() => {
@@ -91,22 +96,24 @@ export function YAxis({
         innerWidth,
         innerHeight,
         position,
-        stroke,
+        stroke: effectiveStroke,
         tick,
         tickLine,
         axisLine,
         tickCount,
         tickValues,
         interval,
-        tickFormatter,
+        tickFormatter: tickSlot
+          ? (value: unknown, index: number) => tickSlot(value, index)
+          : tickFormatter,
         fontSize,
-        fontFamily,
+        fontFamily: effectiveFontFamily,
         fontWeight,
       });
     };
 
     return registerRender(render, { layer: LayerOrder.axes });
-  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender]);
+  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, tickSlot, stroke, effectiveStroke, effectiveFontFamily, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender, theme]);
 
   return null;
 }

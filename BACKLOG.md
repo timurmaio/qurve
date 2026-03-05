@@ -51,9 +51,9 @@ Ideas from analyzing react-canvas-charts and other sources that could be applied
 
 ---
 
-### 13. CartesianGrid stroke customization
+### 13. CartesianGrid stroke customization — ✅ done
 
-**Current:** `stroke`, `strokeDasharray` exist. Could add `verticalStroke`, `horizontalStroke` for different colors per direction.
+**Current:** `stroke`, `strokeDasharray`, `horizontalStroke`, `verticalStroke` — different colors per direction.
 
 ---
 
@@ -143,14 +143,9 @@ Use `layer: LayerOrder.line` instead of `layer: 50`.
 
 ---
 
-### 4. onRegisterRedraw for overlay (if using two canvases)
+### 4. onRegisterRedraw for overlay — ✅ done
 
-**Idea:** When overlay canvas exists, allow it to redraw without React:
-- `CanvasWrapper` accepts `onRegisterRedraw(draw: () => void)`
-- Chart holds `overlayRedrawRef` and calls `overlayRedrawRef.current()` directly on pointer/selection change
-- No `setState` or React re-renders
-
-**Depends on:** "Two canvases" item.
+**Implemented:** Chart accepts `onOverlayRedrawReady?: (redraw: () => void) => void`. When overlay canvas is ready, the redraw function is passed. Call it for overlay-only updates without React re-renders.
 
 ---
 
@@ -178,9 +173,9 @@ Use `layer: LayerOrder.line` instead of `layer: 50`.
 
 ---
 
-### 7. Base/overlay pointer-events split
+### 7. Base/overlay pointer-events split — ✅ done
 
-**Related to item 6.** Base: `pointer-events: none`. Overlay: `pointer-events: auto`. All mouse events go to overlay.
+Base: `pointer-events: none`. Overlay: `pointer-events: auto`. All mouse events go to overlay.
 
 ---
 
@@ -204,15 +199,22 @@ Long-term idea: core in Rust, compile to WASM for web + native for TUI (ratatui)
 - [x] Axis typography (fontFamily, fontSize)
 - [x] Tooltip styling props (className, style)
 - [x] Legend styling props
-- [ ] CartesianGrid per-direction stroke (optional)
-- [ ] CSS variables / design tokens
-- [ ] Slot-based customization (renderProps)
+- [x] CartesianGrid per-direction stroke (horizontalStroke, verticalStroke)
+- [x] CSS variables / design tokens (--qurve-chart-bg, --qurve-grid-stroke, etc.)
+- [x] Slot-based customization (Tooltip content, Legend item, XAxis/YAxis tick)
 
 **Architecture**
 - [x] DPR in mouse coordinates
 - [x] LayerOrder constants
 - [x] RAF-batching pointer
-- [ ] onRegisterRedraw (with two canvases)
+- [x] onOverlayRedrawReady (with two canvases)
 - [x] Centralized pointer
 - [x] Two canvases (base + overlay)
-- [ ] pointer-events split
+- [x] pointer-events split
+
+**Recharts API compatibility**
+- [x] ReferenceLine (x/y, stroke, strokeDasharray)
+- [x] ReferenceDot (x, y, r, fill, stroke)
+- [x] ReferenceArea (x1/x2 or y1/y2, fill, fillOpacity)
+- [x] Cell (per-segment styling for Bar, Pie)
+- [x] LineChart / BarChart wrappers

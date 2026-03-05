@@ -12,8 +12,8 @@ interface Item {
 
 const COMPONENTS: Item[] = [
   // Chart containers
-  { component: "LineChart", recharts: "LineChart", qurve: "Chart", status: "done", notes: "Use Chart; compose Line, XAxis, YAxis" },
-  { component: "BarChart", recharts: "BarChart", qurve: "Chart", status: "done", notes: "Use Chart; compose Bar, XAxis, YAxis" },
+  { component: "LineChart", recharts: "LineChart", qurve: "LineChart", status: "done", notes: "Wrapper; compose Line, XAxis, YAxis" },
+  { component: "BarChart", recharts: "BarChart", qurve: "BarChart", status: "done", notes: "Wrapper; compose Bar, XAxis, YAxis" },
   { component: "AreaChart", recharts: "AreaChart", qurve: "Chart", status: "done", notes: "Use Chart; compose Area, XAxis, YAxis" },
   { component: "ComposedChart", recharts: "ComposedChart", qurve: "Chart", status: "done", notes: "Single Chart; mix Line, Bar, Area, Scatter" },
   { component: "PieChart", recharts: "PieChart", qurve: "Chart + Pie", status: "done", notes: "Chart with Pie child" },
@@ -27,7 +27,7 @@ const COMPONENTS: Item[] = [
   { component: "ResponsiveContainer", recharts: "ResponsiveContainer", qurve: "ResponsiveContainer", status: "done" },
   { component: "Legend", recharts: "Legend", qurve: "Legend", status: "done" },
   { component: "Tooltip", recharts: "Tooltip", qurve: "Tooltip", status: "done" },
-  { component: "Cell", recharts: "Cell", qurve: "—", status: "partial", notes: "Use colors[] on Pie; fill/stroke per series on Bar" },
+  { component: "Cell", recharts: "Cell", qurve: "Cell", status: "done", notes: "Child of Bar/Pie; fill, stroke per segment" },
   { component: "Label", recharts: "Label", qurve: "Pie label", status: "partial", notes: "Pie label prop; no general Label component" },
   { component: "LabelList", recharts: "LabelList", qurve: "—", status: "partial", notes: "Pie has label/labelFormatter" },
   { component: "Customized", recharts: "Customized", qurve: "—", status: "missing", notes: "Custom draw slot" },
@@ -41,9 +41,9 @@ const COMPONENTS: Item[] = [
   { component: "ZAxis", recharts: "ZAxis", qurve: "—", status: "missing" },
   { component: "Brush", recharts: "Brush", qurve: "Brush", status: "done" },
   { component: "CartesianGrid", recharts: "CartesianGrid", qurve: "CartesianGrid", status: "done" },
-  { component: "ReferenceLine", recharts: "ReferenceLine", qurve: "—", status: "missing" },
-  { component: "ReferenceDot", recharts: "ReferenceDot", qurve: "—", status: "missing" },
-  { component: "ReferenceArea", recharts: "ReferenceArea", qurve: "—", status: "missing" },
+  { component: "ReferenceLine", recharts: "ReferenceLine", qurve: "ReferenceLine", status: "done", notes: "x or y, stroke, strokeDasharray" },
+  { component: "ReferenceDot", recharts: "ReferenceDot", qurve: "ReferenceDot", status: "done", notes: "x, y, r, fill, stroke" },
+  { component: "ReferenceArea", recharts: "ReferenceArea", qurve: "ReferenceArea", status: "done", notes: "x1/x2 or y1/y2, fill, fillOpacity" },
   { component: "ErrorBar", recharts: "ErrorBar", qurve: "—", status: "missing" },
   // Polar
   { component: "Pie", recharts: "Pie", qurve: "Pie", status: "done" },
@@ -188,7 +188,13 @@ export default function AreWeRechartsYet() {
               <strong>Animation:</strong> Recharts animates by default. Qurve has no built-in animation (Canvas redraws directly).
             </li>
             <li>
-              <strong>ReferenceLine/ReferenceDot/ReferenceArea:</strong> Not yet implemented.
+              <strong>ReferenceLine/ReferenceDot/ReferenceArea:</strong> Implemented.
+            </li>
+            <li>
+              <strong>Tooltip content:</strong> Use <code className="rounded bg-[var(--surface-muted)] px-1">content</code> prop (element or function) for custom tooltip UI.
+            </li>
+            <li>
+              <strong>CSS variables:</strong> Set <code className="rounded bg-[var(--surface-muted)] px-1">--qurve-chart-bg</code>, <code className="rounded bg-[var(--surface-muted)] px-1">--qurve-grid-stroke</code>, <code className="rounded bg-[var(--surface-muted)] px-1">--qurve-axis-stroke</code>, <code className="rounded bg-[var(--surface-muted)] px-1">--qurve-font-family</code> on a parent to theme.
             </li>
           </ul>
         </section>

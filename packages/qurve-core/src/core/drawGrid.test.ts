@@ -22,7 +22,7 @@ describe('drawGrid', () => {
     drawGrid({
       ctx,
       stroke: '#ccc',
-      strokeDasharray: '0',
+      strokeDasharray: '4 4',
       horizontal: false,
       vertical: true,
       horizontalCount: 5,
@@ -33,7 +33,28 @@ describe('drawGrid', () => {
     });
 
     expect(ctx.stroke).toHaveBeenCalled();
-    expect(ctx.setLineDash).toHaveBeenCalled();
+    expect(ctx.setLineDash).toHaveBeenCalledWith([4, 4]);
+  });
+
+  it('uses horizontalStroke and verticalStroke when provided', () => {
+    const ctx = createMockContext();
+
+    drawGrid({
+      ctx,
+      stroke: '#ccc',
+      horizontalStroke: '#f00',
+      verticalStroke: '#00f',
+      strokeDasharray: '2 2',
+      horizontal: true,
+      vertical: true,
+      horizontalCount: 2,
+      verticalCount: 2,
+      margin: { top: 0, left: 0 },
+      innerWidth: 100,
+      innerHeight: 100,
+    });
+
+    expect(ctx.stroke).toHaveBeenCalled();
   });
 
   it('draws horizontal lines when horizontal is true', () => {

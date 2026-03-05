@@ -14,13 +14,16 @@ export type {
 
 // Core drawing functions
 export { drawLinePath, drawLineDots, drawActiveDot } from './core/drawLine';
-export { drawBars, type BarRect } from './core/drawBar';
+export { drawBars, type BarRect, type CellOverride } from './core/drawBar';
 export { drawArea, type AreaPoint } from './core/drawArea';
 export { drawPieSlices, type PieSliceGeometry, type PieDrawSlice } from './core/drawPie';
 export { drawScatterPoints, type ScatterPoint } from './core/drawScatter';
 export { drawXAxis, drawYAxis } from './core/drawAxis';
 export { drawGrid } from './core/drawGrid';
 export { drawCrosshair, type CursorConfig } from './core/drawCrosshair';
+export { drawReferenceLine } from './core/drawReferenceLine';
+export { drawReferenceDot } from './core/drawReferenceDot';
+export { drawReferenceArea } from './core/drawReferenceArea';
 
 // Math & utilities
 export * from './core/chartMath';

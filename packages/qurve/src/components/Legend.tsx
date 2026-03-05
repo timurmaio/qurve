@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
 import { justifyByAlign } from '@qurve/core';
 import { useChartContext } from './chart/chartContext';
+import type { LegendItemRegistration } from '@qurve/core';
+
+export interface LegendItemProps {
+  item: LegendItemRegistration;
+  visible: boolean;
+  onToggle: () => void;
+}
 
 export interface LegendProps {
   align?: 'left' | 'center' | 'right';
@@ -9,6 +16,7 @@ export interface LegendProps {
   wrapperClassName?: string;
   wrapperStyle?: React.CSSProperties;
   itemStyle?: React.CSSProperties;
+  item?: (props: LegendItemProps) => React.ReactNode;
   ariaLabel?: string;
   selectionMode?: 'multiple' | 'single';
 }
@@ -20,6 +28,7 @@ export function Legend({
   wrapperClassName,
   wrapperStyle,
   itemStyle,
+  item: itemSlot,
   ariaLabel = 'Chart legend',
   selectionMode = 'multiple',
 }: LegendProps) {
@@ -73,6 +82,14 @@ export function Legend({
 
             setSeriesVisible(item.id, !visible);
           };
+
+          if (itemSlot) {
+            return (
+              <span key={`${item.name}-${index}`} style={{ display: 'inline-flex' }}>
+                {itemSlot({ item, visible, onToggle: toggleSeries })}
+              </span>
+            );
+          }
 
           return (
             <button

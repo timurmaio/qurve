@@ -42,6 +42,12 @@ function fillRoundedRect(ctx: CanvasRenderingContext2D, bar: BarRect): void {
   ctx.fill();
 }
 
+export interface CellOverride {
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+}
+
 export function drawBars(params: {
   ctx: CanvasRenderingContext2D;
   bars: BarRect[];
@@ -50,21 +56,26 @@ export function drawBars(params: {
   strokeWidth: number;
   hoveredIndex: number | null;
   hoverOpacity: number;
+  cellOverrides?: CellOverride[];
 }): void {
-  const { ctx, bars, fill, stroke, strokeWidth, hoveredIndex, hoverOpacity } = params;
+  const { ctx, bars, fill, stroke, strokeWidth, hoveredIndex, hoverOpacity, cellOverrides } = params;
 
   ctx.save();
 
   for (let index = 0; index < bars.length; index++) {
     const bar = bars[index];
+    const cell = cellOverrides?.[index];
+    const barFill = cell?.fill ?? fill;
+    const barStroke = cell?.stroke ?? stroke;
+    const barStrokeWidth = cell?.strokeWidth ?? strokeWidth;
 
     ctx.globalAlpha = hoveredIndex === null || hoveredIndex === index ? 1 : hoverOpacity;
-    ctx.fillStyle = fill;
+    ctx.fillStyle = barFill;
     fillRoundedRect(ctx, bar);
 
-    if (stroke && strokeWidth > 0) {
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = strokeWidth;
+    if (barStroke && barStrokeWidth > 0) {
+      ctx.strokeStyle = barStroke;
+      ctx.lineWidth = barStrokeWidth;
       ctx.stroke();
     }
   }

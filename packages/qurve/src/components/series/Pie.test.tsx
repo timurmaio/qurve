@@ -4,6 +4,7 @@ import { Chart } from '../chart/chartContext';
 import { Tooltip } from '../Tooltip';
 import { Legend } from '../Legend';
 import { Pie } from './Pie';
+import { Cell } from './Cell';
 
 function hoverCanvas(canvas: HTMLCanvasElement, clientX = 180, clientY = 80) {
   Object.defineProperty(canvas, 'getBoundingClientRect', {
@@ -83,6 +84,26 @@ describe('Pie', () => {
 
     expect(await screen.findByText('Alpha 40 (40%)')).toBeInTheDocument();
     expect(await screen.findByText('Beta 60 (60%)')).toBeInTheDocument();
+  });
+
+  it('renders with Cell children for per-slice styling', () => {
+    const { container } = render(
+      <Chart
+        data={[
+          { name: 'Alpha', value: 40 },
+          { name: 'Beta', value: 60 },
+        ]}
+        width={280}
+        height={160}
+      >
+        <Pie dataKey="value" nameKey="name" outerRadius={52} innerRadius={20}>
+          <Cell fill="#f00" />
+          <Cell fill="#0f0" />
+        </Pie>
+      </Chart>,
+    );
+
+    expect(container.querySelector('canvas')).not.toBeNull();
   });
 
   it('uses slice palette colors in tooltip formatter item', async () => {

@@ -1,38 +1,47 @@
 export function drawGrid(params: {
   ctx: CanvasRenderingContext2D;
-  stroke: string;
-  strokeDasharray: string;
-  horizontal: boolean;
-  vertical: boolean;
-  horizontalCount: number;
-  verticalCount: number;
+  stroke?: string;
+  horizontalStroke?: string;
+  verticalStroke?: string;
+  strokeDasharray?: string;
+  horizontal?: boolean;
+  vertical?: boolean;
+  horizontalCount?: number;
+  verticalCount?: number;
   margin: { top: number; left: number };
   innerWidth: number;
   innerHeight: number;
 }): void {
   const {
     ctx,
-    stroke,
-    strokeDasharray,
-    horizontal,
-    vertical,
-    horizontalCount,
-    verticalCount,
+    stroke = '#e5e5e5',
+    horizontalStroke,
+    verticalStroke,
+    strokeDasharray = '3 3',
+    horizontal = true,
+    vertical = true,
+    horizontalCount = 5,
+    verticalCount = 5,
     margin,
     innerWidth,
     innerHeight,
   } = params;
 
+  const hStroke = horizontalStroke ?? stroke;
+  const vStroke = verticalStroke ?? stroke;
+
   ctx.save();
-  ctx.strokeStyle = stroke;
   ctx.lineWidth = 1;
 
   if (strokeDasharray) {
-    const [dash, gap] = strokeDasharray.split(' ').map(Number);
-    ctx.setLineDash([dash, gap]);
+    const parts = strokeDasharray.split(' ').map(Number).filter(Number.isFinite);
+    if (parts.length >= 2) {
+      ctx.setLineDash(parts);
+    }
   }
 
   if (vertical) {
+    ctx.strokeStyle = vStroke;
     const step = innerWidth / verticalCount;
     for (let i = 0; i <= verticalCount; i++) {
       const xPos = margin.left + i * step;
@@ -44,6 +53,7 @@ export function drawGrid(params: {
   }
 
   if (horizontal) {
+    ctx.strokeStyle = hStroke;
     const step = innerHeight / horizontalCount;
     for (let i = 0; i <= horizontalCount; i++) {
       const yPos = margin.top + i * step;

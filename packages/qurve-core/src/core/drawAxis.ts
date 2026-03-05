@@ -29,7 +29,7 @@ export function drawXAxis(params: {
   tickCount: number;
   tickValues?: number[];
   interval?: number;
-  tickFormatter?: (value: unknown) => string;
+  tickFormatter?: (value: unknown, index?: number) => string;
   fontSize?: number;
   fontFamily?: string;
   fontWeight?: string | number;
@@ -78,7 +78,7 @@ export function drawXAxis(params: {
   }
 
   if (tickLine || tick) {
-    for (const tickValue of visibleTicks) {
+    visibleTicks.forEach((tickValue, index) => {
       const xPos = margin.left + scale(tickValue);
       if (tickLine) {
         ctx.beginPath();
@@ -89,10 +89,10 @@ export function drawXAxis(params: {
       }
 
       if (tick) {
-        const label = tickFormatter ? tickFormatter(tickValue) : String(tickValue);
+        const label = tickFormatter ? tickFormatter(tickValue, index) : String(tickValue);
         ctx.fillText(label, xPos, y + (position === 'top' ? -8 : 8));
       }
-    }
+    });
   }
 
   ctx.restore();
@@ -113,7 +113,7 @@ export function drawYAxis(params: {
   tickCount: number;
   tickValues?: number[];
   interval?: number;
-  tickFormatter?: (value: unknown) => string;
+  tickFormatter?: (value: unknown, index?: number) => string;
   fontSize?: number;
   fontFamily?: string;
   fontWeight?: string | number;
@@ -162,7 +162,7 @@ export function drawYAxis(params: {
   }
 
   if (tickLine || tick) {
-    for (const tickValue of visibleTicks) {
+    visibleTicks.forEach((tickValue, index) => {
       const yPos = margin.top + scale(tickValue);
 
       if (tickLine) {
@@ -174,10 +174,10 @@ export function drawYAxis(params: {
       }
 
       if (tick) {
-        const label = tickFormatter ? tickFormatter(tickValue) : String(tickValue.toFixed(0));
+        const label = tickFormatter ? tickFormatter(tickValue, index) : String(tickValue.toFixed(0));
         ctx.fillText(label, x + (position === 'left' ? -8 : 8), yPos);
       }
-    }
+    });
   }
 
   ctx.restore();

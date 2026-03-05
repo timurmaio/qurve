@@ -54,6 +54,7 @@ export interface PieProps {
   name?: string;
   tooltipName?: string;
   tooltipFormatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
+  children?: React.ReactNode;
 }
 
 interface PieSlice extends PieDrawSlice {
@@ -87,6 +88,7 @@ export function Pie({
   name,
   tooltipName,
   tooltipFormatter,
+  children,
 }: PieProps) {
   const {
     data,
@@ -105,6 +107,21 @@ export function Pie({
     ctx,
   } = useChartContext();
   const resolvedColors = colors ?? chartColors;
+
+  const cellOverrides = useMemo(() => {
+    const items: Array<{ fill?: string; stroke?: string }> = [];
+    if (!children) return items;
+    const arr = Array.isArray(children) ? children : [children];
+    for (const child of arr) {
+      if (child && typeof child === 'object' && 'type' in child) {
+        const c = child as { type?: { displayName?: string }; props?: { fill?: string; stroke?: string } };
+        if (c.type?.displayName === 'Cell' && c.props) {
+          items.push({ fill: c.props.fill, stroke: c.props.stroke });
+        }
+      }
+    }
+    return items;
+  }, [children]);
 
   const seriesId = useMemo(() => Symbol('pie-series'), []);
   const slicesRef = useRef<PieSlice[]>([]);
@@ -162,11 +179,12 @@ export function Pie({
       const sliceEnd = sliceStart + sliceSpan * direction;
       const midAngle = sliceStart + (sliceSpan * direction) / 2;
 
+      const cell = cellOverrides[index];
       slices.push({
         index,
         value,
         name: normalizeName(data[index], index, nameKey),
-        color: pickColor(index, fill, resolvedColors),
+        color: cell?.fill ?? pickColor(index, fill, resolvedColors),
         startAngle: sliceStart,
         endAngle: sliceEnd,
         midAngle,
@@ -174,7 +192,7 @@ export function Pie({
         cy: centerY,
         innerRadius: resolvedInnerRadius,
         outerRadius: resolvedOuterRadius,
-        stroke,
+        stroke: cell?.stroke ?? stroke,
         strokeWidth,
       });
 
@@ -191,6 +209,7 @@ export function Pie({
     nameKey,
     fill,
     resolvedColors,
+    cellOverrides,
     stroke,
     strokeWidth,
     innerRadius,

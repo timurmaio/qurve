@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { drawBars, projectPoints, resolveYValue, LayerOrder } from '@qurve/core';
-import type { BarRect } from '@qurve/core';
+import type { BarRect, CellOverride } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 import {
@@ -36,6 +36,7 @@ export interface BarProps {
   name?: string;
   tooltipName?: string;
   tooltipFormatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
+  children?: ReactNode;
 }
 
 interface BarGeometry extends BarRect {
@@ -62,6 +63,7 @@ export function Bar({
   name,
   tooltipName,
   tooltipFormatter,
+  children,
 }: BarProps) {
   const {
     data,
@@ -84,6 +86,25 @@ export function Bar({
     requestRender,
   } = useChartContext();
   const fill = fillProp ?? getSeriesColor();
+
+  const cellOverrides = useMemo((): CellOverride[] => {
+    const items: CellOverride[] = [];
+    if (!children) return items;
+    const arr = Array.isArray(children) ? children : [children];
+    for (const child of arr) {
+      if (child && typeof child === 'object' && 'type' in child) {
+        const c = child as { type?: { displayName?: string }; props?: CellOverride };
+        if (c.type?.displayName === 'Cell' && c.props) {
+          items.push({
+            fill: c.props.fill,
+            stroke: c.props.stroke,
+            strokeWidth: c.props.strokeWidth,
+          });
+        }
+      }
+    }
+    return items;
+  }, [children]);
 
   const seriesId = useMemo(() => Symbol('bar-series'), []);
   const barsRef = useRef<BarGeometry[]>([]);
@@ -332,6 +353,7 @@ export function Bar({
           strokeWidth,
           hoveredIndex: hoveredIndexRef.current,
           hoverOpacity: normalizedHoverOpacity,
+          cellOverrides: cellOverrides.length > 0 ? cellOverrides : undefined,
         });
       } catch (error) {
         console.error('Bar render error:', error);
@@ -339,7 +361,7 @@ export function Bar({
     };
 
     return registerRender(render, { layer: LayerOrder.bar });
-  }, [ctx, data, fill, stroke, strokeWidth, normalizedHoverOpacity, registerRender, isSeriesVisible, seriesId, legendVersion]);
+  }, [ctx, data, fill, stroke, strokeWidth, normalizedHoverOpacity, cellOverrides, registerRender, isSeriesVisible, seriesId, legendVersion]);
 
   return null;
 }
