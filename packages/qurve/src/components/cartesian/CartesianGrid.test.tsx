@@ -46,6 +46,19 @@ describe('CartesianGrid', () => {
     expect(container.querySelector('canvas')).not.toBeNull();
   });
 
+  it('renders with horizontalStroke and verticalStroke', () => {
+    const { container } = render(
+      <Chart data={[{ x: 1, y: 10 }]} width={280} height={160}>
+        <CartesianGrid horizontalStroke="#f00" verticalStroke="#00f" />
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" />
+      </Chart>,
+    );
+
+    expect(container.querySelector('canvas')).not.toBeNull();
+  });
+
   it('renders with custom strokeDasharray', () => {
     const { container } = render(
       <Chart data={[{ x: 1, y: 10 }]} width={280} height={160}>

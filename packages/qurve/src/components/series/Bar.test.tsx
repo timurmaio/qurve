@@ -4,6 +4,7 @@ import { Chart } from '../chart/chartContext';
 import { XAxis } from '../cartesian/XAxis';
 import { YAxis } from '../cartesian/YAxis';
 import { Bar } from './Bar';
+import { Cell } from './Cell';
 import { Tooltip } from '../Tooltip';
 import { Legend } from '../Legend';
 
@@ -34,7 +35,7 @@ describe('Bar', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
   });
 
@@ -62,6 +63,22 @@ describe('Bar', () => {
     const { container } = render(
       <Chart data={[{ x: 1, y: 10 }]} width={280} height={160}>
         <Bar dataKey="y" stroke="#000" strokeWidth={2} />
+      </Chart>,
+    );
+
+    expect(container.querySelector('canvas')).not.toBeNull();
+  });
+
+  it('renders with Cell children for per-bar styling', () => {
+    const { container } = render(
+      <Chart data={[{ x: 1, y: 10 }, { x: 2, y: 20 }, { x: 3, y: 15 }]} width={280} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Bar dataKey="y">
+          <Cell fill="#f00" />
+          <Cell fill="#0f0" />
+          <Cell fill="#00f" />
+        </Bar>
       </Chart>,
     );
 
@@ -164,7 +181,7 @@ describe('Bar', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
 
@@ -182,7 +199,7 @@ describe('Bar', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     hoverCanvas(canvas as HTMLCanvasElement);
 
     expect(await screen.findByText('Custom Sales:')).toBeInTheDocument();
@@ -198,7 +215,7 @@ describe('Bar', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     hoverCanvas(canvas as HTMLCanvasElement);
 
     expect(await screen.findByText('$10k')).toBeInTheDocument();
@@ -215,7 +232,7 @@ describe('Bar', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     hoverCanvas(canvas as HTMLCanvasElement);
 
     expect(await screen.findByText('Sales:')).toBeInTheDocument();

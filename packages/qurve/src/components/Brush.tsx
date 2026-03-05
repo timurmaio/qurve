@@ -7,9 +7,8 @@ import {
   type TouchEventHandler,
   type WheelEventHandler,
 } from 'react';
+import { clamp, getTouchDistance, getTouchX } from '@qurve/core';
 import { useChartContext } from './chart/chartContext';
-import { clamp } from './chart/core/chartMath';
-import { getTouchDistance, getTouchX } from './chart/core/brushUtils';
 
 type DragMode = 'window' | 'start' | 'end' | null;
 type InputMode = 'mouse' | 'touch';

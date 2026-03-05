@@ -1,16 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { drawScatterPoints, resolveXValue, resolveYValue, LayerOrder } from '@qurve/core';
+import type { ScatterPoint } from '@qurve/core';
 import { useChartContext } from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
-import { drawScatterPoints, type ScatterPoint } from '../chart/core/drawScatter';
-import { resolveXValue, resolveYValue } from '../chart/core/pointUtils';
 
 const SCATTER_CONSTANTS = {
-  DEFAULT_FILL: '#3b82f6',
   DEFAULT_SIZE: 4,
   DEFAULT_STROKE_WIDTH: 0,
   DEFAULT_HOVER_OPACITY: 0.5,
-  RENDER_LAYER: 60,
-  TOOLTIP_LAYER: 60,
 };
 
 interface ScatterGeometry extends ScatterPoint {
@@ -46,7 +43,7 @@ export function Scatter({
   dataKey,
   xKey,
   yKey,
-  fill = SCATTER_CONSTANTS.DEFAULT_FILL,
+  fill: fillProp,
   stroke,
   strokeWidth = SCATTER_CONSTANTS.DEFAULT_STROKE_WIDTH,
   size = SCATTER_CONSTANTS.DEFAULT_SIZE,
@@ -64,12 +61,14 @@ export function Scatter({
     registerRender,
     registerTooltipSeries,
     registerLegendItem,
+    getSeriesColor,
     isSeriesVisible,
     legendVersion,
     hoveredIndex,
     requestRender,
     ctx,
   } = useChartContext();
+  const fill = fillProp ?? getSeriesColor();
 
   const seriesId = useMemo(() => Symbol('scatter-series'), []);
   const pointsRef = useRef<ScatterGeometry[]>([]);
@@ -131,7 +130,7 @@ export function Scatter({
         formatter: tooltipFormatter,
         anchor: { x: point.x, y: point.y },
       };
-    }, { layer: SCATTER_CONSTANTS.TOOLTIP_LAYER });
+    }, { layer: LayerOrder.scatter });
   }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -150,7 +149,7 @@ export function Scatter({
       });
     };
 
-    return registerRender(render, { layer: SCATTER_CONSTANTS.RENDER_LAYER });
+    return registerRender(render, { layer: LayerOrder.scatter });
   }, [ctx, data, fill, stroke, strokeWidth, hoveredIndex, normalizedHoverOpacity, registerRender, isSeriesVisible, seriesId, legendVersion]);
 
   return null;

@@ -51,6 +51,9 @@
     "check:release": "pnpm run typecheck && pnpm run build && pnpm pack",
     "prepublishOnly": "pnpm run typecheck && pnpm run build"
   },
+  "dependencies": {
+    "@qurve/core": "workspace:*"
+  },
   "peerDependencies": {
     "react": ">=18.2.0",
     "react-dom": ">=18.2.0"

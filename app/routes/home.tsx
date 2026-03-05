@@ -845,13 +845,22 @@ export default function Home() {
             <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-8 max-w-xl">
               Canvas rendering unlocks a fundamentally different performance ceiling.
               Open the dedicated comparison page to inspect Qurve and Recharts side-by-side on the same datasets.
+              Check the Recharts compatibility progress for drop-in replacement status.
             </p>
+            <div className="flex flex-wrap gap-3">
             <Link
               to="/comparison"
               className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:border-[var(--accent)]"
             >
-              Open comparison page
+              Comparison
             </Link>
+            <Link
+              to="/are-we-recharts-yet"
+              className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:border-[var(--accent)]"
+            >
+              Are we Recharts yet?
+            </Link>
+            </div>
           </section>
         </main>
 

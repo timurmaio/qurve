@@ -107,7 +107,7 @@ describe('Line', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
   });
@@ -158,7 +158,7 @@ describe('Line', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
 
@@ -176,7 +176,7 @@ describe('Line', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     hoverCanvas(canvas as HTMLCanvasElement);
 
     expect(await screen.findByText('Custom Name:')).toBeInTheDocument();

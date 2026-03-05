@@ -1,9 +1,10 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { Chart } from '../chart/chartContext';
 import { Tooltip } from '../Tooltip';
 import { Legend } from '../Legend';
 import { Pie } from './Pie';
+import { Cell } from './Cell';
 
 function hoverCanvas(canvas: HTMLCanvasElement, clientX = 180, clientY = 80) {
   Object.defineProperty(canvas, 'getBoundingClientRect', {
@@ -24,6 +25,12 @@ function hoverCanvas(canvas: HTMLCanvasElement, clientX = 180, clientY = 80) {
   fireEvent.mouseMove(canvas, { clientX, clientY });
 }
 
+async function flushPointerRAF() {
+  await act(async () => {
+    await new Promise(resolve => requestAnimationFrame(resolve));
+  });
+}
+
 describe('Pie', () => {
   it('renders tooltip payload and supports legend toggle', async () => {
     const { container } = render(
@@ -41,9 +48,10 @@ describe('Pie', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
+    await flushPointerRAF();
 
     expect(await screen.findByText('Alpha:')).toBeInTheDocument();
     expect(screen.getByText('40.00')).toBeInTheDocument();
@@ -78,6 +86,26 @@ describe('Pie', () => {
     expect(await screen.findByText('Beta 60 (60%)')).toBeInTheDocument();
   });
 
+  it('renders with Cell children for per-slice styling', () => {
+    const { container } = render(
+      <Chart
+        data={[
+          { name: 'Alpha', value: 40 },
+          { name: 'Beta', value: 60 },
+        ]}
+        width={280}
+        height={160}
+      >
+        <Pie dataKey="value" nameKey="name" outerRadius={52} innerRadius={20}>
+          <Cell fill="#f00" />
+          <Cell fill="#0f0" />
+        </Pie>
+      </Chart>,
+    );
+
+    expect(container.querySelector('canvas')).not.toBeNull();
+  });
+
   it('uses slice palette colors in tooltip formatter item', async () => {
     const { container } = render(
       <Chart
@@ -100,9 +128,10 @@ describe('Pie', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
+    await flushPointerRAF();
 
     expect(await screen.findByText('Alpha color:')).toBeInTheDocument();
     expect(screen.getByText('#111111')).toBeInTheDocument();

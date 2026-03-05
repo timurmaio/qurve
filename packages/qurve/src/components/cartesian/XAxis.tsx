@@ -1,10 +1,8 @@
 import { useEffect } from 'react';
+import { drawXAxis, createTimeTicks, formatTimeTick, toTimeNumber, LayerOrder } from '@qurve/core';
+import type { TimeFormatMode } from '@qurve/core';
 import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
-import { drawXAxis } from '../chart/core/drawAxis';
-import { createTimeTicks, formatTimeTick, toTimeNumber, type TimeFormatMode } from '../chart/core/timeUtils';
-
-const AXIS_RENDER_LAYER = 20;
 
 export interface XAxisProps {
   dataKey?: DataKey;
@@ -19,6 +17,8 @@ export interface XAxisProps {
   interval?: number;
   padding?: number | { left?: number; right?: number };
   tickFormatter?: (value: unknown) => string;
+  /** Render prop for tick label. (value, index) => string. Overrides tickFormatter when both provided. */
+  tickRenderer?: (value: unknown, index: number) => string;
   locale?: string;
   timeZone?: string;
   timeFormat?: TimeFormatMode;
@@ -26,6 +26,9 @@ export interface XAxisProps {
   tick?: boolean;
   tickLine?: boolean;
   axisLine?: boolean;
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string | number;
 }
 
 export function XAxis({
@@ -40,16 +43,22 @@ export function XAxis({
   interval = 0,
   padding,
   tickFormatter,
+  tickRenderer: tickSlot,
   locale,
   timeZone,
   timeFormat,
-  stroke = '#666',
+  stroke,
   tick = true,
   tickLine = true,
   axisLine = true,
+  fontSize,
+  fontFamily,
+  fontWeight,
 }: XAxisProps) {
-  const { margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { margin, innerWidth, innerHeight, theme } = useChartLayoutContext();
   const { registerRender, ctx } = useChartRenderContext();
+  const effectiveStroke = stroke ?? theme?.axisStroke ?? '#666';
+  const effectiveFontFamily = fontFamily ?? theme?.fontFamily;
   const { setXAxis, getXScale } = useChartScaleContext();
 
   useEffect(() => {
@@ -84,10 +93,14 @@ export function XAxis({
           ?.map((value) => toTimeNumber(value))
           .filter((value): value is number => value !== null) ?? createTimeTicks(axisDomain, tickCount))
       : (tickValues as number[] | undefined);
-    const resolvedTickFormatter = tickFormatter
+    const baseFormatter = tickFormatter
       ?? (type === 'time'
         ? (value: unknown) => formatTimeTick(Number(value), axisDomain, { locale, timeZone, timeFormat })
         : undefined);
+
+    const resolvedTickFormatter = tickSlot
+      ? (value: unknown, index?: number) => tickSlot(value, index ?? 0)
+      : baseFormatter;
 
     const render = () => {
       if (!ctx) return;
@@ -100,7 +113,7 @@ export function XAxis({
         innerWidth,
         innerHeight,
         position,
-        stroke,
+        stroke: effectiveStroke,
         tick,
         tickLine,
         axisLine,
@@ -108,11 +121,14 @@ export function XAxis({
         tickValues: numericTickValues,
         interval,
         tickFormatter: resolvedTickFormatter,
+        fontSize,
+        fontFamily: effectiveFontFamily,
+        fontWeight,
       });
     };
 
-    return registerRender(render, { layer: AXIS_RENDER_LAYER });
-  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender, type, locale, timeZone, timeFormat]);
+    return registerRender(render, { layer: LayerOrder.axes });
+  }, [ctx, margin, innerWidth, innerHeight, getXScale, position, tickCount, tickValues, interval, tickFormatter, tickSlot, stroke, effectiveStroke, effectiveFontFamily, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender, type, locale, timeZone, timeFormat, theme]);
 
   return null;
 }
