@@ -116,6 +116,9 @@ describe('Tooltip', () => {
 
     fireEvent.click(canvas as HTMLCanvasElement, { clientX: 20, clientY: 20 });
     hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
     expect(screen.queryByText('20.00')).toBeNull();
     expect(screen.getByText('10.00')).toBeInTheDocument();
 
