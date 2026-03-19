@@ -140,7 +140,7 @@ export function Tooltip({
   }, [registerTooltipIndexResolver, xAxis]);
 
   useEffect(() => {
-    return registerShouldClearOnLeave(() => sticky && isLockedRef.current);
+    return registerShouldClearOnLeave(() => !(sticky && isLockedRef.current));
   }, [registerShouldClearOnLeave, sticky]);
 
   useEffect(() => {

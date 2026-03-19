@@ -73,6 +73,7 @@ export interface ChartInteractionContextValue {
   getTooltipPayload: (index: number) => TooltipPayloadItem[];
   registerTooltipIndexResolver: (resolver: (mouseX: number, mouseY: number) => number | null) => () => void;
   getTooltipIndexFromMouse: (mouseX: number, mouseY: number) => number | null;
+  /** Callback return value: `false` blocks clearing hover on canvas mouseleave; `true` allows it. */
   registerShouldClearOnLeave: (fn: () => boolean) => () => void;
   setVisibleRange: (range: { start: number; end: number }) => void;
 }
