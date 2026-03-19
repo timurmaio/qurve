@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Legend } from './Legend';
 import { Chart } from './chart/chartContext';
 import { Line } from './series/Line';
+import { Bar } from './series/Bar';
 import { XAxis } from './cartesian/XAxis';
 import { YAxis } from './cartesian/YAxis';
 
@@ -68,5 +69,73 @@ describe('Legend', () => {
     fireEvent.click(buttonA);
     expect(buttonA).toHaveAttribute('aria-pressed', 'true');
     expect(buttonB).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('applies wrapperClassName, wrapperStyle, itemStyle', () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }]} width={280} height={140}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Legend
+          wrapperClassName="custom-legend"
+          wrapperStyle={{ padding: '12px' }}
+          itemStyle={{ borderRadius: '4px' }}
+        />
+      </Chart>,
+    );
+
+    const wrapper = container.querySelector('.custom-legend');
+    expect(wrapper).toBeInTheDocument();
+    expect(wrapper).toHaveStyle({ padding: '12px' });
+
+    const button = screen.getByRole('button', { name: 'Revenue, visible' });
+    expect(button).toHaveStyle({ borderRadius: '4px' });
+  });
+
+  it('renders with custom item slot', () => {
+    const { container } = render(
+      <Chart data={[{ x: 1, a: 10 }]} width={280} height={160}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Bar dataKey="a" name="Series A" />
+        <Legend item={({ item, visible, onToggle }) => (
+          <button type="button" onClick={onToggle} data-visible={String(visible)}>
+            Custom: {item.name}
+          </button>
+        )} />
+      </Chart>,
+    );
+
+    expect(container.querySelector('button')).toHaveAttribute('data-visible', 'true');
+    expect(container.textContent).toContain('Custom: Series A');
+  });
+
+  it('renders with align left', () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }]} width={280} height={140}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Legend align="left" />
+      </Chart>,
+    );
+
+    const wrapper = container.querySelector('[role="group"]');
+    expect(wrapper).toHaveStyle({ justifyContent: 'flex-start' });
+  });
+
+  it('renders with align right', () => {
+    const { container } = render(
+      <Chart data={[{ x: 0, y: 10 }]} width={280} height={140}>
+        <XAxis dataKey="x" />
+        <YAxis />
+        <Line dataKey="y" name="Revenue" />
+        <Legend align="right" />
+      </Chart>,
+    );
+
+    const wrapper = container.querySelector('[role="group"]');
+    expect(wrapper).toHaveStyle({ justifyContent: 'flex-end' });
   });
 });

@@ -1,12 +1,22 @@
 import { useMemo, useState } from 'react';
-import { useChartContext } from './chart/chartContext';
-import { justifyByAlign } from './chart/core/legendUtils';
+import { justifyByAlign } from '@qurve/core';
+import { useChartSeriesContext } from './chart/chartContext';
+import type { LegendItemRegistration } from '@qurve/core';
+
+export interface LegendItemProps {
+  item: LegendItemRegistration;
+  visible: boolean;
+  onToggle: () => void;
+}
 
 export interface LegendProps {
   align?: 'left' | 'center' | 'right';
   verticalAlign?: 'top' | 'bottom';
   iconSize?: number;
+  wrapperClassName?: string;
   wrapperStyle?: React.CSSProperties;
+  itemStyle?: React.CSSProperties;
+  item?: (props: LegendItemProps) => React.ReactNode;
   ariaLabel?: string;
   selectionMode?: 'multiple' | 'single';
 }
@@ -15,11 +25,14 @@ export function Legend({
   align = 'center',
   verticalAlign = 'bottom',
   iconSize = 10,
+  wrapperClassName,
   wrapperStyle,
+  itemStyle,
+  item: itemSlot,
   ariaLabel = 'Chart legend',
   selectionMode = 'multiple',
 }: LegendProps) {
-  const { getLegendItems, legendVersion, isSeriesVisible, setSeriesVisible } = useChartContext();
+  const { getLegendItems, legendVersion, isSeriesVisible, setSeriesVisible } = useChartSeriesContext();
   const [focusedSeriesId, setFocusedSeriesId] = useState<symbol | null>(null);
 
   const items = useMemo(() => getLegendItems(), [getLegendItems, legendVersion]);
@@ -27,6 +40,7 @@ export function Legend({
 
   return (
     <div
+      className={wrapperClassName}
       style={{
         position: 'absolute',
         left: 0,
@@ -69,6 +83,14 @@ export function Legend({
             setSeriesVisible(item.id, !visible);
           };
 
+          if (itemSlot) {
+            return (
+              <span key={`${item.name}-${index}`} style={{ display: 'inline-flex' }}>
+                {itemSlot({ item, visible, onToggle: toggleSeries })}
+              </span>
+            );
+          }
+
           return (
             <button
               key={`${item.name}-${index}`}
@@ -98,6 +120,7 @@ export function Legend({
                 cursor: 'pointer',
                 outline: 'none',
                 boxShadow: isFocused ? '0 0 0 2px rgba(37, 99, 235, 0.45)' : 'none',
+                ...itemStyle,
               }}
             >
               <span

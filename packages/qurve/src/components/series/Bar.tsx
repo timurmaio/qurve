@@ -1,8 +1,15 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { useChartContext } from '../chart/chartContext';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { drawBars, projectPoints, resolveYValue, LayerOrder } from '@qurve/core';
+import type { BarRect, CellOverride } from '@qurve/core';
+import { CELL_TYPE } from './Cell';
+import {
+  useChartInteractionContext,
+  useChartLayoutContext,
+  useChartRenderContext,
+  useChartScaleContext,
+  useChartSeriesContext,
+} from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
-import { drawBars, type BarRect } from '../chart/core/drawBar';
-import { projectPoints, resolveYValue } from '../chart/core/pointUtils';
 import {
   getBaseValue,
   clamp,
@@ -12,17 +19,14 @@ import {
   resolveRadius,
   hasSameSign,
   resolveStackedRadius,
-} from '../chart/core/chartMath';
+} from '@qurve/core';
 
 const BAR_CONSTANTS = {
-  DEFAULT_FILL: '#8884d8',
   DEFAULT_STROKE_WIDTH: 0,
   DEFAULT_HOVER_OPACITY: 0.5,
   DEFAULT_BAND_RATIO: 0.72,
   DEFAULT_SLOT_PADDING_RATIO: 0.12,
   DEFAULT_SINGLE_BAR_RATIO: 0.62,
-  RENDER_LAYER: 40,
-  TOOLTIP_LAYER: 40,
 };
 
 export interface BarProps {
@@ -39,6 +43,7 @@ export interface BarProps {
   name?: string;
   tooltipName?: string;
   tooltipFormatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
+  children?: ReactNode;
 }
 
 interface BarGeometry extends BarRect {
@@ -53,7 +58,7 @@ interface Slot {
 
 export function Bar({
   dataKey,
-  fill = BAR_CONSTANTS.DEFAULT_FILL,
+  fill: fillProp,
   stroke,
   strokeWidth = BAR_CONSTANTS.DEFAULT_STROKE_WIDTH,
   barSize,
@@ -65,26 +70,40 @@ export function Bar({
   name,
   tooltipName,
   tooltipFormatter,
+  children,
 }: BarProps) {
+  const { data, margin, innerWidth, getSeriesColor } = useChartLayoutContext();
+  const { getXScale, getYScale, xAxis } = useChartScaleContext();
+  const { registerRender, ctx, requestRender } = useChartRenderContext();
+  const { registerTooltipSeries, hoveredIndex } = useChartInteractionContext();
   const {
-    data,
-    margin,
-    innerWidth,
-    xAxis,
-    getXScale,
-    getYScale,
-    registerRender,
-    registerTooltipSeries,
     registerBarSeries,
     getBarSeriesRegistrations,
     barSeriesVersion,
     registerLegendItem,
     isSeriesVisible,
     legendVersion,
-    ctx,
-    hoveredIndex,
-    requestRender,
-  } = useChartContext();
+  } = useChartSeriesContext();
+  const fill = fillProp ?? getSeriesColor();
+
+  const cellOverrides = useMemo((): CellOverride[] => {
+    const items: CellOverride[] = [];
+    if (!children) return items;
+    const arr = Array.isArray(children) ? children : [children];
+    for (const child of arr) {
+      if (child && typeof child === 'object' && 'type' in child) {
+        const c = child as { type?: { [CELL_TYPE]?: boolean }; props?: CellOverride };
+        if ((c.type as { [CELL_TYPE]?: boolean })?.[CELL_TYPE] && c.props) {
+          items.push({
+            fill: c.props.fill,
+            stroke: c.props.stroke,
+            strokeWidth: c.props.strokeWidth,
+          });
+        }
+      }
+    }
+    return items;
+  }, [children]);
 
   const seriesId = useMemo(() => Symbol('bar-series'), []);
   const barsRef = useRef<BarGeometry[]>([]);
@@ -308,7 +327,7 @@ export function Bar({
         formatter: tooltipFormatter,
         anchor: { x: bar.x + bar.width / 2, y: bar.y },
       };
-    }, { layer: BAR_CONSTANTS.TOOLTIP_LAYER });
+    }, { layer: LayerOrder.bar });
   }, [registerTooltipSeries, payloadDataKey, seriesName, fill, tooltipFormatter, isSeriesVisible, seriesId, legendVersion]);
 
   useEffect(() => {
@@ -333,14 +352,16 @@ export function Bar({
           strokeWidth,
           hoveredIndex: hoveredIndexRef.current,
           hoverOpacity: normalizedHoverOpacity,
+          cellOverrides: cellOverrides.length > 0 ? cellOverrides : undefined,
         });
       } catch (error) {
         console.error('Bar render error:', error);
       }
     };
 
-    return registerRender(render, { layer: BAR_CONSTANTS.RENDER_LAYER });
-  }, [ctx, data, fill, stroke, strokeWidth, normalizedHoverOpacity, registerRender, isSeriesVisible, seriesId, legendVersion]);
+    return registerRender(render, { layer: LayerOrder.bar });
+  }, [ctx, data, fill, stroke, strokeWidth, normalizedHoverOpacity, cellOverrides, registerRender, isSeriesVisible, seriesId, legendVersion]);
 
   return null;
 }
+

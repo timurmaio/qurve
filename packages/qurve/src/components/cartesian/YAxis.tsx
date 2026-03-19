@@ -1,9 +1,7 @@
 import { useEffect } from 'react';
+import { drawYAxis, LayerOrder } from '@qurve/core';
 import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
-import { drawYAxis } from '../chart/core/drawAxis';
-
-const AXIS_RENDER_LAYER = 20;
 
 export interface YAxisProps {
   dataKey?: DataKey;
@@ -18,11 +16,16 @@ export interface YAxisProps {
   interval?: number;
   padding?: number | { top?: number; bottom?: number };
   tickFormatter?: (value: unknown) => string;
+  /** Render prop for tick label. (value, index) => string. Overrides tickFormatter when both provided. */
+  tickRenderer?: (value: unknown, index: number) => string;
   stroke?: string;
   tick?: boolean;
   tickLine?: boolean;
   axisLine?: boolean;
   width?: number;
+  fontSize?: number;
+  fontFamily?: string;
+  fontWeight?: string | number;
 }
 
 export function YAxis({
@@ -37,14 +40,20 @@ export function YAxis({
   interval = 0,
   padding,
   tickFormatter,
-  stroke = '#666',
+  tickRenderer: tickSlot,
+  stroke,
   tick = true,
   tickLine = true,
   axisLine = true,
   width: axisWidth = 60,
+  fontSize,
+  fontFamily,
+  fontWeight,
 }: YAxisProps) {
-  const { margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { margin, innerWidth, innerHeight, theme } = useChartLayoutContext();
   const { registerRender, ctx } = useChartRenderContext();
+  const effectiveStroke = stroke ?? theme?.axisStroke ?? '#666';
+  const effectiveFontFamily = fontFamily ?? theme?.fontFamily;
   const { setYAxis, getYScale } = useChartScaleContext();
 
   useEffect(() => {
@@ -87,19 +96,24 @@ export function YAxis({
         innerWidth,
         innerHeight,
         position,
-        stroke,
+        stroke: effectiveStroke,
         tick,
         tickLine,
         axisLine,
         tickCount,
         tickValues,
         interval,
-        tickFormatter,
+        tickFormatter: tickSlot
+          ? (value: unknown, index?: number) => tickSlot(value, index ?? 0)
+          : tickFormatter,
+        fontSize,
+        fontFamily: effectiveFontFamily,
+        fontWeight,
       });
     };
 
-    return registerRender(render, { layer: AXIS_RENDER_LAYER });
-  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, stroke, tick, tickLine, axisLine, registerRender]);
+    return registerRender(render, { layer: LayerOrder.axes });
+  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, tickSlot, stroke, effectiveStroke, effectiveFontFamily, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender, theme]);
 
   return null;
 }

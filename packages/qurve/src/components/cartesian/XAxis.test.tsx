@@ -257,4 +257,16 @@ describe('XAxis', () => {
 
     expect(container.querySelector('canvas')).not.toBeNull();
   });
+
+  it('renders with fontSize, fontFamily, fontWeight', () => {
+    const { container } = render(
+      <Chart data={[{ x: 1, y: 10 }]} width={280} height={160}>
+        <XAxis dataKey="x" fontSize={14} fontFamily="Georgia" fontWeight="bold" />
+        <YAxis />
+        <Line dataKey="y" />
+      </Chart>,
+    );
+
+    expect(container.querySelector('canvas')).not.toBeNull();
+  });
 });

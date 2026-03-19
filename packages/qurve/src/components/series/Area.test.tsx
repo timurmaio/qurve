@@ -34,7 +34,7 @@ describe('Area', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
   });
 
@@ -134,7 +134,7 @@ describe('Area', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     expect(canvas).not.toBeNull();
     hoverCanvas(canvas as HTMLCanvasElement);
 
@@ -152,7 +152,7 @@ describe('Area', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     hoverCanvas(canvas as HTMLCanvasElement);
 
     expect(await screen.findByText('Custom Revenue:')).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe('Area', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     hoverCanvas(canvas as HTMLCanvasElement);
 
     expect(await screen.findByText('10%')).toBeInTheDocument();
@@ -185,7 +185,7 @@ describe('Area', () => {
       </Chart>,
     );
 
-    const canvas = container.querySelector('canvas');
+    const canvas = container.querySelector('[data-testid="chart-event-canvas"]') ?? container.querySelector('canvas');
     hoverCanvas(canvas as HTMLCanvasElement);
 
     expect(await screen.findByText('Product A:')).toBeInTheDocument();
