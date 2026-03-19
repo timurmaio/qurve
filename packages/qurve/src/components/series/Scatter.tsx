@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { drawScatterPoints, resolveXValue, resolveYValue, LayerOrder } from '@qurve/core';
 import type { ScatterPoint } from '@qurve/core';
-import { useChartContext } from '../chart/chartContext';
+import {
+  useChartInteractionContext,
+  useChartLayoutContext,
+  useChartRenderContext,
+  useChartScaleContext,
+  useChartSeriesContext,
+} from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 
 const SCATTER_CONSTANTS = {
@@ -52,22 +58,11 @@ export function Scatter({
   tooltipName,
   tooltipFormatter,
 }: ScatterProps) {
-  const {
-    data,
-    margin,
-    xAxis,
-    getXScale,
-    getYScale,
-    registerRender,
-    registerTooltipSeries,
-    registerLegendItem,
-    getSeriesColor,
-    isSeriesVisible,
-    legendVersion,
-    hoveredIndex,
-    requestRender,
-    ctx,
-  } = useChartContext();
+  const { data, margin, getSeriesColor } = useChartLayoutContext();
+  const { getXScale, getYScale, xAxis } = useChartScaleContext();
+  const { registerRender, ctx, requestRender } = useChartRenderContext();
+  const { registerTooltipSeries, hoveredIndex } = useChartInteractionContext();
+  const { registerLegendItem, isSeriesVisible, legendVersion } = useChartSeriesContext();
   const fill = fillProp ?? getSeriesColor();
 
   const seriesId = useMemo(() => Symbol('scatter-series'), []);

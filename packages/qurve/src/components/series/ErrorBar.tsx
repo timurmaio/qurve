@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { drawErrorBars, LayerOrder } from '@qurve/core';
-import { useChartContext } from '../chart/chartContext';
+import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
 
 export interface ErrorBarProps {
@@ -25,15 +25,9 @@ export function ErrorBar({
   strokeWidth = 1.5,
   width = 5,
 }: ErrorBarProps) {
-  const {
-    data,
-    margin,
-    xAxis,
-    getXScale,
-    getYScale,
-    registerRender,
-    ctx,
-  } = useChartContext();
+  const { data, margin } = useChartLayoutContext();
+  const { getXScale, getYScale, xAxis } = useChartScaleContext();
+  const { registerRender, ctx } = useChartRenderContext();
 
   const resolvedErrorKey = errorKey ?? (typeof dataKey === 'string' ? `error${String(dataKey).charAt(0).toUpperCase()}${String(dataKey).slice(1)}` as DataKey : undefined);
 
