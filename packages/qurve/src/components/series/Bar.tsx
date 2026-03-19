@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { drawBars, projectPoints, resolveYValue, LayerOrder } from '@qurve/core';
 import type { BarRect, CellOverride } from '@qurve/core';
 import { CELL_TYPE } from './Cell';
-import { useChartContext } from '../chart/chartContext';
+import {
+  useChartInteractionContext,
+  useChartLayoutContext,
+  useChartRenderContext,
+  useChartScaleContext,
+  useChartSeriesContext,
+} from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 import {
   getBaseValue,
@@ -66,26 +72,18 @@ export function Bar({
   tooltipFormatter,
   children,
 }: BarProps) {
+  const { data, margin, innerWidth, getSeriesColor } = useChartLayoutContext();
+  const { getXScale, getYScale, xAxis } = useChartScaleContext();
+  const { registerRender, ctx, requestRender } = useChartRenderContext();
+  const { registerTooltipSeries, hoveredIndex } = useChartInteractionContext();
   const {
-    data,
-    margin,
-    innerWidth,
-    xAxis,
-    getXScale,
-    getYScale,
-    registerRender,
-    registerTooltipSeries,
     registerBarSeries,
     getBarSeriesRegistrations,
     barSeriesVersion,
     registerLegendItem,
-    getSeriesColor,
     isSeriesVisible,
     legendVersion,
-    ctx,
-    hoveredIndex,
-    requestRender,
-  } = useChartContext();
+  } = useChartSeriesContext();
   const fill = fillProp ?? getSeriesColor();
 
   const cellOverrides = useMemo((): CellOverride[] => {

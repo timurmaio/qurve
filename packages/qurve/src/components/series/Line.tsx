@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { drawActiveDot, drawLineDots, drawLinePath, projectPoints, LayerOrder } from '@qurve/core';
-import { useChartContext } from '../chart/chartContext';
+import {
+  useChartInteractionContext,
+  useChartLayoutContext,
+  useChartRenderContext,
+  useChartScaleContext,
+  useChartSeriesContext,
+} from '../chart/chartContext';
 import type { DataKey } from '../chart/chartContext';
 
 const LINE_CONSTANTS = {
@@ -36,22 +42,11 @@ export function Line({
   activeDot = true,
   name,
 }: LineProps) {
-  const {
-    data,
-    margin,
-    getXScale,
-    getYScale,
-    xAxis,
-    registerRender,
-    registerTooltipSeries,
-    getSeriesColor,
-    ctx,
-    hoveredIndex,
-    requestRender,
-    registerLegendItem,
-    isSeriesVisible,
-    legendVersion,
-  } = useChartContext();
+  const { data, margin, getSeriesColor } = useChartLayoutContext();
+  const { getXScale, getYScale, xAxis } = useChartScaleContext();
+  const { registerRender, ctx, requestRender } = useChartRenderContext();
+  const { registerTooltipSeries, hoveredIndex } = useChartInteractionContext();
+  const { registerLegendItem, isSeriesVisible, legendVersion } = useChartSeriesContext();
   const stroke = strokeProp ?? getSeriesColor();
   const seriesIdRef = useRef(Symbol('line-series'));
   const pointsRef = useRef<Point[]>([]);

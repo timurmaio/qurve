@@ -8,7 +8,7 @@ import {
   type WheelEventHandler,
 } from 'react';
 import { clamp, getTouchDistance, getTouchX } from '@qurve/core';
-import { useChartContext } from './chart/chartContext';
+import { useChartInteractionContext, useChartLayoutContext } from './chart/chartContext';
 
 type DragMode = 'window' | 'start' | 'end' | null;
 type InputMode = 'mouse' | 'touch';
@@ -48,7 +48,8 @@ export function Brush({
   stroke = '#2563eb',
   onChange,
 }: BrushProps) {
-  const { width, height: chartHeight, margin, innerWidth, sourceData, visibleRange, setVisibleRange } = useChartContext();
+  const { width, height: chartHeight, margin, innerWidth, sourceData, visibleRange } = useChartLayoutContext();
+  const { setVisibleRange } = useChartInteractionContext();
   const rootRef = useRef<HTMLDivElement>(null);
   const [dragMode, setDragMode] = useState<DragMode>(null);
   const dragStartRef = useRef<{ x: number; start: number; end: number } | null>(null);

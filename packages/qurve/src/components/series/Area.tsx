@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { drawArea, resolveXValue, resolveYValue, getBaseValue, clamp, normalizeOpacity, LayerOrder } from '@qurve/core';
 import type { AreaPoint } from '@qurve/core';
-import { useChartContext } from '../chart/chartContext';
+import {
+  useChartInteractionContext,
+  useChartLayoutContext,
+  useChartRenderContext,
+  useChartScaleContext,
+  useChartSeriesContext,
+} from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 
 const AREA_CONSTANTS = {
@@ -40,25 +46,18 @@ export function Area({
   tooltipName,
   tooltipFormatter,
 }: AreaProps) {
+  const { data, margin, getSeriesColor } = useChartLayoutContext();
+  const { getXScale, getYScale, xAxis } = useChartScaleContext();
+  const { registerRender, ctx, requestRender } = useChartRenderContext();
+  const { registerTooltipSeries, hoveredIndex } = useChartInteractionContext();
   const {
-    data,
-    margin,
-    xAxis,
-    getXScale,
-    getYScale,
-    registerRender,
-    registerTooltipSeries,
     registerAreaSeries,
     getAreaSeriesRegistrations,
     areaSeriesVersion,
     registerLegendItem,
-    getSeriesColor,
     isSeriesVisible,
     legendVersion,
-    ctx,
-    hoveredIndex,
-    requestRender,
-  } = useChartContext();
+  } = useChartSeriesContext();
   const fill = fillProp ?? getSeriesColor();
   const stroke = strokeProp ?? fill;
 

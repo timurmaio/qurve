@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { LayerOrder } from '@qurve/core';
-import { useChartContext } from './chart/chartContext';
+import { useChartLayoutContext, useChartRenderContext, useChartScaleContext } from './chart/chartContext';
 
 export interface CustomizedDrawProps {
   ctx: CanvasRenderingContext2D;
@@ -34,18 +34,9 @@ export interface CustomizedProps {
  * <Customized draw={draw} layer={LayerOrder.overlays} />
  */
 export function Customized({ draw, layer = LayerOrder.overlays }: CustomizedProps) {
-  const {
-    ctx,
-    margin,
-    innerWidth,
-    innerHeight,
-    width,
-    height,
-    data,
-    getXScale,
-    getYScale,
-    registerRender,
-  } = useChartContext();
+  const { margin, innerWidth, innerHeight, width, height, data } = useChartLayoutContext();
+  const { getXScale, getYScale } = useChartScaleContext();
+  const { ctx, registerRender } = useChartRenderContext();
 
   useEffect(() => {
     if (!ctx || !draw) return;

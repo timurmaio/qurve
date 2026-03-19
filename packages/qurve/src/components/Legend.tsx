@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { justifyByAlign } from '@qurve/core';
-import { useChartContext } from './chart/chartContext';
+import { useChartSeriesContext } from './chart/chartContext';
 import type { LegendItemRegistration } from '@qurve/core';
 
 export interface LegendItemProps {
@@ -32,7 +32,7 @@ export function Legend({
   ariaLabel = 'Chart legend',
   selectionMode = 'multiple',
 }: LegendProps) {
-  const { getLegendItems, legendVersion, isSeriesVisible, setSeriesVisible } = useChartContext();
+  const { getLegendItems, legendVersion, isSeriesVisible, setSeriesVisible } = useChartSeriesContext();
   const [focusedSeriesId, setFocusedSeriesId] = useState<symbol | null>(null);
 
   const items = useMemo(() => getLegendItems(), [getLegendItems, legendVersion]);

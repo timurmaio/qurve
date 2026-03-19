@@ -14,7 +14,12 @@ import {
 } from '@qurve/core';
 import type { PieDrawSlice, PieNameKey, PieLabelMode, PieLabelContext, PieLabelLayoutItem } from '@qurve/core';
 import { CELL_TYPE } from './Cell';
-import { useChartContext } from '../chart/chartContext';
+import {
+  useChartInteractionContext,
+  useChartLayoutContext,
+  useChartRenderContext,
+  useChartSeriesContext,
+} from '../chart/chartContext';
 import type { DataKey, TooltipPayloadItem } from '../chart/chartContext';
 
 const PIE_CONSTANTS = {
@@ -91,22 +96,10 @@ export function Pie({
   tooltipFormatter,
   children,
 }: PieProps) {
-  const {
-    data,
-    width,
-    height,
-    margin,
-    colors: chartColors,
-    registerRender,
-    registerTooltipSeries,
-    registerTooltipIndexResolver,
-    registerLegendItem,
-    isSeriesVisible,
-    legendVersion,
-    hoveredIndex,
-    requestRender,
-    ctx,
-  } = useChartContext();
+  const { data, width, height, margin, colors: chartColors } = useChartLayoutContext();
+  const { registerRender, ctx, requestRender } = useChartRenderContext();
+  const { registerTooltipSeries, registerTooltipIndexResolver, hoveredIndex } = useChartInteractionContext();
+  const { registerLegendItem, isSeriesVisible, legendVersion } = useChartSeriesContext();
   const resolvedColors = colors ?? chartColors;
 
   const cellOverrides = useMemo(() => {

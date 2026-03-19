@@ -1,6 +1,24 @@
 // Main chart components
-export { Chart, useChartContext } from './chart/chartContext';
-export type { ChartProps, ChartContextValue, DataKey, AxisConfig } from './chart/chartContext';
+export {
+  Chart,
+  useChartContext,
+  useChartInteractionContext,
+  useChartLayoutContext,
+  useChartRenderContext,
+  useChartScaleContext,
+  useChartSeriesContext,
+} from './chart/chartContext';
+export type {
+  ChartProps,
+  ChartContextValue,
+  ChartInteractionContextValue,
+  ChartLayoutContextValue,
+  ChartRenderContextValue,
+  ChartScaleContextValue,
+  ChartSeriesContextValue,
+  DataKey,
+  AxisConfig,
+} from './chart/chartContext';
 export { LineChart } from './chart/LineChart';
 export type { LineChartProps } from './chart/LineChart';
 export { BarChart } from './chart/BarChart';

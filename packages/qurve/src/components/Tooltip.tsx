@@ -8,7 +8,12 @@ import {
   resolveXValue,
   LayerOrder,
 } from '@qurve/core';
-import { useChartContext } from './chart/chartContext';
+import {
+  useChartInteractionContext,
+  useChartLayoutContext,
+  useChartRenderContext,
+  useChartScaleContext,
+} from './chart/chartContext';
 import type { TooltipPayloadItem } from './chart/chartContext';
 import {
   formatTooltipLabel,
@@ -91,21 +96,10 @@ export function Tooltip({
   labelStyle,
   itemStyle,
 }: TooltipProps) {
+  const { data, width, height, margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { getXScale, getYScale, xAxis } = useChartScaleContext();
+  const { ctx, overlayCtx, registerRender, requestRender, requestOverlayRender } = useChartRenderContext();
   const {
-    data,
-    width,
-    height,
-    margin,
-    innerWidth,
-    innerHeight,
-    getXScale,
-    getYScale,
-    xAxis,
-    ctx,
-    overlayCtx,
-    registerRender,
-    requestRender,
-    requestOverlayRender,
     pointer,
     hoveredIndex,
     setHoveredIndex,
@@ -114,7 +108,7 @@ export function Tooltip({
     getTooltipIndexFromMouse,
     registerTooltipIndexResolver,
     registerShouldClearOnLeave,
-  } = useChartContext();
+  } = useChartInteractionContext();
 
   const pointsRef = useRef(projectPoints({ data: [], margin, xAxis, getXScale, getYScale }));
   const isLockedRef = useRef(false);
