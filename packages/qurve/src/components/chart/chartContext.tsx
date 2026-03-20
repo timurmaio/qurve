@@ -470,8 +470,8 @@ function useChartModel(params: {
       if (pending === null) return;
       pendingPointerRef.current = null;
       const { x: mouseX, y: mouseY } = pending;
-      // Tooltip registers `sticky && locked` on this ref; while true, pointer moves must not override the pin.
-      if (shouldClearOnLeaveRef.current?.() === true) return;
+      // Matches Tooltip's registerShouldClearOnLeave: when false (sticky+locked), ignore pointer moves.
+      if (shouldClearOnLeaveRef.current?.() === false) return;
       const index = getTooltipIndexFromMouse(mouseX, mouseY);
       dispatch({ type: 'setHoveredIndex', payload: index });
       dispatch({ type: 'setPointer', payload: { x: mouseX, y: mouseY } });
