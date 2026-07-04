@@ -31,7 +31,9 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Geist+Mono:wght@100..900&display=swap",
   },
-  { rel: "icon", href: "/favicon/favicon.ico", sizes: "32x32" },
+  { rel: "icon", href: "/favicon.ico", sizes: "any" },
+  { rel: "icon", href: "/favicon/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+  { rel: "icon", href: "/favicon/favicon-16x16.png", type: "image/png", sizes: "16x16" },
   { rel: "apple-touch-icon", href: "/favicon/apple-touch-icon.png" },
   { rel: "manifest", href: "/manifest.webmanifest" },
 ];
