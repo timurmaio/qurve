@@ -67,6 +67,8 @@ export function Demo() {
 - `ReferenceLine` / `ReferenceDot` / `ReferenceArea`
 - `Cell`
 - `RadarChart` / `Radar` / `PolarGrid` / `PolarAngleAxis` / `PolarRadiusAxis`
+- `RadialBarChart` / `RadialBar`
+- `FunnelChart` / `Funnel`
 - `ZAxis`
 
 ## API reference (core props)
@@ -489,6 +491,36 @@ Composed chart with focused legend mode:
   <Scatter xKey="x" yKey="y" zKey="z" fill="#2563eb" />
   <Tooltip />
 </Chart>
+```
+
+## RadialBar
+
+```tsx
+<RadialBarChart data={data} width={400} height={320}>
+  <RadialBar
+    dataKey="uv"
+    nameKey="name"
+    background
+    innerRadius={20}
+    outerRadius={120}
+    startAngle={90}
+    endAngle={-270}
+  />
+  <Tooltip />
+</RadialBarChart>
+```
+
+## Funnel
+
+```tsx
+<FunnelChart data={data} width={400} height={320} margin={{ right: 100 }}>
+  <Funnel dataKey="value" nameKey="name" label>
+    {data.map((entry) => (
+      <Cell key={entry.name} fill={entry.fill} />
+    ))}
+  </Funnel>
+  <Tooltip />
+</FunnelChart>
 ```
 
 ## Notes

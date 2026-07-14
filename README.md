@@ -82,6 +82,8 @@ function App() {
 | Scatter / Bubble | ✅ |
 | Pie/Donut | ✅ |
 | Radar | ✅ |
+| RadialBar | ✅ |
+| Funnel | ✅ |
 | Axes (Linear, Band, Time, Z) | ✅ |
 | Tooltips & Legends | ✅ |
 | Brush, Pan & Zoom | ✅ |

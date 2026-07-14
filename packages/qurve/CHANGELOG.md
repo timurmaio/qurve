@@ -6,37 +6,39 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-14
+
 ### Added
 - `RadarChart`, `Radar`, `PolarGrid`, `PolarAngleAxis`, `PolarRadiusAxis` for radar charts.
+- `RadialBarChart` / `RadialBar` for concentric gauge arcs (background track, Cell, angles).
+- `FunnelChart` / `Funnel` for conversion funnels (trapezoids, Cell, optional labels).
 - `ZAxis` + Scatter `zKey` for bubble sizing (`range` maps values to pixel radius).
 - `Label` for chart-level titles/captions (`position`, `offset`, `angle`, typography props).
 - `LabelList` for per-point labels on Line/Bar/Area/Scatter (`position`, `valueKey`, `formatter`, `shape="point"|"bar"`).
-- New series primitives: `Bar` and `Area` with stacking support via `stackId`.
-- New `Pie` primitive for pie/donut charts with tooltip hit-testing.
-- New `Scatter` primitive with `xKey`/`yKey` mapping and tooltip/legend support.
-- New `Brush` component for draggable x-range selection.
+- Series primitives: `Bar` and `Area` with stacking via `stackId`.
+- `Pie` for pie/donut charts with tooltip hit-testing, labels, and connector lines.
+- `Scatter` with `xKey`/`yKey` mapping and tooltip/legend support.
+- `Brush` for draggable x-range selection with pan, wheel zoom, touch, and sparkline preview.
 - `ResponsiveContainer` for auto-sizing charts to parent dimensions.
-- `Legend` with click-to-toggle visibility for line/bar/area series.
+- `Legend` with click-to-toggle visibility and `selectionMode='single'`.
+- Recharts-like wrappers: `LineChart`, `BarChart`, `AreaChart`.
+- `ReferenceLine`, `ReferenceDot`, `ReferenceArea`, `ErrorBar`, `Customized`, `Cell`.
+- `@qurve/core` framework-agnostic renderer extracted for portability.
 - `MIGRATION.md` with upgrade guidance for time axis, tooltip, legend, and brush behaviors.
 
 ### Changed
-- `Pie` now supports per-slice `colors` palettes, `labelMode`, optional `labelLine` connectors, and collision-aware `labelMinGap` label layout.
-- Pie docs and demos now include dense outside-label configurations, and tests cover legend/label sync plus crowded label spacing.
-- `Tooltip` now supports per-series formatter overrides, sticky lock mode, and optional screen-reader live region controls.
-- `Tooltip` accessibility now supports optional aggregated summary announcements.
-- `XAxis` and `YAxis` support custom `tickValues`, `interval`, and axis `padding`.
-- `XAxis` now supports `type='time'` with automatic time ticks plus `locale`, `timeZone`, and `timeFormat` controls.
+- `Pie` supports per-slice `colors`, `labelMode`, optional `labelLine`, and collision-aware `labelMinGap`.
+- `Tooltip` supports per-series formatters, sticky lock, and screen-reader live region controls.
+- `XAxis` / `YAxis` support `tickValues`, `interval`, padding, and time formatting (`locale`, `timeZone`, `timeFormat`).
 - `Bar` adds `maxBarSize`, `minPointSize`, and improved stacked-corner rounding.
-- `Brush` adds wheel zoom, drag pan, touch pinch interactions, and quick reset.
-- `Brush` now includes configurable mini-preview sparkline rendering.
-- `Legend` now includes better accessibility metadata and explicit keyboard toggling.
-- `Legend` now supports `selectionMode='single'` with click-again reset to all series.
-- Composed charts now use deterministic series layering and tooltip payload order.
+- Composed charts use deterministic series layering and tooltip payload order.
+- Two-canvas architecture (base + overlay) with centralized RAF-batched pointer handling.
+- Theme via props and CSS variables (`--qurve-chart-bg`, `--qurve-grid-stroke`, etc.).
 
 ### Notes
-- Release verification now includes `check:release` (`typecheck`, build, and pack).
-- `0.2.0` is prepared as release-ready in docs and verification, without publishing in this cycle.
-- CI workflow now runs `verify` and package release checks on PRs and main pushes.
+- Developer Preview (`0.x`). API may still evolve.
+- Release verification: `check:release` (`typecheck`, build, pack).
+- CI runs `verify` and package release checks on PRs and main pushes.
 
 ## [0.1.0] - 2026-02-20
 

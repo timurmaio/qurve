@@ -19,8 +19,8 @@ const COMPONENTS: Item[] = [
   { component: "PieChart", recharts: "PieChart", qurve: "Chart + Pie", status: "done", notes: "Chart with Pie child" },
   { component: "ScatterChart", recharts: "ScatterChart", qurve: "Chart", status: "done", notes: "Use Chart; compose Scatter, XAxis, YAxis" },
   { component: "RadarChart", recharts: "RadarChart", qurve: "RadarChart", status: "done", notes: "Compose PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar" },
-  { component: "RadialBarChart", recharts: "RadialBarChart", qurve: "—", status: "missing" },
-  { component: "FunnelChart", recharts: "FunnelChart", qurve: "—", status: "missing" },
+  { component: "RadialBarChart", recharts: "RadialBarChart", qurve: "RadialBarChart", status: "done", notes: "Compose RadialBar; gauge via startAngle/endAngle" },
+  { component: "FunnelChart", recharts: "FunnelChart", qurve: "FunnelChart", status: "done", notes: "Compose Funnel + optional Cell" },
   { component: "Treemap", recharts: "Treemap", qurve: "—", status: "missing" },
   { component: "SankeyChart", recharts: "SankeyChart", qurve: "—", status: "missing" },
   // General
@@ -48,10 +48,12 @@ const COMPONENTS: Item[] = [
   // Polar
   { component: "Pie", recharts: "Pie", qurve: "Pie", status: "done" },
   { component: "Radar", recharts: "Radar", qurve: "Radar", status: "done" },
-  { component: "RadialBar", recharts: "RadialBar", qurve: "—", status: "missing" },
+  { component: "RadialBar", recharts: "RadialBar", qurve: "RadialBar", status: "done", notes: "Concentric arcs; background gauge; Cell per ring" },
   { component: "PolarGrid", recharts: "PolarGrid", qurve: "PolarGrid", status: "done", notes: "polygon | circle" },
   { component: "PolarAngleAxis", recharts: "PolarAngleAxis", qurve: "PolarAngleAxis", status: "done" },
   { component: "PolarRadiusAxis", recharts: "PolarRadiusAxis", qurve: "PolarRadiusAxis", status: "done" },
+  // Funnel
+  { component: "Funnel", recharts: "Funnel", qurve: "Funnel", status: "done", notes: "Trapezoid stages; Cell; optional HTML labels" },
   // Shapes (Recharts low-level; Qurve draws via canvas)
   { component: "Sector", recharts: "Sector", qurve: "—", status: "done", notes: "Internal to Pie; canvas drawing" },
   { component: "Curve", recharts: "Curve", qurve: "—", status: "done", notes: "Internal to Line; drawLinePath in core" },

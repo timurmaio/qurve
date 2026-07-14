@@ -1,4 +1,4 @@
-import { ResponsiveContainer, Chart, XAxis, YAxis, ZAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend, Brush, LabelList, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "qurve";
+import { ResponsiveContainer, Chart, XAxis, YAxis, ZAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend, Brush, LabelList, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, RadialBar, Funnel } from "qurve";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { appleStock } from "../../src/mock";
@@ -523,6 +523,65 @@ function RadarDemo({ palette }: { palette: ChartPalette }) {
   );
 }
 
+function RadialBarDemo({ palette }: { palette: ChartPalette }) {
+  const data = useMemo(
+    () => [
+      { name: "18-24", uv: 31 },
+      { name: "25-29", uv: 27 },
+      { name: "30-34", uv: 16 },
+      { name: "35-39", uv: 8 },
+      { name: "40-49", uv: 9 },
+      { name: "50+", uv: 3 },
+    ],
+    [],
+  );
+
+  return (
+    <ChartDemo height={200}>
+      <Chart data={data} margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+        <RadialBar
+          dataKey="uv"
+          nameKey="name"
+          background
+          innerRadius={18}
+          outerRadius={90}
+          startAngle={90}
+          endAngle={-270}
+          colors={[palette.pie1, palette.pie2, palette.pie3, '#f97316', '#8b5cf6', '#14b8a6']}
+        />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
+  );
+}
+
+function FunnelDemo({ palette }: { palette: ChartPalette }) {
+  const data = useMemo(
+    () => [
+      { name: "Impression", value: 100 },
+      { name: "Click", value: 80 },
+      { name: "Visit", value: 50 },
+      { name: "Consult", value: 40 },
+      { name: "Order", value: 26 },
+    ],
+    [],
+  );
+
+  return (
+    <ChartDemo height={200}>
+      <Chart data={data} margin={{ top: 8, right: 100, bottom: 8, left: 8 }}>
+        <Funnel
+          dataKey="value"
+          nameKey="name"
+          label
+          colors={[palette.pie1, palette.pie2, palette.pie3, '#f97316', '#8b5cf6']}
+        />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
+  );
+}
+
 function BrushDemo({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
     return appleStock.slice(0, 60).map((d, i) => ({
@@ -801,6 +860,18 @@ export default function Home() {
                 description="Radar charts with PolarGrid, angle/radius axes, multi-series polygons, and tooltip."
                 status="implemented"
                 example={<RadarDemo palette={palette} />}
+              />
+              <PrimitiveCard
+                name="<RadialBar />"
+                description="Concentric gauge arcs with optional background track, Cell colors, and tooltip hit-testing."
+                status="implemented"
+                example={<RadialBarDemo palette={palette} />}
+              />
+              <PrimitiveCard
+                name="<Funnel />"
+                description="Conversion funnel with trapezoid stages, Cell colors, and side labels."
+                status="implemented"
+                example={<FunnelDemo palette={palette} />}
               />
               <PrimitiveCard
                 name="<Brush />"

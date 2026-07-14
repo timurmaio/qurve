@@ -1,6 +1,6 @@
 {
   "name": "@qurve/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Framework-agnostic chart renderer and math utilities for Qurve",
   "type": "module",
   "sideEffects": false,

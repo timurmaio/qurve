@@ -220,3 +220,10 @@ Long-term idea: core in Rust, compile to WASM for web + native for TUI (ratatui)
 - [x] LineChart / BarChart / AreaChart wrappers
 - [x] ErrorBar (dataKey, errorKey, direction)
 - [x] Customized (draw prop for custom canvas)
+- [x] Label / LabelList
+- [x] RadarChart / Radar / PolarGrid / PolarAngleAxis / PolarRadiusAxis
+- [x] RadialBarChart / RadialBar
+- [x] FunnelChart / Funnel
+- [x] ZAxis (bubble Scatter)
+- [ ] Treemap
+- [ ] SankeyChart
