@@ -12,6 +12,9 @@ import {
   type BarSeriesRegistration,
   type AreaSeriesRegistration,
   type LegendItemRegistration,
+  type PolarAngleAxisConfig,
+  type PolarRadiusAxisConfig,
+  type ZAxisConfig,
 } from '@qurve/core';
 import { readThemeFromElement, type QurveTheme } from './themeUtils';
 
@@ -44,10 +47,23 @@ export interface ChartRenderContextValue {
 export interface ChartScaleContextValue {
   xAxis: AxisConfig | null;
   yAxis: AxisConfig | null;
+  zAxis: ZAxisConfig | null;
+  polarAngleAxis: PolarAngleAxisConfig | null;
+  polarRadiusAxis: PolarRadiusAxisConfig | null;
   setXAxis: (config: AxisConfig | null) => void;
   setYAxis: (config: AxisConfig | null) => void;
+  setZAxis: (config: ZAxisConfig | null) => void;
+  setPolarAngleAxis: (config: PolarAngleAxisConfig | null) => void;
+  setPolarRadiusAxis: (config: PolarRadiusAxisConfig | null) => void;
   getXScale: () => ReturnType<typeof createLinearScale>;
   getYScale: (dataKey?: DataKey) => ReturnType<typeof createLinearScale>;
+  /** Maps a Z value to bubble radius in pixels. */
+  getZScale: (value: number) => number;
+}
+
+export interface RadarSeriesRegistration {
+  id: symbol;
+  dataKey: DataKey;
 }
 
 export interface ChartSeriesContextValue {
@@ -57,6 +73,9 @@ export interface ChartSeriesContextValue {
   registerAreaSeries: (registration: AreaSeriesRegistration) => () => void;
   getAreaSeriesRegistrations: () => AreaSeriesRegistration[];
   areaSeriesVersion: number;
+  registerRadarSeries: (registration: RadarSeriesRegistration) => () => void;
+  getRadarSeriesRegistrations: () => RadarSeriesRegistration[];
+  radarSeriesVersion: number;
   registerLegendItem: (item: LegendItemRegistration) => () => void;
   getLegendItems: () => LegendItemRegistration[];
   legendVersion: number;
@@ -93,6 +112,9 @@ export type {
   BarSeriesRegistration,
   AreaSeriesRegistration,
   LegendItemRegistration,
+  PolarAngleAxisConfig,
+  PolarRadiusAxisConfig,
+  ZAxisConfig,
 } from '@qurve/core';
 
 function createLinearScale(config: { domain: [number, number]; range: [number, number] }) {
@@ -191,12 +213,16 @@ export interface ChartProps {
 interface ChartState {
   xAxis: AxisConfig | null;
   yAxis: AxisConfig | null;
+  zAxis: ZAxisConfig | null;
+  polarAngleAxis: PolarAngleAxisConfig | null;
+  polarRadiusAxis: PolarRadiusAxisConfig | null;
   ctx: CanvasRenderingContext2D | null;
   overlayCtx: CanvasRenderingContext2D | null;
   hoveredIndex: number | null;
   pointer: { x: number; y: number } | null;
   barSeriesVersion: number;
   areaSeriesVersion: number;
+  radarSeriesVersion: number;
   legendVersion: number;
   visibleRange: { start: number; end: number };
 }
@@ -218,6 +244,9 @@ interface TooltipSeriesRegistration {
 type ChartAction =
   | { type: 'setXAxis'; payload: AxisConfig | null }
   | { type: 'setYAxis'; payload: AxisConfig | null }
+  | { type: 'setZAxis'; payload: ZAxisConfig | null }
+  | { type: 'setPolarAngleAxis'; payload: PolarAngleAxisConfig | null }
+  | { type: 'setPolarRadiusAxis'; payload: PolarRadiusAxisConfig | null }
   | { type: 'setCtx'; payload: CanvasRenderingContext2D | null }
   | { type: 'setOverlayCtx'; payload: CanvasRenderingContext2D | null }
   | { type: 'setHoveredIndex'; payload: number | null }
@@ -225,17 +254,22 @@ type ChartAction =
   | { type: 'setVisibleRange'; payload: { start: number; end: number } }
   | { type: 'bumpBarSeriesVersion' }
   | { type: 'bumpAreaSeriesVersion' }
+  | { type: 'bumpRadarSeriesVersion' }
   | { type: 'bumpLegendVersion' };
 
 const initialChartState: ChartState = {
   xAxis: null,
   yAxis: null,
+  zAxis: null,
+  polarAngleAxis: null,
+  polarRadiusAxis: null,
   ctx: null,
   overlayCtx: null,
   hoveredIndex: null,
   pointer: null,
   barSeriesVersion: 0,
   areaSeriesVersion: 0,
+  radarSeriesVersion: 0,
   legendVersion: 0,
   visibleRange: { start: 0, end: 1 },
 };
@@ -246,6 +280,12 @@ function chartReducer(state: ChartState, action: ChartAction): ChartState {
       return { ...state, xAxis: action.payload };
     case 'setYAxis':
       return { ...state, yAxis: action.payload };
+    case 'setZAxis':
+      return { ...state, zAxis: action.payload };
+    case 'setPolarAngleAxis':
+      return { ...state, polarAngleAxis: action.payload };
+    case 'setPolarRadiusAxis':
+      return { ...state, polarRadiusAxis: action.payload };
     case 'setCtx':
       return { ...state, ctx: action.payload };
     case 'setOverlayCtx':
@@ -260,10 +300,15 @@ function chartReducer(state: ChartState, action: ChartAction): ChartState {
       return { ...state, barSeriesVersion: state.barSeriesVersion + 1 };
     case 'bumpAreaSeriesVersion':
       return { ...state, areaSeriesVersion: state.areaSeriesVersion + 1 };
+    case 'bumpRadarSeriesVersion':
+      return { ...state, radarSeriesVersion: state.radarSeriesVersion + 1 };
     case 'bumpLegendVersion':
       return { ...state, legendVersion: state.legendVersion + 1 };
-    default:
+    default: {
+      const _exhaustive: never = action;
+      void _exhaustive;
       return state;
+    }
   }
 }
 
@@ -310,7 +355,7 @@ function useChartModel(params: {
     return colors[index % colors.length];
   }, [colors]);
   const [state, dispatch] = useReducer(chartReducer, initialChartState);
-  const { xAxis, yAxis, ctx, overlayCtx, hoveredIndex, pointer, barSeriesVersion, areaSeriesVersion, legendVersion, visibleRange } = state;
+  const { xAxis, yAxis, zAxis, polarAngleAxis, polarRadiusAxis, ctx, overlayCtx, hoveredIndex, pointer, barSeriesVersion, areaSeriesVersion, radarSeriesVersion, legendVersion, visibleRange } = state;
   const shouldClearOnLeaveRef = useRef<(() => boolean) | null>(null);
   const dpr = useDevicePixelRatio();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -324,6 +369,7 @@ function useChartModel(params: {
   const tooltipIndexResolversRef = useRef<Map<symbol, (mouseX: number, mouseY: number) => number | null>>(new Map());
   const barSeriesRef = useRef<Map<symbol, BarSeriesRegistration>>(new Map());
   const areaSeriesRef = useRef<Map<symbol, AreaSeriesRegistration>>(new Map());
+  const radarSeriesRef = useRef<Map<symbol, RadarSeriesRegistration>>(new Map());
   const legendItemsRef = useRef<Map<symbol, LegendItemRegistration>>(new Map());
   const seriesVisibilityRef = useRef<Map<symbol, boolean>>(new Map());
 
@@ -582,6 +628,20 @@ function useChartModel(params: {
     return Array.from(areaSeriesRef.current.values());
   }, []);
 
+  const registerRadarSeries = useCallback((registration: RadarSeriesRegistration) => {
+    radarSeriesRef.current.set(registration.id, registration);
+    dispatch({ type: 'bumpRadarSeriesVersion' });
+
+    return () => {
+      radarSeriesRef.current.delete(registration.id);
+      dispatch({ type: 'bumpRadarSeriesVersion' });
+    };
+  }, []);
+
+  const getRadarSeriesRegistrations = useCallback((): RadarSeriesRegistration[] => {
+    return Array.from(radarSeriesRef.current.values());
+  }, []);
+
   const registerLegendItem = useCallback((item: LegendItemRegistration) => {
     legendItemsRef.current.set(item.id, item);
     if (!seriesVisibilityRef.current.has(item.id)) {
@@ -782,11 +842,52 @@ function useChartModel(params: {
     return createLinearScale({ domain: applyDomainPadding(domain, yAxis?.padding, 'y'), range });
   }, [data, innerHeight, yAxis]);
 
+  const getZScale = useCallback((value: number): number => {
+    const range = zAxis?.range ?? [2, 16];
+    const [rMin, rMax] = range;
+    if (!zAxis || !Number.isFinite(value)) return (rMin + rMax) / 2;
+
+    let minVal = Infinity;
+    let maxVal = -Infinity;
+
+    if (zAxis.domain && zAxis.domain !== 'auto') {
+      minVal = Number(zAxis.domain[0]);
+      maxVal = Number(zAxis.domain[1]);
+    } else {
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i];
+        const raw = typeof zAxis.dataKey === 'function'
+          ? zAxis.dataKey(item, i)
+          : item[zAxis.dataKey as string];
+        const n = Number(raw);
+        if (!Number.isFinite(n)) continue;
+        if (n < minVal) minVal = n;
+        if (n > maxVal) maxVal = n;
+      }
+    }
+
+    if (!Number.isFinite(minVal) || !Number.isFinite(maxVal) || minVal === maxVal) {
+      return (rMin + rMax) / 2;
+    }
+
+    const t = (value - minVal) / (maxVal - minVal);
+    return rMin + Math.max(0, Math.min(1, t)) * (rMax - rMin);
+  }, [data, zAxis]);
+
   const setXAxisStable = useCallback((config: AxisConfig | null) => {
     dispatch({ type: 'setXAxis', payload: config });
   }, []);
   const setYAxisStable = useCallback((config: AxisConfig | null) => {
     dispatch({ type: 'setYAxis', payload: config });
+  }, []);
+  const setZAxisStable = useCallback((config: ZAxisConfig | null) => {
+    dispatch({ type: 'setZAxis', payload: config });
+  }, []);
+  const setPolarAngleAxisStable = useCallback((config: PolarAngleAxisConfig | null) => {
+    dispatch({ type: 'setPolarAngleAxis', payload: config });
+  }, []);
+  const setPolarRadiusAxisStable = useCallback((config: PolarRadiusAxisConfig | null) => {
+    dispatch({ type: 'setPolarRadiusAxis', payload: config });
   }, []);
   const setHoveredIndexStable = useCallback((index: number | null) => {
     dispatch({ type: 'setHoveredIndex', payload: index });
@@ -829,11 +930,32 @@ function useChartModel(params: {
   const scaleValue = useMemo<ChartScaleContextValue>(() => ({
     xAxis,
     yAxis,
+    zAxis,
+    polarAngleAxis,
+    polarRadiusAxis,
     setXAxis: setXAxisStable,
     setYAxis: setYAxisStable,
+    setZAxis: setZAxisStable,
+    setPolarAngleAxis: setPolarAngleAxisStable,
+    setPolarRadiusAxis: setPolarRadiusAxisStable,
     getXScale,
     getYScale,
-  }), [xAxis, yAxis, setXAxisStable, setYAxisStable, getXScale, getYScale]);
+    getZScale,
+  }), [
+    xAxis,
+    yAxis,
+    zAxis,
+    polarAngleAxis,
+    polarRadiusAxis,
+    setXAxisStable,
+    setYAxisStable,
+    setZAxisStable,
+    setPolarAngleAxisStable,
+    setPolarRadiusAxisStable,
+    getXScale,
+    getYScale,
+    getZScale,
+  ]);
 
   const interactionValue = useMemo<ChartInteractionContextValue>(() => ({
     hoveredIndex,
@@ -866,6 +988,9 @@ function useChartModel(params: {
     registerAreaSeries,
     getAreaSeriesRegistrations,
     areaSeriesVersion,
+    registerRadarSeries,
+    getRadarSeriesRegistrations,
+    radarSeriesVersion,
     registerLegendItem,
     getLegendItems,
     legendVersion,
@@ -878,6 +1003,9 @@ function useChartModel(params: {
     registerAreaSeries,
     getAreaSeriesRegistrations,
     areaSeriesVersion,
+    registerRadarSeries,
+    getRadarSeriesRegistrations,
+    radarSeriesVersion,
     registerLegendItem,
     getLegendItems,
     legendVersion,

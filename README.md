@@ -79,9 +79,10 @@ function App() {
 | Line Chart | ✅ |
 | Bar Chart | ✅ |
 | Area Chart | ✅ |
-| Scatter Plot | ✅ |
+| Scatter / Bubble | ✅ |
 | Pie/Donut | ✅ |
-| Axes (Linear, Band, Time) | ✅ |
+| Radar | ✅ |
+| Axes (Linear, Band, Time, Z) | ✅ |
 | Tooltips & Legends | ✅ |
 | Brush, Pan & Zoom | ✅ |
 

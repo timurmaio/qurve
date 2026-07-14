@@ -7,6 +7,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 ## [Unreleased]
 
 ### Added
+- `RadarChart`, `Radar`, `PolarGrid`, `PolarAngleAxis`, `PolarRadiusAxis` for radar charts.
+- `ZAxis` + Scatter `zKey` for bubble sizing (`range` maps values to pixel radius).
+- `Label` for chart-level titles/captions (`position`, `offset`, `angle`, typography props).
+- `LabelList` for per-point labels on Line/Bar/Area/Scatter (`position`, `valueKey`, `formatter`, `shape="point"|"bar"`).
 - New series primitives: `Bar` and `Area` with stacking support via `stackId`.
 - New `Pie` primitive for pie/donut charts with tooltip hit-testing.
 - New `Scatter` primitive with `xKey`/`yKey` mapping and tooltip/legend support.

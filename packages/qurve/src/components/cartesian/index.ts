@@ -10,3 +10,5 @@ export { ReferenceDot } from './ReferenceDot';
 export type { ReferenceDotProps } from './ReferenceDot';
 export { ReferenceArea } from './ReferenceArea';
 export type { ReferenceAreaProps } from './ReferenceArea';
+export { ZAxis } from './ZAxis';
+export type { ZAxisProps } from './ZAxis';

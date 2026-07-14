@@ -11,7 +11,9 @@ describe('LayerOrder', () => {
     expect(LayerOrder.line).toBe(50);
     expect(LayerOrder.pie).toBe(45);
     expect(LayerOrder.pieLabels).toBe(46);
+    expect(LayerOrder.radar).toBe(48);
     expect(LayerOrder.scatter).toBe(60);
+    expect(LayerOrder.labels).toBe(70);
     expect(LayerOrder.overlays).toBe(80);
     expect(LayerOrder.cursor).toBe(90);
     expect(LayerOrder.tooltip).toBe(100);

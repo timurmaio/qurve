@@ -60,6 +60,14 @@ export function Demo() {
 - `ResponsiveContainer`
 - `Legend`
 - `Brush`
+- `Label`
+- `LabelList`
+- `Customized`
+- `ErrorBar`
+- `ReferenceLine` / `ReferenceDot` / `ReferenceArea`
+- `Cell`
+- `RadarChart` / `Radar` / `PolarGrid` / `PolarAngleAxis` / `PolarRadiusAxis`
+- `ZAxis`
 
 ## API reference (core props)
 
@@ -436,6 +444,49 @@ Composed chart with focused legend mode:
   <Line dataKey="trend" stroke="#1d4ed8" dot={false} />
   <Scatter xKey="ix" yKey="outlier" size={5} fill="#f97316" />
   <Legend selectionMode="single" />
+  <Tooltip />
+</Chart>
+```
+
+## Label / LabelList
+
+`Label` draws a chart-level title or caption. `LabelList` draws per-point labels for a series (use as a sibling, like `ErrorBar`).
+
+```tsx
+<Chart data={data} width={600} height={320} margin={{ top: 36 }}>
+  <Label value="Weekly sales" position="top" offset={8} />
+  <XAxis dataKey="name" />
+  <YAxis />
+  <Bar dataKey="sales" fill="#60a5fa" />
+  <LabelList dataKey="sales" shape="bar" position="top" />
+  <Tooltip />
+</Chart>
+```
+
+`LabelList` props: `dataKey`, optional `valueKey`, `position` (`top` | `bottom` | `left` | `right` | `inside` | `center` | `insideTop` | …), `shape` (`point` | `bar`), `formatter`, typography props.
+
+## Radar
+
+```tsx
+<RadarChart data={data} width={500} height={400}>
+  <PolarGrid />
+  <PolarAngleAxis dataKey="subject" />
+  <PolarRadiusAxis />
+  <Radar dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.4} />
+  <Radar dataKey="B" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.3} />
+  <Legend />
+  <Tooltip />
+</RadarChart>
+```
+
+## Bubble Scatter (ZAxis)
+
+```tsx
+<Chart data={data} width={600} height={320}>
+  <XAxis dataKey="x" />
+  <YAxis dataKey="y" />
+  <ZAxis dataKey="z" range={[4, 24]} />
+  <Scatter xKey="x" yKey="y" zKey="z" fill="#2563eb" />
   <Tooltip />
 </Chart>
 ```

@@ -25,6 +25,8 @@ export { BarChart } from './chart/BarChart';
 export type { BarChartProps } from './chart/BarChart';
 export { AreaChart } from './chart/AreaChart';
 export type { AreaChartProps } from './chart/AreaChart';
+export { RadarChart } from './chart/RadarChart';
+export type { RadarChartProps } from './chart/RadarChart';
 export { QURVE_CSS_VARS } from './chart/themeUtils';
 export type { QurveTheme } from './chart/themeUtils';
 
@@ -33,6 +35,8 @@ export { XAxis } from './cartesian/XAxis';
 export type { XAxisProps } from './cartesian/XAxis';
 export { YAxis } from './cartesian/YAxis';
 export type { YAxisProps } from './cartesian/YAxis';
+export { ZAxis } from './cartesian/ZAxis';
+export type { ZAxisProps } from './cartesian/ZAxis';
 export { CartesianGrid } from './cartesian/CartesianGrid';
 export type { CartesianGridProps } from './cartesian/CartesianGrid';
 export { ReferenceLine } from './cartesian/ReferenceLine';
@@ -41,6 +45,16 @@ export { ReferenceDot } from './cartesian/ReferenceDot';
 export type { ReferenceDotProps } from './cartesian/ReferenceDot';
 export { ReferenceArea } from './cartesian/ReferenceArea';
 export type { ReferenceAreaProps } from './cartesian/ReferenceArea';
+
+// Polar components
+export { PolarGrid } from './polar/PolarGrid';
+export type { PolarGridProps } from './polar/PolarGrid';
+export { PolarAngleAxis } from './polar/PolarAngleAxis';
+export type { PolarAngleAxisProps } from './polar/PolarAngleAxis';
+export { PolarRadiusAxis } from './polar/PolarRadiusAxis';
+export type { PolarRadiusAxisProps } from './polar/PolarRadiusAxis';
+export { Radar } from './polar/Radar';
+export type { RadarProps } from './polar/Radar';
 
 // Series components
 export { Line } from './series/Line';
@@ -57,6 +71,11 @@ export { Scatter } from './series/Scatter';
 export type { ScatterProps } from './series/Scatter';
 export { ErrorBar } from './series/ErrorBar';
 export type { ErrorBarProps } from './series/ErrorBar';
+export { Label } from './Label';
+export type { LabelProps } from './Label';
+export { LabelList } from './LabelList';
+export type { LabelListProps } from './LabelList';
+export type { LabelListPosition, ChartLabelPosition } from '@qurve/core';
 
 // Interactive components
 export { Tooltip } from './Tooltip';

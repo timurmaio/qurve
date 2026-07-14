@@ -1,4 +1,4 @@
-import { ResponsiveContainer, Chart, XAxis, YAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend, Brush } from "qurve";
+import { ResponsiveContainer, Chart, XAxis, YAxis, ZAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend, Brush, LabelList, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "qurve";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { appleStock } from "../../src/mock";
@@ -342,6 +342,7 @@ function BarDemo({ palette }: { palette: ChartPalette }) {
           tooltipName="Refunds"
           tooltipFormatter={(value) => value === null ? "-" : `$${Math.abs(value).toFixed(0)}k`}
         />
+        <LabelList dataKey="sales" shape="bar" position="top" offset={4} fontSize={10} fill={palette.linePrimary} />
         <Tooltip />
       </Chart>
     </ChartDemo>
@@ -466,16 +467,16 @@ function PieDemo({ palette }: { palette: ChartPalette }) {
 
 function ScatterDemo({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
-    // Three clusters of study hours vs test scores
     const clusters = [
-      { centerHours: 1.5, centerScore: 28, count: 12 },
-      { centerHours: 4, centerScore: 52, count: 14 },
-      { centerHours: 7, centerScore: 74, count: 14 },
+      { centerHours: 1.5, centerScore: 28, count: 10 },
+      { centerHours: 4, centerScore: 52, count: 12 },
+      { centerHours: 7, centerScore: 74, count: 12 },
     ];
     return clusters.flatMap(({ centerHours, centerScore, count }, ci) =>
       Array.from({ length: count }, (_, i) => ({
         hours: Math.max(0.2, centerHours + ((((ci * 17 + i * 7) % 20) / 10) - 1) * 1.2),
         score: Math.min(100, Math.max(10, centerScore + ((((ci * 11 + i * 13) % 20) / 10) - 1) * 14)),
+        size: 8 + ((ci * 9 + i * 5) % 40),
       }))
     );
   }, []);
@@ -486,7 +487,36 @@ function ScatterDemo({ palette }: { palette: ChartPalette }) {
         <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
         <XAxis dataKey="hours" domain={[0, 9]} />
         <YAxis dataKey="score" domain={[0, 100]} />
-        <Scatter xKey="hours" yKey="score" fill={palette.scatter} size={5} name="Samples" />
+        <ZAxis dataKey="size" range={[3, 12]} />
+        <Scatter xKey="hours" yKey="score" zKey="size" fill={palette.scatter} name="Samples" />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
+  );
+}
+
+function RadarDemo({ palette }: { palette: ChartPalette }) {
+  const data = useMemo(
+    () => [
+      { subject: "Math", A: 120, B: 110 },
+      { subject: "Chinese", A: 98, B: 130 },
+      { subject: "English", A: 86, B: 130 },
+      { subject: "Geo", A: 99, B: 100 },
+      { subject: "Physics", A: 85, B: 90 },
+      { subject: "History", A: 65, B: 85 },
+    ],
+    [],
+  );
+
+  return (
+    <ChartDemo height={200}>
+      <Chart data={data} margin={{ top: 24, right: 24, bottom: 24, left: 24 }}>
+        <PolarGrid stroke={palette.grid} />
+        <PolarAngleAxis dataKey="subject" fontSize={10} />
+        <PolarRadiusAxis domain={[0, 150]} tickCount={4} fontSize={9} />
+        <Radar dataKey="A" name="A" stroke={palette.linePrimary} fill={palette.linePrimary} fillOpacity={0.35} />
+        <Radar dataKey="B" name="B" stroke={palette.lineSecondary} fill={palette.lineSecondary} fillOpacity={0.25} />
+        <Legend />
         <Tooltip />
       </Chart>
     </ChartDemo>
@@ -762,9 +792,15 @@ export default function Home() {
               />
               <PrimitiveCard
                 name="<Scatter />"
-                description="Point-based plots with custom x/y keys, tooltip payloads, and legend toggling."
+                description="Point / bubble plots with x/y/z keys, ZAxis sizing, tooltip payloads, and legend toggling."
                 status="implemented"
                 example={<ScatterDemo palette={palette} />}
+              />
+              <PrimitiveCard
+                name="<Radar />"
+                description="Radar charts with PolarGrid, angle/radius axes, multi-series polygons, and tooltip."
+                status="implemented"
+                example={<RadarDemo palette={palette} />}
               />
               <PrimitiveCard
                 name="<Brush />"

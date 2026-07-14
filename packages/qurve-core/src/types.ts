@@ -52,7 +52,30 @@ export interface LegendItemRegistration {
   id: symbol;
   name: string;
   color: string;
-  type: 'line' | 'bar' | 'area' | 'pie' | 'scatter';
+  type: 'line' | 'bar' | 'area' | 'pie' | 'scatter' | 'radar';
+}
+
+export interface PolarAngleAxisConfig {
+  dataKey?: DataKey;
+  tickCount?: number;
+  tickFormatter?: (value: unknown, index: number) => string;
+}
+
+export interface PolarRadiusAxisConfig {
+  dataKey?: DataKey;
+  domain?: [number, number] | 'auto';
+  tickCount?: number;
+  /** Spoke angle (degrees) where radius ticks are drawn. Default 90 (3 o'clock). */
+  angle?: number;
+  tickFormatter?: (value: number) => string;
+}
+
+export interface ZAxisConfig {
+  dataKey: DataKey;
+  domain?: [number, number] | 'auto';
+  /** Pixel radius range for bubble size. Default [2, 16]. */
+  range?: [number, number];
+  name?: string;
 }
 
 export interface ProjectedPoint {

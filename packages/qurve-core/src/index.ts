@@ -7,6 +7,9 @@ export type {
   BarSeriesRegistration,
   AreaSeriesRegistration,
   LegendItemRegistration,
+  PolarAngleAxisConfig,
+  PolarRadiusAxisConfig,
+  ZAxisConfig,
   ProjectedPoint,
   FormatterResult,
   TimeFormatMode,
@@ -25,6 +28,36 @@ export { drawReferenceLine } from './core/drawReferenceLine';
 export { drawReferenceDot } from './core/drawReferenceDot';
 export { drawReferenceArea } from './core/drawReferenceArea';
 export { drawErrorBars } from './core/drawErrorBar';
+export {
+  drawLabelList,
+  drawChartLabel,
+  resolveLabelAnchor,
+  type LabelListPosition,
+  type LabelListItem,
+  type LabelAnchor,
+  type ChartLabelPosition,
+} from './core/drawLabelList';
+export {
+  drawPolarGrid,
+  drawPolarAngleAxis,
+  drawPolarRadiusAxis,
+  drawRadarPolygon,
+} from './core/drawPolar';
+export {
+  degToRad,
+  polarToCartesian,
+  cartesianToPolarAngle,
+  getPolarLayout,
+  getAngleTicks,
+  createRadiusTicks,
+  resolveRadiusDomain,
+  scaleRadius,
+  projectRadarPoints,
+  findClosestRadarIndex,
+  resolveAngleLabel,
+  type PolarLayout,
+  type PolarPoint,
+} from './core/polarMath';
 
 // Math & utilities
 export * from './core/chartMath';
