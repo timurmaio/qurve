@@ -8,3 +8,5 @@ export { Pie } from './Pie';
 export type { PieProps } from './Pie';
 export { Scatter } from './Scatter';
 export type { ScatterProps } from './Scatter';
+export { Funnel } from './Funnel';
+export type { FunnelProps } from './Funnel';
