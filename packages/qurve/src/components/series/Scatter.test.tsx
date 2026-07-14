@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Chart } from '../chart/chartContext';
 import { XAxis } from '../cartesian/XAxis';
 import { YAxis } from '../cartesian/YAxis';
+import { ZAxis } from '../cartesian/ZAxis';
 import { Tooltip } from '../Tooltip';
 import { Legend } from '../Legend';
 import { Scatter } from './Scatter';
@@ -181,6 +182,26 @@ describe('Scatter', () => {
         <XAxis dataKey="x" domain={[0, 30]} />
         <YAxis dataKey="y" domain={[0, 100]} />
         <Scatter yKey="y" xKey="x" size={12} />
+      </Chart>,
+    );
+
+    expect(container.querySelector('canvas')).not.toBeNull();
+  });
+
+  it('uses ZAxis for bubble radius', () => {
+    const { container } = render(
+      <Chart
+        data={[
+          { x: 10, y: 40, z: 5 },
+          { x: 20, y: 65, z: 50 },
+        ]}
+        width={280}
+        height={160}
+      >
+        <XAxis dataKey="x" domain={[0, 30]} />
+        <YAxis dataKey="y" domain={[0, 100]} />
+        <ZAxis dataKey="z" range={[4, 20]} />
+        <Scatter xKey="x" yKey="y" zKey="z" name="Bubbles" />
       </Chart>,
     );
 

@@ -25,9 +25,12 @@ export interface ScatterProps {
   dataKey?: DataKey;
   xKey?: DataKey;
   yKey?: DataKey;
+  /** Data key for bubble size. Uses ZAxis scale when present. */
+  zKey?: DataKey;
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
+  /** Fixed radius when ZAxis / zKey are not used. */
   size?: number;
   hoverOpacity?: number;
   name?: string;
@@ -49,6 +52,7 @@ export function Scatter({
   dataKey,
   xKey,
   yKey,
+  zKey,
   fill: fillProp,
   stroke,
   strokeWidth = SCATTER_CONSTANTS.DEFAULT_STROKE_WIDTH,
@@ -59,7 +63,7 @@ export function Scatter({
   tooltipFormatter,
 }: ScatterProps) {
   const { data, margin, getSeriesColor } = useChartLayoutContext();
-  const { getXScale, getYScale, xAxis } = useChartScaleContext();
+  const { getXScale, getYScale, getZScale, xAxis, zAxis } = useChartScaleContext();
   const { registerRender, ctx, requestRender } = useChartRenderContext();
   const { registerTooltipSeries, hoveredIndex } = useChartInteractionContext();
   const { registerLegendItem, isSeriesVisible, legendVersion } = useChartSeriesContext();
@@ -68,6 +72,7 @@ export function Scatter({
   const seriesId = useMemo(() => Symbol('scatter-series'), []);
   const pointsRef = useRef<ScatterGeometry[]>([]);
   const yDataKey = yKey ?? dataKey;
+  const resolvedZKey = zKey ?? zAxis?.dataKey;
   const payloadDataKey = typeof yDataKey === 'string' ? yDataKey : 'value';
   const seriesName = tooltipName ?? name ?? (typeof payloadDataKey === 'string' ? payloadDataKey : 'Scatter');
   const pointRadius = normalizeRadius(size);
@@ -98,10 +103,19 @@ export function Scatter({
         : resolveXValue(item, index, xAxis);
       const yValue = resolveYValue(item, index, yDataKey);
 
+      let radius = pointRadius;
+      if (resolvedZKey) {
+        const zRaw = typeof resolvedZKey === 'function'
+          ? resolvedZKey(item, index)
+          : item[resolvedZKey as string];
+        const zValue = Number(zRaw);
+        radius = normalizeRadius(getZScale(Number.isFinite(zValue) ? zValue : 0));
+      }
+
       return {
         x: margin.left + xScale(xValue),
         y: margin.top + yScale(yValue),
-        radius: pointRadius,
+        radius,
         index,
         value: yValue,
       };
@@ -109,7 +123,20 @@ export function Scatter({
 
     pointsRef.current = points;
     requestRender();
-  }, [ctx, data, margin, xAxis, xKey, yDataKey, getXScale, getYScale, pointRadius, requestRender]);
+  }, [
+    ctx,
+    data,
+    margin,
+    xAxis,
+    xKey,
+    yDataKey,
+    resolvedZKey,
+    getXScale,
+    getYScale,
+    getZScale,
+    pointRadius,
+    requestRender,
+  ]);
 
   useEffect(() => {
     return registerTooltipSeries((index) => {
