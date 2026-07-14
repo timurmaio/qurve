@@ -56,6 +56,15 @@ export {
   type FunnelTrapezoid,
 } from './core/drawFunnel';
 export {
+  drawTreemap,
+  buildTreemapRects,
+  findTreemapIndex,
+  resolveTreemapValue,
+  squarify,
+  type TreemapInputNode,
+  type TreemapRect,
+} from './core/drawTreemap';
+export {
   degToRad,
   polarToCartesian,
   cartesianToPolarAngle,

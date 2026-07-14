@@ -11,7 +11,7 @@ export interface CellProps {
 }
 
 /**
- * Cell provides per-segment styling for Bar, Pie, RadialBar, and Funnel.
+ * Cell provides per-segment styling for Bar, Pie, RadialBar, Funnel, and Treemap.
  * Use as child: <Bar><Cell fill="red"/><Cell fill="blue"/></Bar>
  */
 export function Cell(_props: CellProps): null {

@@ -31,6 +31,8 @@ export { RadialBarChart } from './chart/RadialBarChart';
 export type { RadialBarChartProps } from './chart/RadialBarChart';
 export { FunnelChart } from './chart/FunnelChart';
 export type { FunnelChartProps } from './chart/FunnelChart';
+export { TreemapChart } from './chart/TreemapChart';
+export type { TreemapChartProps } from './chart/TreemapChart';
 export { QURVE_CSS_VARS } from './chart/themeUtils';
 export type { QurveTheme } from './chart/themeUtils';
 
@@ -79,6 +81,8 @@ export { ErrorBar } from './series/ErrorBar';
 export type { ErrorBarProps } from './series/ErrorBar';
 export { Funnel } from './series/Funnel';
 export type { FunnelProps } from './series/Funnel';
+export { Treemap } from './series/Treemap';
+export type { TreemapProps } from './series/Treemap';
 export { Label } from './Label';
 export type { LabelProps } from './Label';
 export { LabelList } from './LabelList';

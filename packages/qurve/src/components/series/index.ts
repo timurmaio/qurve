@@ -10,3 +10,5 @@ export { Scatter } from './Scatter';
 export type { ScatterProps } from './Scatter';
 export { Funnel } from './Funnel';
 export type { FunnelProps } from './Funnel';
+export { Treemap } from './Treemap';
+export type { TreemapProps } from './Treemap';

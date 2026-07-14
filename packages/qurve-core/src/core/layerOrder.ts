@@ -14,6 +14,7 @@ export const LayerOrder = {
   radar: 48,
   radialBar: 47,
   funnel: 44,
+  treemap: 43,
   scatter: 60,
   labels: 70,
   overlays: 80,
