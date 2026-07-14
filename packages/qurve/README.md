@@ -71,6 +71,7 @@ export function Demo() {
 - `FunnelChart` / `Funnel`
 - `TreemapChart` / `Treemap`
 - `SankeyChart` / `Sankey`
+- `PieChart` / `ScatterChart` / `ComposedChart`
 - `ZAxis`
 
 ## API reference (core props)
