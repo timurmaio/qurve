@@ -1,6 +1,6 @@
 {
   "name": "qurve",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "High-performance React charting library built on Canvas API",
   "type": "module",
   "sideEffects": false,

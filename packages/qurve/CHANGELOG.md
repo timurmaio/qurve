@@ -6,9 +6,16 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-14
+
 ### Added
 - `TreemapChart` / `Treemap` — squarified treemap with nested children, Cell, labels, tooltip.
 - `SankeyChart` / `Sankey` — node/link flow diagrams with ribbon links, Cell, labels, tooltip.
+
+### Notes
+- Completes the tracked Recharts chart-type parity checklist (Treemap + Sankey).
+- Developer Preview (`0.x`). API may still evolve.
+- Release verification: `check:release` (`typecheck`, build, pack).
 
 ## [0.2.0] - 2026-07-14
 
