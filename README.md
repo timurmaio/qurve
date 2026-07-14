@@ -84,6 +84,8 @@ function App() {
 | Radar | ✅ |
 | RadialBar | ✅ |
 | Funnel | ✅ |
+| Treemap | ✅ |
+| Sankey | ✅ |
 | Axes (Linear, Band, Time, Z) | ✅ |
 | Tooltips & Legends | ✅ |
 | Brush, Pan & Zoom | ✅ |

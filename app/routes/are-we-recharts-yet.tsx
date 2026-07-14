@@ -21,8 +21,8 @@ const COMPONENTS: Item[] = [
   { component: "RadarChart", recharts: "RadarChart", qurve: "RadarChart", status: "done", notes: "Compose PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar" },
   { component: "RadialBarChart", recharts: "RadialBarChart", qurve: "RadialBarChart", status: "done", notes: "Compose RadialBar; gauge via startAngle/endAngle" },
   { component: "FunnelChart", recharts: "FunnelChart", qurve: "FunnelChart", status: "done", notes: "Compose Funnel + optional Cell" },
-  { component: "Treemap", recharts: "Treemap", qurve: "—", status: "missing" },
-  { component: "SankeyChart", recharts: "SankeyChart", qurve: "—", status: "missing" },
+  { component: "Treemap", recharts: "Treemap", qurve: "TreemapChart / Treemap", status: "done", notes: "Squarified layout; nested children; Cell; optional labels" },
+  { component: "SankeyChart", recharts: "SankeyChart", qurve: "SankeyChart / Sankey", status: "done", notes: "nodes+links data; ribbon links; Cell on nodes" },
   // General
   { component: "ResponsiveContainer", recharts: "ResponsiveContainer", qurve: "ResponsiveContainer", status: "done" },
   { component: "Legend", recharts: "Legend", qurve: "Legend", status: "done" },

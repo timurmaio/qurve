@@ -69,6 +69,8 @@ export function Demo() {
 - `RadarChart` / `Radar` / `PolarGrid` / `PolarAngleAxis` / `PolarRadiusAxis`
 - `RadialBarChart` / `RadialBar`
 - `FunnelChart` / `Funnel`
+- `TreemapChart` / `Treemap`
+- `SankeyChart` / `Sankey`
 - `ZAxis`
 
 ## API reference (core props)
@@ -521,6 +523,42 @@ Composed chart with focused legend mode:
   </Funnel>
   <Tooltip />
 </FunnelChart>
+```
+
+## Treemap
+
+```tsx
+<TreemapChart data={data} width={400} height={280}>
+  <Treemap dataKey="value" nameKey="name" label>
+    {leaves.map((entry) => (
+      <Cell key={entry.name} fill={entry.fill} />
+    ))}
+  </Treemap>
+  <Tooltip />
+</TreemapChart>
+```
+
+Nested `children` on data rows are laid out recursively (squarified).
+
+## Sankey
+
+```tsx
+const data = {
+  nodes: [{ name: 'Visit' }, { name: 'Direct' }, { name: 'Order' }],
+  links: [
+    { source: 0, target: 1, value: 40 },
+    { source: 1, target: 2, value: 28 },
+  ],
+};
+
+<SankeyChart data={data} width={560} height={320}>
+  <Sankey label>
+    {data.nodes.map((node) => (
+      <Cell key={node.name} fill="#8884d8" />
+    ))}
+  </Sankey>
+  <Tooltip />
+</SankeyChart>
 ```
 
 ## Notes

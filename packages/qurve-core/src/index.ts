@@ -65,6 +65,16 @@ export {
   type TreemapRect,
 } from './core/drawTreemap';
 export {
+  drawSankey,
+  layoutSankey,
+  findSankeyIndex,
+  type SankeyData,
+  type SankeyNodeInput,
+  type SankeyLinkInput,
+  type SankeyNodeLayout,
+  type SankeyLinkLayout,
+} from './core/drawSankey';
+export {
   degToRad,
   polarToCartesian,
   cartesianToPolarAngle,

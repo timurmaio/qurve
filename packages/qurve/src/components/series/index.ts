@@ -12,3 +12,5 @@ export { Funnel } from './Funnel';
 export type { FunnelProps } from './Funnel';
 export { Treemap } from './Treemap';
 export type { TreemapProps } from './Treemap';
+export { Sankey, SankeyDataContext } from './Sankey';
+export type { SankeyProps } from './Sankey';

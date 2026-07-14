@@ -134,7 +134,8 @@ export function Legend({
                     item.type === 'scatter' ||
                     item.type === 'radar' ||
                     item.type === 'radialBar' ||
-                    item.type === 'funnel'
+                    item.type === 'funnel' ||
+                    item.type === 'sankey'
                       ? '999px'
                       : '2px',
                   background: item.color,

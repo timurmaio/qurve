@@ -10,6 +10,7 @@ describe('LayerOrder', () => {
     expect(LayerOrder.bar).toBe(40);
     expect(LayerOrder.line).toBe(50);
     expect(LayerOrder.pie).toBe(45);
+    expect(LayerOrder.sankey).toBe(42);
     expect(LayerOrder.treemap).toBe(43);
     expect(LayerOrder.funnel).toBe(44);
     expect(LayerOrder.pieLabels).toBe(46);

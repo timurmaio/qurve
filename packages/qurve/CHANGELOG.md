@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- `TreemapChart` / `Treemap` — squarified treemap with nested children, Cell, labels, tooltip.
+- `SankeyChart` / `Sankey` — node/link flow diagrams with ribbon links, Cell, labels, tooltip.
+
 ## [0.2.0] - 2026-07-14
 
 ### Added

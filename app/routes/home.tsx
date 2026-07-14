@@ -1,4 +1,4 @@
-import { ResponsiveContainer, Chart, XAxis, YAxis, ZAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend, Brush, LabelList, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, RadialBar, Funnel } from "qurve";
+import { ResponsiveContainer, Chart, XAxis, YAxis, ZAxis, CartesianGrid, Line, Bar, Area, Pie, Scatter, Tooltip, Legend, Brush, LabelList, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, RadialBar, Funnel, Treemap, Sankey } from "qurve";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { appleStock } from "../../src/mock";
@@ -582,6 +582,71 @@ function FunnelDemo({ palette }: { palette: ChartPalette }) {
   );
 }
 
+function TreemapDemo({ palette }: { palette: ChartPalette }) {
+  const data = useMemo(
+    () => [
+      { name: "Axis", value: 40 },
+      { name: "Controls", value: 25 },
+      {
+        name: "Data",
+        children: [
+          { name: "DataField", value: 18 },
+          { name: "DataSchema", value: 12 },
+        ],
+      },
+      { name: "Mark", value: 30 },
+    ],
+    [],
+  );
+
+  return (
+    <ChartDemo height={200}>
+      <Chart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+        <Treemap
+          dataKey="value"
+          nameKey="name"
+          label
+          colors={[palette.pie1, palette.pie2, palette.pie3, palette.barPrimary, palette.barSecondary]}
+        />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
+  );
+}
+
+function SankeyDemo({ palette }: { palette: ChartPalette }) {
+  const data = useMemo(
+    () => ({
+      nodes: [
+        { name: "Visit" },
+        { name: "Direct" },
+        { name: "Search" },
+        { name: "Order" },
+      ],
+      links: [
+        { source: 0, target: 1, value: 40 },
+        { source: 0, target: 2, value: 60 },
+        { source: 1, target: 3, value: 28 },
+        { source: 2, target: 3, value: 45 },
+      ],
+    }),
+    [],
+  );
+
+  return (
+    <ChartDemo height={200}>
+      <Chart data={data.nodes} margin={{ top: 12, right: 72, bottom: 12, left: 12 }}>
+        <Sankey
+          data={data}
+          label
+          colors={[palette.pie1, palette.pie2, palette.pie3, palette.barPrimary]}
+        />
+        <Tooltip />
+      </Chart>
+    </ChartDemo>
+  );
+}
+
 function BrushDemo({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
     return appleStock.slice(0, 60).map((d, i) => ({
@@ -872,6 +937,18 @@ export default function Home() {
                 description="Conversion funnel with trapezoid stages, Cell colors, and side labels."
                 status="implemented"
                 example={<FunnelDemo palette={palette} />}
+              />
+              <PrimitiveCard
+                name="<Treemap />"
+                description="Squarified treemap with nested children, Cell colors, and leaf labels."
+                status="implemented"
+                example={<TreemapDemo palette={palette} />}
+              />
+              <PrimitiveCard
+                name="<Sankey />"
+                description="Flow diagram with nodes, weighted links, Cell colors, and tooltip on nodes."
+                status="implemented"
+                example={<SankeyDemo palette={palette} />}
               />
               <PrimitiveCard
                 name="<Brush />"

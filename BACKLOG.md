@@ -225,5 +225,5 @@ Long-term idea: core in Rust, compile to WASM for web + native for TUI (ratatui)
 - [x] RadialBarChart / RadialBar
 - [x] FunnelChart / Funnel
 - [x] ZAxis (bubble Scatter)
-- [ ] Treemap
-- [ ] SankeyChart
+- [x] Treemap
+- [x] SankeyChart

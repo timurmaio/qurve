@@ -33,6 +33,8 @@ export { FunnelChart } from './chart/FunnelChart';
 export type { FunnelChartProps } from './chart/FunnelChart';
 export { TreemapChart } from './chart/TreemapChart';
 export type { TreemapChartProps } from './chart/TreemapChart';
+export { SankeyChart } from './chart/SankeyChart';
+export type { SankeyChartProps } from './chart/SankeyChart';
 export { QURVE_CSS_VARS } from './chart/themeUtils';
 export type { QurveTheme } from './chart/themeUtils';
 
@@ -83,6 +85,8 @@ export { Funnel } from './series/Funnel';
 export type { FunnelProps } from './series/Funnel';
 export { Treemap } from './series/Treemap';
 export type { TreemapProps } from './series/Treemap';
+export { Sankey, SankeyDataContext } from './series/Sankey';
+export type { SankeyProps } from './series/Sankey';
 export { Label } from './Label';
 export type { LabelProps } from './Label';
 export { LabelList } from './LabelList';
