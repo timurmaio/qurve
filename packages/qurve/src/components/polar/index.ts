@@ -6,3 +6,5 @@ export { PolarRadiusAxis } from './PolarRadiusAxis';
 export type { PolarRadiusAxisProps } from './PolarRadiusAxis';
 export { Radar } from './Radar';
 export type { RadarProps } from './Radar';
+export { RadialBar } from './RadialBar';
+export type { RadialBarProps } from './RadialBar';

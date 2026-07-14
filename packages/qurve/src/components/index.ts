@@ -27,6 +27,10 @@ export { AreaChart } from './chart/AreaChart';
 export type { AreaChartProps } from './chart/AreaChart';
 export { RadarChart } from './chart/RadarChart';
 export type { RadarChartProps } from './chart/RadarChart';
+export { RadialBarChart } from './chart/RadialBarChart';
+export type { RadialBarChartProps } from './chart/RadialBarChart';
+export { FunnelChart } from './chart/FunnelChart';
+export type { FunnelChartProps } from './chart/FunnelChart';
 export { QURVE_CSS_VARS } from './chart/themeUtils';
 export type { QurveTheme } from './chart/themeUtils';
 
@@ -55,6 +59,8 @@ export { PolarRadiusAxis } from './polar/PolarRadiusAxis';
 export type { PolarRadiusAxisProps } from './polar/PolarRadiusAxis';
 export { Radar } from './polar/Radar';
 export type { RadarProps } from './polar/Radar';
+export { RadialBar } from './polar/RadialBar';
+export type { RadialBarProps } from './polar/RadialBar';
 
 // Series components
 export { Line } from './series/Line';
@@ -71,6 +77,8 @@ export { Scatter } from './series/Scatter';
 export type { ScatterProps } from './series/Scatter';
 export { ErrorBar } from './series/ErrorBar';
 export type { ErrorBarProps } from './series/ErrorBar';
+export { Funnel } from './series/Funnel';
+export type { FunnelProps } from './series/Funnel';
 export { Label } from './Label';
 export type { LabelProps } from './Label';
 export { LabelList } from './LabelList';

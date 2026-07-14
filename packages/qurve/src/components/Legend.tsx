@@ -128,7 +128,15 @@ export function Legend({
                   display: 'inline-block',
                   width: iconSize,
                   height: iconSize,
-                  borderRadius: item.type === 'line' || item.type === 'pie' || item.type === 'scatter' || item.type === 'radar' ? '999px' : '2px',
+                  borderRadius:
+                    item.type === 'line' ||
+                    item.type === 'pie' ||
+                    item.type === 'scatter' ||
+                    item.type === 'radar' ||
+                    item.type === 'radialBar' ||
+                    item.type === 'funnel'
+                      ? '999px'
+                      : '2px',
                   background: item.color,
                   opacity: visible ? 1 : 0.35,
                 }}

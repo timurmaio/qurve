@@ -12,6 +12,8 @@ export const LayerOrder = {
   pie: 45,
   pieLabels: 46,
   radar: 48,
+  radialBar: 47,
+  funnel: 44,
   scatter: 60,
   labels: 70,
   overlays: 80,

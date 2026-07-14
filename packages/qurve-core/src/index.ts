@@ -44,6 +44,18 @@ export {
   drawRadarPolygon,
 } from './core/drawPolar';
 export {
+  drawRadialBars,
+  buildRadialBarSectors,
+  findRadialBarIndex,
+  type RadialBarSector,
+} from './core/drawRadialBar';
+export {
+  drawFunnel,
+  buildFunnelTrapezoids,
+  findFunnelIndex,
+  type FunnelTrapezoid,
+} from './core/drawFunnel';
+export {
   degToRad,
   polarToCartesian,
   cartesianToPolarAngle,

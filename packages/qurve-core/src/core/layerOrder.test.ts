@@ -10,7 +10,9 @@ describe('LayerOrder', () => {
     expect(LayerOrder.bar).toBe(40);
     expect(LayerOrder.line).toBe(50);
     expect(LayerOrder.pie).toBe(45);
+    expect(LayerOrder.funnel).toBe(44);
     expect(LayerOrder.pieLabels).toBe(46);
+    expect(LayerOrder.radialBar).toBe(47);
     expect(LayerOrder.radar).toBe(48);
     expect(LayerOrder.scatter).toBe(60);
     expect(LayerOrder.labels).toBe(70);

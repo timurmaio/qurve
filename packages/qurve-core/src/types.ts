@@ -52,7 +52,7 @@ export interface LegendItemRegistration {
   id: symbol;
   name: string;
   color: string;
-  type: 'line' | 'bar' | 'area' | 'pie' | 'scatter' | 'radar';
+  type: 'line' | 'bar' | 'area' | 'pie' | 'scatter' | 'radar' | 'radialBar' | 'funnel';
 }
 
 export interface PolarAngleAxisConfig {
