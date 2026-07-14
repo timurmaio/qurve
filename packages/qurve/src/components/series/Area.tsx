@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { drawArea, resolveXValue, resolveYValue, getBaseValue, clamp, normalizeOpacity, LayerOrder } from '@qurve/core';
+import {
+  drawArea,
+  resolveXValue,
+  resolveYValue,
+  resolveYValueNullable,
+  getBaseValue,
+  normalizeOpacity,
+  splitDefinedSegments,
+  LayerOrder,
+} from '@qurve/core';
 import type { AreaPoint } from '@qurve/core';
 import {
   useChartInteractionContext,
@@ -17,7 +26,7 @@ const AREA_CONSTANTS = {
 };
 
 interface AreaGeometry extends AreaPoint {
-  value: number;
+  value: number | null;
   index: number;
 }
 
@@ -29,6 +38,8 @@ export interface AreaProps {
   stroke?: string;
   strokeWidth?: number;
   hoverOpacity?: number;
+  /** When false (default), missing y values break the area. Stacked series treat null as 0. */
+  connectNulls?: boolean;
   name?: string;
   tooltipName?: string;
   tooltipFormatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
@@ -42,6 +53,7 @@ export function Area({
   stroke: strokeProp,
   strokeWidth = AREA_CONSTANTS.DEFAULT_STROKE_WIDTH,
   hoverOpacity = AREA_CONSTANTS.DEFAULT_HOVER_OPACITY,
+  connectNulls = false,
   name,
   tooltipName,
   tooltipFormatter,
@@ -116,13 +128,11 @@ export function Area({
           .filter((registration) => registration.stackId === stackId);
 
     const nextAreas: AreaGeometry[] = data.map((item, index) => {
-      const value = resolveYValue(item, index, dataKey);
       const xValue = resolveXValue(item, index, xAxis);
 
-      let start = baseValue;
-      let end = value;
-
+      // Stacked areas coerce null → 0 so stack math stays contiguous.
       if (stackId !== undefined) {
+        const value = resolveYValue(item, index, dataKey);
         let positiveStart = baseValue;
         let negativeStart = baseValue;
 
@@ -135,6 +145,8 @@ export function Area({
           }
         }
 
+        let start = baseValue;
+        let end = value;
         if (value >= 0) {
           start = positiveStart;
           end = positiveStart + value;
@@ -142,12 +154,31 @@ export function Area({
           start = negativeStart;
           end = negativeStart + value;
         }
+
+        return {
+          x: margin.left + xScale(xValue),
+          y0: margin.top + yScale(start),
+          y1: margin.top + yScale(end),
+          value,
+          index,
+        };
+      }
+
+      const value = resolveYValueNullable(item, index, dataKey);
+      if (value == null) {
+        return {
+          x: margin.left + xScale(xValue),
+          y0: Number.NaN,
+          y1: Number.NaN,
+          value: null,
+          index,
+        };
       }
 
       return {
         x: margin.left + xScale(xValue),
-        y0: margin.top + yScale(start),
-        y1: margin.top + yScale(end),
+        y0: margin.top + yScale(baseValue),
+        y1: margin.top + yScale(value),
         value,
         index,
       };
@@ -174,12 +205,12 @@ export function Area({
     return registerTooltipSeries((index) => {
       if (!isSeriesVisible(seriesId)) return null;
       const area = areasRef.current[index];
-      if (!area) return null;
+      if (!area || area.value == null) return null;
 
       return {
         dataKey: payloadDataKey,
         name: seriesName,
-        value: Number.isFinite(area.value) ? area.value : null,
+        value: area.value,
         color: stroke ?? fill,
         formatter: tooltipFormatter,
         anchor: { x: area.x, y: area.y1 },
@@ -201,16 +232,24 @@ export function Area({
 
       try {
         if (!isSeriesVisible(seriesId)) return;
-        drawArea({
-          ctx,
-          points,
-          fill,
-          fillOpacity: normalizedFillOpacity,
-          stroke,
-          strokeWidth,
-          hoveredIndex: hoveredIndexRef.current,
-          hoverOpacity: normalizedHoverOpacity,
-        });
+        const segments =
+          stackId !== undefined
+            ? [points]
+            : splitDefinedSegments(points, connectNulls);
+
+        for (const segment of segments) {
+          if (segment.length === 0) continue;
+          drawArea({
+            ctx,
+            points: segment,
+            fill,
+            fillOpacity: normalizedFillOpacity,
+            stroke,
+            strokeWidth,
+            hoveredIndex: hoveredIndexRef.current,
+            hoverOpacity: normalizedHoverOpacity,
+          });
+        }
       } catch (error) {
         console.error('Area render error:', error);
       }
@@ -221,10 +260,12 @@ export function Area({
     ctx,
     data,
     fill,
-    normalizedFillOpacity,
     stroke,
     strokeWidth,
+    normalizedFillOpacity,
     normalizedHoverOpacity,
+    connectNulls,
+    stackId,
     registerRender,
     isSeriesVisible,
     seriesId,

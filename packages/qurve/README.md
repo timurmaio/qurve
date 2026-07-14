@@ -117,6 +117,7 @@ export function Demo() {
 | `type` | `'linear' \| 'monotone' \| 'step'` | `'linear'` |
 | `stroke` | `string` | `#8884d8` |
 | `strokeWidth` | `number` | `2` |
+| `connectNulls` | `boolean` | `false` |
 | `dot` | `boolean \| {r,fill,stroke}` | `false` |
 | `activeDot` | `boolean \| {r,fill,stroke}` | `true` |
 
@@ -140,6 +141,7 @@ export function Demo() {
 | `fill` | `string` | `#8884d8` |
 | `fillOpacity` | `number` | `0.25` |
 | `stroke` | `string` | - |
+| `connectNulls` | `boolean` | `false` |
 
 `Pie`
 
@@ -251,6 +253,7 @@ For migration notes, see `MIGRATION.md` in this package.
 
 - Use `stackId` to stack multiple areas
 - Use `fill` + `fillOpacity` to control fill color and transparency
+- Use `connectNulls` to bridge gaps from missing values (unstacked only; stacked treats null as 0)
 - Use `tooltipName` and `tooltipFormatter` to override tooltip labels per series
 
 ```tsx

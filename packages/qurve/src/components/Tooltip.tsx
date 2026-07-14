@@ -217,7 +217,7 @@ export function Tooltip({
     };
   }, [data, hoveredIndex, getTooltipPayload, filterNull, itemSorter, xAxis]);
 
-  const cursorPoint = useMemo((): { x: number; y: number; value: number; index: number } | null => {
+  const cursorPoint = useMemo((): { x: number; y: number; value: number | null; index: number } | null => {
     if (hoveredIndex === null || !tooltipProps.active) return null;
     const payloadAnchor = tooltipProps.payload?.find((i) => i.anchor)?.anchor;
     if (payloadAnchor) {

@@ -81,6 +81,7 @@ export interface ZAxisConfig {
 export interface ProjectedPoint {
   x: number;
   y: number;
-  value: number;
+  /** Null when the source y value is missing / non-finite. */
+  value: number | null;
   index: number;
 }

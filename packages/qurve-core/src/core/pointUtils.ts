@@ -20,12 +20,57 @@ export function resolveXValue(item: Record<string, unknown>, index: number, xAxi
 }
 
 export function resolveYValue(item: Record<string, unknown>, index: number, dataKey?: DataKey): number {
+  const nullable = resolveYValueNullable(item, index, dataKey);
+  return nullable ?? 0;
+}
+
+/** Like resolveYValue, but returns null for missing / non-finite values (for connectNulls gaps). */
+export function resolveYValueNullable(
+  item: Record<string, unknown>,
+  index: number,
+  dataKey?: DataKey,
+): number | null {
   const raw = dataKey
     ? (typeof dataKey === 'function' ? dataKey(item, index) : item[dataKey])
     : Object.values(item).find((v) => typeof v === 'number');
 
+  if (raw === null || raw === undefined || raw === '') return null;
   const value = Number(raw);
-  return Number.isFinite(value) ? value : 0;
+  return Number.isFinite(value) ? value : null;
+}
+
+export function isDefinedPoint(point: { value: number | null; y?: number }): boolean {
+  if (point.value == null) return false;
+  if (point.y !== undefined && !Number.isFinite(point.y)) return false;
+  return true;
+}
+
+/**
+ * Split projected points into drawable segments.
+ * When `connectNulls` is true, nulls are skipped and remaining points form one polyline.
+ * When false (default), nulls break the path into separate segments.
+ */
+export function splitDefinedSegments<T extends { value: number | null; y?: number }>(
+  points: T[],
+  connectNulls = false,
+): T[][] {
+  if (connectNulls) {
+    const defined = points.filter(isDefinedPoint);
+    return defined.length > 0 ? [defined] : [];
+  }
+
+  const segments: T[][] = [];
+  let current: T[] = [];
+  for (const point of points) {
+    if (isDefinedPoint(point)) {
+      current.push(point);
+    } else if (current.length > 0) {
+      segments.push(current);
+      current = [];
+    }
+  }
+  if (current.length > 0) segments.push(current);
+  return segments;
 }
 
 export function projectPoints(params: {
@@ -44,11 +89,11 @@ export function projectPoints(params: {
   for (let index = 0; index < data.length; index++) {
     const item = data[index];
     const xValue = resolveXValue(item, index, xAxis);
-    const yValue = resolveYValue(item, index, dataKey);
+    const yValue = resolveYValueNullable(item, index, dataKey);
 
     points.push({
       x: margin.left + xScale(xValue),
-      y: margin.top + yScale(yValue),
+      y: yValue == null ? Number.NaN : margin.top + yScale(yValue),
       value: yValue,
       index,
     });

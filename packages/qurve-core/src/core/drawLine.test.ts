@@ -50,4 +50,31 @@ describe('drawLinePath', () => {
 
     expect(ctx.stroke).not.toHaveBeenCalled();
   });
+
+  it('breaks path on null values unless connectNulls', () => {
+    const ctx = createMockContext();
+    const withNull = [
+      { x: 0, y: 0, value: 0, index: 0 },
+      { x: 10, y: Number.NaN, value: null, index: 1 },
+      { x: 20, y: 8, value: 8, index: 2 },
+      { x: 30, y: 4, value: 4, index: 3 },
+    ];
+
+    drawLinePath({ ctx, points: withNull, type: 'linear', stroke: '#333', strokeWidth: 2 });
+    // Two segments: [0] stub + [2,3] one lineTo
+    expect(ctx.stroke).toHaveBeenCalledTimes(2);
+    expect(ctx.lineTo).toHaveBeenCalled();
+
+    const ctxConnected = createMockContext();
+    drawLinePath({
+      ctx: ctxConnected,
+      points: withNull,
+      type: 'linear',
+      stroke: '#333',
+      strokeWidth: 2,
+      connectNulls: true,
+    });
+    expect(ctxConnected.stroke).toHaveBeenCalledTimes(1);
+    expect(ctxConnected.lineTo).toHaveBeenCalledTimes(2);
+  });
 });

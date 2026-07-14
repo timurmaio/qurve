@@ -21,6 +21,8 @@ export interface LineProps {
   type?: 'linear' | 'monotone' | 'step';
   stroke?: string;
   strokeWidth?: number;
+  /** When false (default), missing y values break the line. When true, skip gaps and connect. */
+  connectNulls?: boolean;
   dot?: boolean | { r?: number; fill?: string; stroke?: string };
   activeDot?: boolean | { r?: number; fill?: string; stroke?: string };
   name?: string;
@@ -29,7 +31,7 @@ export interface LineProps {
 interface Point {
   x: number;
   y: number;
-  value: number;
+  value: number | null;
   index: number;
 }
 
@@ -38,6 +40,7 @@ export function Line({
   type = 'linear',
   stroke: strokeProp,
   strokeWidth = LINE_CONSTANTS.DEFAULT_STROKE_WIDTH,
+  connectNulls = false,
   dot = false,
   activeDot = true,
   name,
@@ -63,7 +66,6 @@ export function Line({
     });
   }, [registerLegendItem, seriesName, stroke]);
 
-  // Cache points when data changes
   useEffect(() => {
     if (!ctx || !data.length) {
       pointsRef.current = [];
@@ -88,24 +90,22 @@ export function Line({
     return registerTooltipSeries((index) => {
       if (!isSeriesVisible(seriesIdRef.current)) return null;
       const point = pointsRef.current[index];
-      if (!point) return null;
+      if (!point || point.value == null) return null;
       return {
         dataKey: payloadDataKey,
         name: seriesName,
-        value: Number.isFinite(point.value) ? point.value : null,
+        value: point.value,
         color: stroke,
         anchor: { x: point.x, y: point.y },
       };
     }, { layer: LayerOrder.line });
   }, [registerTooltipSeries, payloadDataKey, seriesName, stroke, isSeriesVisible, legendVersion]);
 
-  // Sync hoveredIndex to ref - avoids re-registering render function
   useEffect(() => {
     hoveredIndexRef.current = hoveredIndex;
     requestRender();
   }, [hoveredIndex, requestRender]);
 
-  // Main render function for line and dots
   useEffect(() => {
     if (!ctx || !data.length) return;
 
@@ -116,9 +116,8 @@ export function Line({
       try {
         if (!isSeriesVisible(seriesIdRef.current)) return;
         ctx.save();
-        drawLinePath({ ctx, points, type, stroke, strokeWidth });
+        drawLinePath({ ctx, points, type, stroke, strokeWidth, connectNulls });
 
-        // Draw regular dots
         const dotRadius = typeof dot === 'object' ? dot.r ?? LINE_CONSTANTS.DEFAULT_DOT_RADIUS : dot ? LINE_CONSTANTS.DEFAULT_DOT_RADIUS : 0;
         const dotFill = typeof dot === 'object' ? dot.fill ?? stroke : stroke;
         const dotStroke = typeof dot === 'object' ? dot.stroke ?? LINE_CONSTANTS.DEFAULT_DOT_STROKE : LINE_CONSTANTS.DEFAULT_DOT_STROKE;
@@ -127,7 +126,6 @@ export function Line({
           drawLineDots({ ctx, points, radius: dotRadius, fill: dotFill, stroke: dotStroke });
         }
 
-        // Draw active dot if hovering - read from ref to avoid re-subscription
         const currentHoveredIndex = hoveredIndexRef.current;
         if (currentHoveredIndex !== null && activeDot && points[currentHoveredIndex]) {
           const point = points[currentHoveredIndex];
@@ -145,7 +143,7 @@ export function Line({
     };
 
     return registerRender(render, { layer: LayerOrder.line });
-  }, [ctx, data, margin, getXScale, getYScale, xAxis, dataKey, type, stroke, strokeWidth, dot, registerRender, activeDot, isSeriesVisible, legendVersion]);
+  }, [ctx, data, margin, getXScale, getYScale, xAxis, dataKey, type, stroke, strokeWidth, connectNulls, dot, registerRender, activeDot, isSeriesVisible, legendVersion]);
 
   return null;
 }

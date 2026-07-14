@@ -4,6 +4,8 @@ import {
   projectPoints,
   resolveXValue,
   resolveYValue,
+  resolveYValueNullable,
+  splitDefinedSegments,
 } from './pointUtils';
 import {
   toTimeNumber,
@@ -146,6 +148,44 @@ describe('resolveYValue', () => {
   });
 });
 
+describe('resolveYValueNullable', () => {
+  it('returns null for missing values', () => {
+    expect(resolveYValueNullable({ value: null }, 0, 'value')).toBeNull();
+    expect(resolveYValueNullable({ value: undefined }, 0, 'value')).toBeNull();
+    expect(resolveYValueNullable({ value: NaN }, 0, 'value')).toBeNull();
+    expect(resolveYValueNullable({ value: '' }, 0, 'value')).toBeNull();
+  });
+
+  it('returns finite numbers', () => {
+    expect(resolveYValueNullable({ value: 7 }, 0, 'value')).toBe(7);
+  });
+});
+
+describe('splitDefinedSegments', () => {
+  it('breaks on nulls by default and joins when connectNulls', () => {
+    const points = [
+      { value: 1, y: 1 },
+      { value: null, y: Number.NaN },
+      { value: 3, y: 3 },
+      { value: 4, y: 4 },
+    ];
+    expect(splitDefinedSegments(points)).toEqual([
+      [{ value: 1, y: 1 }],
+      [
+        { value: 3, y: 3 },
+        { value: 4, y: 4 },
+      ],
+    ]);
+    expect(splitDefinedSegments(points, true)).toEqual([
+      [
+        { value: 1, y: 1 },
+        { value: 3, y: 3 },
+        { value: 4, y: 4 },
+      ],
+    ]);
+  });
+});
+
 describe('projectPoints', () => {
   const margin = { left: 10, top: 20 };
   const xAxis: AxisConfig = { dataKey: 'x' };
@@ -165,6 +205,22 @@ describe('projectPoints', () => {
     expect(points[0]).toEqual({ x: 10, y: 220, value: 0, index: 0 });
     expect(points[1]).toEqual({ x: 20, y: 170, value: 50, index: 1 });
     expect(points[2]).toEqual({ x: 30, y: 120, value: 100, index: 2 });
+  });
+
+  it('projects null y values as gaps', () => {
+    const data = [
+      { x: 0, y: 10 },
+      { x: 10, y: null },
+      { x: 20, y: 30 },
+    ];
+    const getXScale = () => (value: number) => value;
+    const getYScale = () => (value: number) => value;
+
+    const points = projectPoints({ data, margin, xAxis, dataKey: 'y', getXScale, getYScale });
+    expect(points[0].value).toBe(10);
+    expect(points[1].value).toBeNull();
+    expect(Number.isNaN(points[1].y)).toBe(true);
+    expect(points[2].value).toBe(30);
   });
 
   it('applies margin to coordinates', () => {
