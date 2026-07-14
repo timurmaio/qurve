@@ -32,6 +32,8 @@ export interface ScatterProps {
   strokeWidth?: number;
   /** Fixed radius when ZAxis / zKey are not used. */
   size?: number;
+  /** Bind to a YAxis with the same id. Default `0`. */
+  yAxisId?: string | number;
   hoverOpacity?: number;
   name?: string;
   tooltipName?: string;
@@ -57,6 +59,7 @@ export function Scatter({
   stroke,
   strokeWidth = SCATTER_CONSTANTS.DEFAULT_STROKE_WIDTH,
   size = SCATTER_CONSTANTS.DEFAULT_SIZE,
+  yAxisId = 0,
   hoverOpacity = SCATTER_CONSTANTS.DEFAULT_HOVER_OPACITY,
   name,
   tooltipName,
@@ -95,7 +98,7 @@ export function Scatter({
     }
 
     const xScale = getXScale();
-    const yScale = getYScale(yDataKey);
+    const yScale = getYScale(yDataKey, yAxisId);
 
     const points: ScatterGeometry[] = data.map((item, index) => {
       const xValue = xKey
@@ -133,6 +136,7 @@ export function Scatter({
     resolvedZKey,
     getXScale,
     getYScale,
+    yAxisId,
     getZScale,
     pointRadius,
     requestRender,

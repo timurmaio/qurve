@@ -23,6 +23,8 @@ export interface LineProps {
   strokeWidth?: number;
   /** When false (default), missing y values break the line. When true, skip gaps and connect. */
   connectNulls?: boolean;
+  /** Bind to a YAxis with the same id. Default `0`. */
+  yAxisId?: string | number;
   dot?: boolean | { r?: number; fill?: string; stroke?: string };
   activeDot?: boolean | { r?: number; fill?: string; stroke?: string };
   name?: string;
@@ -41,6 +43,7 @@ export function Line({
   stroke: strokeProp,
   strokeWidth = LINE_CONSTANTS.DEFAULT_STROKE_WIDTH,
   connectNulls = false,
+  yAxisId = 0,
   dot = false,
   activeDot = true,
   name,
@@ -79,12 +82,12 @@ export function Line({
       xAxis,
       dataKey,
       getXScale,
-      getYScale,
+      getYScale: (key) => getYScale(key, yAxisId),
     });
 
     pointsRef.current = newPoints;
     requestRender();
-  }, [ctx, data, margin, getXScale, getYScale, xAxis, dataKey, requestRender]);
+  }, [ctx, data, margin, getXScale, getYScale, yAxisId, xAxis, dataKey, requestRender]);
 
   useEffect(() => {
     return registerTooltipSeries((index) => {

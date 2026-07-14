@@ -219,6 +219,7 @@ Long-term idea: core in Rust, compile to WASM for web + native for TUI (ratatui)
 - [x] Cell (per-segment styling for Bar, Pie)
 - [x] LineChart / BarChart / AreaChart wrappers
 - [x] PieChart / ScatterChart / ComposedChart wrappers
+- [x] Dual Y-axes (`yAxisId`)
 - [x] ErrorBar (dataKey, errorKey, direction)
 - [x] Customized (draw prop for custom canvas)
 - [x] Label / LabelList

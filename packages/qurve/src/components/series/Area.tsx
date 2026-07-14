@@ -40,6 +40,8 @@ export interface AreaProps {
   hoverOpacity?: number;
   /** When false (default), missing y values break the area. Stacked series treat null as 0. */
   connectNulls?: boolean;
+  /** Bind to a YAxis with the same id. Default `0`. */
+  yAxisId?: string | number;
   name?: string;
   tooltipName?: string;
   tooltipFormatter?: (value: number | null, name: string, item: TooltipPayloadItem) => React.ReactNode | [React.ReactNode, React.ReactNode];
@@ -54,6 +56,7 @@ export function Area({
   strokeWidth = AREA_CONSTANTS.DEFAULT_STROKE_WIDTH,
   hoverOpacity = AREA_CONSTANTS.DEFAULT_HOVER_OPACITY,
   connectNulls = false,
+  yAxisId = 0,
   name,
   tooltipName,
   tooltipFormatter,
@@ -116,7 +119,7 @@ export function Area({
     }
 
     const xScale = getXScale();
-    const yScale = getYScale(dataKey);
+    const yScale = getYScale(dataKey, yAxisId);
     const scaleDomain = (yScale as { domain?: () => [number, number] }).domain?.();
     const domain: [number, number] = scaleDomain ?? [0, 100];
     const baseValue = getBaseValue(domain);
@@ -195,6 +198,7 @@ export function Area({
     stackId,
     getXScale,
     getYScale,
+    yAxisId,
     getAreaSeriesRegistrations,
     areaSeriesVersion,
     seriesId,

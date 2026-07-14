@@ -38,6 +38,8 @@ export interface BarProps {
   maxBarSize?: number;
   minPointSize?: number;
   stackId?: string | number;
+  /** Bind to a YAxis with the same id. Default `0`. */
+  yAxisId?: string | number;
   radius?: number | [number, number, number, number];
   hoverOpacity?: number;
   name?: string;
@@ -65,6 +67,7 @@ export function Bar({
   maxBarSize,
   minPointSize,
   stackId,
+  yAxisId = 0,
   radius,
   hoverOpacity = BAR_CONSTANTS.DEFAULT_HOVER_OPACITY,
   name,
@@ -146,7 +149,7 @@ export function Bar({
       xAxis,
       dataKey,
       getXScale,
-      getYScale,
+      getYScale: (key) => getYScale(key, yAxisId),
     });
 
     if (points.length === 0) {
@@ -182,7 +185,7 @@ export function Bar({
     const ownSlotIndex = Math.max(0, slots.findIndex((slot) => slot.key === ownSlotKey));
     const slotCount = Math.max(1, slots.length);
 
-    const yScale = getYScale(dataKey);
+    const yScale = getYScale(dataKey, yAxisId);
     const scaleDomain = (yScale as { domain?: () => [number, number] }).domain?.();
     const domain: [number, number] = scaleDomain ?? [0, 100];
     const baseValue = getBaseValue(domain);
@@ -302,6 +305,7 @@ export function Bar({
     dataKey,
     getXScale,
     getYScale,
+    yAxisId,
     barSize,
     maxBarSize,
     minPointSize,

@@ -7,6 +7,8 @@ export interface ErrorBarProps {
   dataKey: DataKey;
   errorKey?: DataKey;
   direction?: 'x' | 'y';
+  /** Bind to a YAxis with the same id when direction is y. Default `0`. */
+  yAxisId?: string | number;
   stroke?: string;
   strokeWidth?: number;
   width?: number;
@@ -21,6 +23,7 @@ export function ErrorBar({
   dataKey,
   errorKey,
   direction = 'y',
+  yAxisId = 0,
   stroke = '#333',
   strokeWidth = 1.5,
   width = 5,
@@ -44,7 +47,7 @@ export function ErrorBar({
         dataKey,
         errorKey: resolvedErrorKey ?? dataKey,
         getXScale,
-        getYScale,
+        getYScale: (key) => getYScale(key, yAxisId),
         direction,
         stroke,
         strokeWidth,
@@ -53,7 +56,7 @@ export function ErrorBar({
     };
 
     return registerRender(render, { layer: LayerOrder.overlays });
-  }, [ctx, data, margin, xAxis, dataKey, resolvedErrorKey, getXScale, getYScale, direction, stroke, strokeWidth, width, registerRender]);
+  }, [ctx, data, margin, xAxis, dataKey, resolvedErrorKey, getXScale, getYScale, yAxisId, direction, stroke, strokeWidth, width, registerRender]);
 
   return null;
 }

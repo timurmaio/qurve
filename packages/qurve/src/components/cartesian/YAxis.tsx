@@ -5,6 +5,9 @@ import type { DataKey } from '../chart/chartContext';
 
 export interface YAxisProps {
   dataKey?: DataKey;
+  /** Bind this axis to series with the same `yAxisId`. Default `0`. */
+  yAxisId?: string | number;
+  /** @deprecated Use `yAxisId`. */
   yAxisKey?: string;
   type?: 'number' | 'category';
   domain?: [number, number] | 'auto';
@@ -30,6 +33,8 @@ export interface YAxisProps {
 
 export function YAxis({
   dataKey,
+  yAxisId,
+  yAxisKey,
   type = 'number',
   domain = 'auto',
   reversed = false,
@@ -55,34 +60,38 @@ export function YAxis({
   const effectiveStroke = stroke ?? theme?.axisStroke ?? '#666';
   const effectiveFontFamily = fontFamily ?? theme?.fontFamily;
   const { setYAxis, getYScale } = useChartScaleContext();
+  const resolvedAxisId = yAxisId ?? yAxisKey ?? 0;
 
   useEffect(() => {
     const key = dataKey ?? ((d: Record<string, unknown>, i: number) => {
       const val = Object.values(d)[0];
       return typeof val === 'number' ? val : i;
     });
-    
-    setYAxis({
-      dataKey: key,
-      type,
-      domain,
-      reversed,
-      padding,
-      tickFormatter,
-    });
 
-    return () => setYAxis(null);
-  }, [setYAxis, dataKey, type, domain, reversed, padding, tickFormatter]);
+    setYAxis(
+      {
+        dataKey: key,
+        type,
+        domain,
+        reversed,
+        padding,
+        tickFormatter,
+      },
+      resolvedAxisId,
+    );
+
+    return () => setYAxis(null, resolvedAxisId);
+  }, [setYAxis, resolvedAxisId, dataKey, type, domain, reversed, padding, tickFormatter]);
 
   useEffect(() => {
     if (!ctx) return;
 
-    const scale = getYScale?.(dataKey);
+    const scale = getYScale?.(dataKey, resolvedAxisId);
     if (!scale) return;
 
-    const domainMethod = (scale as any).domain;
+    const domainMethod = (scale as { domain?: () => [number, number] }).domain;
     if (!domainMethod || typeof domainMethod !== 'function') return;
-    
+
     const [min, max] = domainMethod.call(scale);
 
     const render = () => {
@@ -113,7 +122,34 @@ export function YAxis({
     };
 
     return registerRender(render, { layer: LayerOrder.axes });
-  }, [ctx, dataKey, margin, innerWidth, innerHeight, getYScale, position, tickCount, tickValues, interval, tickFormatter, tickSlot, stroke, effectiveStroke, effectiveFontFamily, tick, tickLine, axisLine, fontSize, fontFamily, fontWeight, registerRender, theme]);
+  }, [
+    ctx,
+    margin,
+    innerWidth,
+    innerHeight,
+    getYScale,
+    dataKey,
+    resolvedAxisId,
+    position,
+    tickCount,
+    tickValues,
+    interval,
+    allowDecimals,
+    tickFormatter,
+    tickSlot,
+    stroke,
+    effectiveStroke,
+    effectiveFontFamily,
+    tick,
+    tickLine,
+    axisLine,
+    axisWidth,
+    fontSize,
+    fontFamily,
+    fontWeight,
+    registerRender,
+    theme,
+  ]);
 
   return null;
 }

@@ -9,6 +9,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 ### Added
 - `PieChart`, `ScatterChart`, and `ComposedChart` convenience wrappers (Recharts-style aliases of `Chart`).
 - `connectNulls` on `Line` / `Area` — missing y values create path gaps by default; set `connectNulls` to bridge them.
+- Dual Y-axes via `yAxisId` on `YAxis` and series (`Line` / `Bar` / `Area` / `Scatter`).
 
 ## [0.3.0] - 2026-07-14
 

@@ -46,17 +46,22 @@ export interface ChartRenderContextValue {
 
 export interface ChartScaleContextValue {
   xAxis: AxisConfig | null;
+  /** Default / primary Y axis (`yAxisId` 0). */
   yAxis: AxisConfig | null;
+  /** All registered Y axes keyed by `String(yAxisId)`. */
+  yAxes: Record<string, AxisConfig>;
   zAxis: ZAxisConfig | null;
   polarAngleAxis: PolarAngleAxisConfig | null;
   polarRadiusAxis: PolarRadiusAxisConfig | null;
   setXAxis: (config: AxisConfig | null) => void;
-  setYAxis: (config: AxisConfig | null) => void;
+  /** Register or clear a Y axis. `yAxisId` defaults to `0`. */
+  setYAxis: (config: AxisConfig | null, yAxisId?: string | number) => void;
   setZAxis: (config: ZAxisConfig | null) => void;
   setPolarAngleAxis: (config: PolarAngleAxisConfig | null) => void;
   setPolarRadiusAxis: (config: PolarRadiusAxisConfig | null) => void;
   getXScale: () => ReturnType<typeof createLinearScale>;
-  getYScale: (dataKey?: DataKey) => ReturnType<typeof createLinearScale>;
+  /** Scale for a series dataKey, optionally bound to a specific `yAxisId` (default `0`). */
+  getYScale: (dataKey?: DataKey, yAxisId?: string | number) => ReturnType<typeof createLinearScale>;
   /** Maps a Z value to bubble radius in pixels. */
   getZScale: (value: number) => number;
 }
@@ -212,7 +217,7 @@ export interface ChartProps {
 
 interface ChartState {
   xAxis: AxisConfig | null;
-  yAxis: AxisConfig | null;
+  yAxes: Record<string, AxisConfig>;
   zAxis: ZAxisConfig | null;
   polarAngleAxis: PolarAngleAxisConfig | null;
   polarRadiusAxis: PolarRadiusAxisConfig | null;
@@ -243,7 +248,7 @@ interface TooltipSeriesRegistration {
 
 type ChartAction =
   | { type: 'setXAxis'; payload: AxisConfig | null }
-  | { type: 'setYAxis'; payload: AxisConfig | null }
+  | { type: 'setYAxis'; payload: { id: string; config: AxisConfig | null } }
   | { type: 'setZAxis'; payload: ZAxisConfig | null }
   | { type: 'setPolarAngleAxis'; payload: PolarAngleAxisConfig | null }
   | { type: 'setPolarRadiusAxis'; payload: PolarRadiusAxisConfig | null }
@@ -259,7 +264,7 @@ type ChartAction =
 
 const initialChartState: ChartState = {
   xAxis: null,
-  yAxis: null,
+  yAxes: {},
   zAxis: null,
   polarAngleAxis: null,
   polarRadiusAxis: null,
@@ -278,8 +283,16 @@ function chartReducer(state: ChartState, action: ChartAction): ChartState {
   switch (action.type) {
     case 'setXAxis':
       return { ...state, xAxis: action.payload };
-    case 'setYAxis':
-      return { ...state, yAxis: action.payload };
+    case 'setYAxis': {
+      const { id, config } = action.payload;
+      if (config == null) {
+        if (!(id in state.yAxes)) return state;
+        const { [id]: _removed, ...rest } = state.yAxes;
+        void _removed;
+        return { ...state, yAxes: rest };
+      }
+      return { ...state, yAxes: { ...state.yAxes, [id]: config } };
+    }
     case 'setZAxis':
       return { ...state, zAxis: action.payload };
     case 'setPolarAngleAxis':
@@ -355,7 +368,8 @@ function useChartModel(params: {
     return colors[index % colors.length];
   }, [colors]);
   const [state, dispatch] = useReducer(chartReducer, initialChartState);
-  const { xAxis, yAxis, zAxis, polarAngleAxis, polarRadiusAxis, ctx, overlayCtx, hoveredIndex, pointer, barSeriesVersion, areaSeriesVersion, radarSeriesVersion, legendVersion, visibleRange } = state;
+  const { xAxis, yAxes, zAxis, polarAngleAxis, polarRadiusAxis, ctx, overlayCtx, hoveredIndex, pointer, barSeriesVersion, areaSeriesVersion, radarSeriesVersion, legendVersion, visibleRange } = state;
+  const yAxis = yAxes['0'] ?? Object.values(yAxes)[0] ?? null;
   const shouldClearOnLeaveRef = useRef<(() => boolean) | null>(null);
   const dpr = useDevicePixelRatio();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -803,17 +817,25 @@ function useChartModel(params: {
     return createLinearScale({ domain: applyDomainPadding(domain, xAxis?.padding, 'x'), range });
   }, [data, innerWidth, xAxis]);
 
-  const getYScale = useCallback((dataKey?: DataKey) => {
+  const getYScale = useCallback((dataKey?: DataKey, yAxisId: string | number = 0) => {
     if (!data.length) {
       return createLinearScale({ domain: [0, 100], range: [innerHeight, 0] });
     }
 
-    const yKey = dataKey ?? yAxis?.dataKey;
+    const axisId = String(yAxisId);
+    const axis =
+      yAxes[axisId] ??
+      (axisId === '0' ? yAxes['0'] : undefined) ??
+      yAxes['0'] ??
+      Object.values(yAxes)[0] ??
+      null;
 
-    if (yAxis?.domain && yAxis.domain !== 'auto') {
-      const range: [number, number] = yAxis.reversed ? [0, innerHeight] : [innerHeight, 0];
-      const numericDomain: [number, number] = [Number(yAxis.domain[0]), Number(yAxis.domain[1])];
-      return createLinearScale({ domain: applyDomainPadding(numericDomain, yAxis.padding, 'y'), range });
+    const yKey = dataKey ?? axis?.dataKey;
+
+    if (axis?.domain && axis.domain !== 'auto') {
+      const range: [number, number] = axis.reversed ? [0, innerHeight] : [innerHeight, 0];
+      const numericDomain: [number, number] = [Number(axis.domain[0]), Number(axis.domain[1])];
+      return createLinearScale({ domain: applyDomainPadding(numericDomain, axis.padding, 'y'), range });
     }
 
     let minVal = Infinity;
@@ -837,10 +859,10 @@ function useChartModel(params: {
 
     const padding = (maxVal - minVal) * 0.1 || 10;
     const domain: [number, number] = [minVal - padding, maxVal + padding];
-    const range: [number, number] = yAxis?.reversed ? [0, innerHeight] : [innerHeight, 0];
+    const range: [number, number] = axis?.reversed ? [0, innerHeight] : [innerHeight, 0];
 
-    return createLinearScale({ domain: applyDomainPadding(domain, yAxis?.padding, 'y'), range });
-  }, [data, innerHeight, yAxis]);
+    return createLinearScale({ domain: applyDomainPadding(domain, axis?.padding, 'y'), range });
+  }, [data, innerHeight, yAxes]);
 
   const getZScale = useCallback((value: number): number => {
     const range = zAxis?.range ?? [2, 16];
@@ -877,8 +899,8 @@ function useChartModel(params: {
   const setXAxisStable = useCallback((config: AxisConfig | null) => {
     dispatch({ type: 'setXAxis', payload: config });
   }, []);
-  const setYAxisStable = useCallback((config: AxisConfig | null) => {
-    dispatch({ type: 'setYAxis', payload: config });
+  const setYAxisStable = useCallback((config: AxisConfig | null, yAxisId: string | number = 0) => {
+    dispatch({ type: 'setYAxis', payload: { id: String(yAxisId), config } });
   }, []);
   const setZAxisStable = useCallback((config: ZAxisConfig | null) => {
     dispatch({ type: 'setZAxis', payload: config });
@@ -930,6 +952,7 @@ function useChartModel(params: {
   const scaleValue = useMemo<ChartScaleContextValue>(() => ({
     xAxis,
     yAxis,
+    yAxes,
     zAxis,
     polarAngleAxis,
     polarRadiusAxis,
@@ -944,6 +967,7 @@ function useChartModel(params: {
   }), [
     xAxis,
     yAxis,
+    yAxes,
     zAxis,
     polarAngleAxis,
     polarRadiusAxis,

@@ -104,6 +104,8 @@ export function Demo() {
 | Prop | Type | Default | Notes |
 |---|---|---|---|
 | `dataKey` | `string \| fn` | auto | Y value resolver |
+| `yAxisId` | `string \| number` | `0` | Bind series with the same id |
+| `position` | `'left' \| 'right'` | `'left'` | Axis side |
 | `domain` | `[number, number] \| 'auto'` | `'auto'` | Manual axis domain |
 | `tickValues` | `number[]` | auto | Explicit ticks |
 | `interval` | `number` | `0` | Skip every N ticks |
@@ -118,6 +120,7 @@ export function Demo() {
 | `stroke` | `string` | `#8884d8` |
 | `strokeWidth` | `number` | `2` |
 | `connectNulls` | `boolean` | `false` |
+| `yAxisId` | `string \| number` | `0` |
 | `dot` | `boolean \| {r,fill,stroke}` | `false` |
 | `activeDot` | `boolean \| {r,fill,stroke}` | `true` |
 
@@ -127,6 +130,7 @@ export function Demo() {
 |---|---|---|
 | `dataKey` | `string \| fn` | - |
 | `stackId` | `string \| number` | - |
+| `yAxisId` | `string \| number` | `0` |
 | `barSize` | `number` | auto |
 | `maxBarSize` | `number` | - |
 | `minPointSize` | `number` | - |
@@ -138,6 +142,7 @@ export function Demo() {
 |---|---|---|
 | `dataKey` | `string \| fn` | - |
 | `stackId` | `string \| number` | - |
+| `yAxisId` | `string \| number` | `0` |
 | `fill` | `string` | `#8884d8` |
 | `fillOpacity` | `number` | `0.25` |
 | `stroke` | `string` | - |
