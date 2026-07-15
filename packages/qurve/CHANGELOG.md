@@ -11,6 +11,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - `connectNulls` on `Line` / `Area` — missing y values create path gaps by default; set `connectNulls` to bridge them.
 - Dual Y-axes via `yAxisId` on `YAxis` and series (`Line` / `Bar` / `Area` / `Scatter`).
 
+### Tests
+- Hardened `@qurve/core` unit suite (geometry/edge cases for polar, labels, error bars, treemap, sankey, radial).
+- Core `pnpm test` now enforces coverage thresholds (lines/statements ≥96%, functions ≥99%, branches ≥88%).
+
 ## [0.3.0] - 2026-07-14
 
 ### Added
