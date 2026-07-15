@@ -53,4 +53,36 @@ describe('drawReferenceLine', () => {
     expect(ctx.lineTo).toHaveBeenCalledWith(120, 110);
     expect(ctx.stroke).toHaveBeenCalled();
   });
+
+  it('applies strokeDasharray when valid', () => {
+    const ctx = createMockContext();
+    drawReferenceLine({
+      ctx,
+      orientation: 'horizontal',
+      value: 10,
+      scale: (v) => v,
+      margin: { top: 0, left: 0 },
+      innerWidth: 100,
+      innerHeight: 50,
+      strokeDasharray: '4 2',
+      stroke: '#f00',
+      strokeWidth: 2,
+    });
+    expect(ctx.setLineDash).toHaveBeenCalledWith([4, 2]);
+  });
+
+  it('ignores incomplete dash patterns', () => {
+    const ctx = createMockContext();
+    drawReferenceLine({
+      ctx,
+      orientation: 'horizontal',
+      value: 10,
+      scale: (v) => v,
+      margin: { top: 0, left: 0 },
+      innerWidth: 100,
+      innerHeight: 50,
+      strokeDasharray: '4',
+    });
+    expect(ctx.setLineDash).not.toHaveBeenCalled();
+  });
 });

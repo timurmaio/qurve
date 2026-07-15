@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { createMockContext } from './mockCanvas';
 import {
   buildTreemapRects,
   drawTreemap,
@@ -6,19 +7,6 @@ import {
   resolveTreemapValue,
   squarify,
 } from './drawTreemap';
-
-function createMockContext() {
-  return {
-    save: vi.fn(),
-    restore: vi.fn(),
-    fillRect: vi.fn(),
-    strokeRect: vi.fn(),
-    fillStyle: '#000',
-    strokeStyle: '#000',
-    lineWidth: 1,
-    globalAlpha: 1,
-  } as unknown as CanvasRenderingContext2D;
-}
 
 describe('resolveTreemapValue', () => {
   it('sums children when nested', () => {
@@ -38,6 +26,13 @@ describe('resolveTreemapValue', () => {
 
   it('reads leaf dataKey', () => {
     expect(resolveTreemapValue({ name: 'a', size: 12 }, 'size')).toBe(12);
+  });
+
+  it('parses numeric strings and clamps negatives / junk to 0', () => {
+    expect(resolveTreemapValue({ name: 'a', value: '15.5' }, 'value')).toBe(15.5);
+    expect(resolveTreemapValue({ name: 'b', value: '-3' }, 'value')).toBe(0);
+    expect(resolveTreemapValue({ name: 'c', value: '' }, 'value')).toBe(0);
+    expect(resolveTreemapValue({ name: 'd', value: 'nope' }, 'value')).toBe(0);
   });
 });
 
@@ -66,6 +61,26 @@ describe('squarify', () => {
     expect(laid).toHaveLength(7);
     const area = laid.reduce((sum, r) => sum + r.width * r.height, 0);
     expect(area).toBeCloseTo(10000, 0);
+  });
+
+  it('lays out tall rectangles vertically and ignores zero values', () => {
+    const laid: Array<{ width: number; height: number }> = [];
+    squarify(
+      [
+        { value: 0, name: 'z', node: { name: 'z' } },
+        { value: 8, name: 'a', node: { name: 'a' } },
+        { value: 2, name: 'b', node: { name: 'b' } },
+      ],
+      0,
+      0,
+      40,
+      200,
+      (_item, rect) => {
+        laid.push(rect);
+      },
+    );
+    expect(laid).toHaveLength(2);
+    expect(laid.reduce((s, r) => s + r.width * r.height, 0)).toBeCloseTo(8000, 0);
   });
 });
 
@@ -115,6 +130,30 @@ describe('buildTreemapRects', () => {
     expect(rects.map((r) => r.name).sort()).toEqual(['A', 'B', 'C']);
   });
 
+  it('returns empty for invalid plot or zero values', () => {
+    expect(
+      buildTreemapRects({
+        data: [{ name: 'A', value: 10 }],
+        colors: ['#f00'],
+        plotX: 0,
+        plotY: 0,
+        plotWidth: 0,
+        plotHeight: 100,
+      }),
+    ).toEqual([]);
+
+    expect(
+      buildTreemapRects({
+        data: [],
+        colors: [],
+        plotX: 0,
+        plotY: 0,
+        plotWidth: 100,
+        plotHeight: 100,
+      }),
+    ).toEqual([]);
+  });
+
   it('applies Cell overrides by leaf index', () => {
     const rects = buildTreemapRects({
       data: [
@@ -136,7 +175,7 @@ describe('buildTreemapRects', () => {
 });
 
 describe('drawTreemap', () => {
-  it('fills each rect', () => {
+  it('fills and strokes each rect; dims non-hovered', () => {
     const ctx = createMockContext();
     const rects = buildTreemapRects({
       data: [
@@ -149,10 +188,13 @@ describe('drawTreemap', () => {
       plotWidth: 100,
       plotHeight: 50,
       padding: 0,
+      stroke: '#fff',
+      strokeWidth: 2,
     });
 
-    drawTreemap({ ctx, rects, hoveredIndex: null, hoverOpacity: 0.4 });
+    drawTreemap({ ctx, rects, hoveredIndex: 0, hoverOpacity: 0.4 });
     expect(ctx.fillRect).toHaveBeenCalledTimes(2);
+    expect(ctx.strokeRect).toHaveBeenCalled();
     expect(ctx.restore).toHaveBeenCalled();
   });
 });

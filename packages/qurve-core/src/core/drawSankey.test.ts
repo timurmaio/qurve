@@ -1,24 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { createMockContext } from './mockCanvas';
 import { drawSankey, findSankeyIndex, layoutSankey } from './drawSankey';
-
-function createMockContext() {
-  return {
-    save: vi.fn(),
-    restore: vi.fn(),
-    beginPath: vi.fn(),
-    moveTo: vi.fn(),
-    lineTo: vi.fn(),
-    bezierCurveTo: vi.fn(),
-    closePath: vi.fn(),
-    fill: vi.fn(),
-    fillRect: vi.fn(),
-    strokeRect: vi.fn(),
-    fillStyle: '#000',
-    strokeStyle: '#000',
-    lineWidth: 1,
-    globalAlpha: 1,
-  } as unknown as CanvasRenderingContext2D;
-}
 
 const SAMPLE = {
   nodes: [{ name: 'A' }, { name: 'B' }, { name: 'C' }],
@@ -48,6 +30,8 @@ describe('layoutSankey', () => {
     expect(nodes[2].column).toBeGreaterThan(nodes[0].column);
     expect(nodes[0].x).toBeLessThan(nodes[2].x);
     expect(links.every((l) => l.thickness > 0)).toBe(true);
+    const fromA = links.filter((l) => l.source === 0).reduce((s, l) => s + l.value, 0);
+    expect(fromA).toBe(80);
   });
 
   it('applies Cell overrides to nodes', () => {
@@ -67,30 +51,80 @@ describe('layoutSankey', () => {
     expect(nodes[0].color).toBe('#abc');
     expect(nodes[1].color).toBe('#def');
   });
+
+  it('returns empty for empty nodes or zero plot', () => {
+    expect(
+      layoutSankey({
+        data: { nodes: [], links: [] },
+        colors: [],
+        plotX: 0,
+        plotY: 0,
+        plotWidth: 100,
+        plotHeight: 100,
+      }),
+    ).toEqual({ nodes: [], links: [] });
+
+    expect(
+      layoutSankey({
+        data: SAMPLE,
+        colors: ['#f00', '#0f0', '#00f'],
+        plotX: 0,
+        plotY: 0,
+        plotWidth: 0,
+        plotHeight: 100,
+      }),
+    ).toEqual({ nodes: [], links: [] });
+  });
+
+  it('ignores invalid and self links', () => {
+    const { links } = layoutSankey({
+      data: {
+        nodes: [{ name: 'A' }, { name: 'B' }],
+        links: [
+          { source: 0, target: 0, value: 5 },
+          { source: 0, target: 9, value: 5 },
+          { source: 0, target: 1, value: 0 },
+          { source: 0, target: 1, value: 8 },
+        ],
+      },
+      colors: ['#f00', '#0f0'],
+      plotX: 0,
+      plotY: 0,
+      plotWidth: 200,
+      plotHeight: 100,
+    });
+    expect(links).toHaveLength(1);
+    expect(links[0].value).toBe(8);
+  });
 });
 
 describe('drawSankey', () => {
-  it('draws links then nodes', () => {
+  it('draws links then nodes with optional strokes', () => {
     const ctx = createMockContext();
     const layout = layoutSankey({
       data: SAMPLE,
       colors: ['#f00', '#0f0', '#00f'],
+      cellOverrides: [{ stroke: '#111', strokeWidth: 1 }],
       plotX: 0,
       plotY: 0,
       plotWidth: 300,
       plotHeight: 200,
+      nodeStrokeWidth: 1,
+      nodeStroke: '#222',
     });
 
     drawSankey({
       ctx,
       nodes: layout.nodes,
       links: layout.links,
-      hoveredIndex: null,
+      hoveredIndex: 0,
       hoverOpacity: 0.4,
+      linkOpacity: 0.3,
     });
 
     expect(ctx.fill).toHaveBeenCalledTimes(3);
     expect(ctx.fillRect).toHaveBeenCalledTimes(3);
+    expect(ctx.bezierCurveTo).toHaveBeenCalled();
     expect(ctx.restore).toHaveBeenCalled();
   });
 });

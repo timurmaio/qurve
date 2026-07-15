@@ -59,4 +59,23 @@ describe('getRelativePosition', () => {
     expect(result.x).toBe(300);
     expect(result.y).toBe(150);
   });
+
+  it('falls back to dpr=1 when devicePixelRatio is 0', () => {
+    Object.defineProperty(window, 'devicePixelRatio', { value: 0, configurable: true });
+    const canvas = document.createElement('canvas');
+    canvas.width = 100;
+    canvas.height = 50;
+    vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 100,
+      height: 50,
+      right: 100,
+      bottom: 50,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    expect(getRelativePosition(10, 5, canvas)).toEqual({ x: 10, y: 5 });
+  });
 });

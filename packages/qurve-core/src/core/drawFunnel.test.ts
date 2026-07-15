@@ -1,22 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { createMockContext } from './mockCanvas';
 import { buildFunnelTrapezoids, drawFunnel, findFunnelIndex } from './drawFunnel';
-
-function createMockContext() {
-  return {
-    save: vi.fn(),
-    restore: vi.fn(),
-    beginPath: vi.fn(),
-    moveTo: vi.fn(),
-    lineTo: vi.fn(),
-    closePath: vi.fn(),
-    fill: vi.fn(),
-    stroke: vi.fn(),
-    fillStyle: '#000',
-    strokeStyle: '#000',
-    lineWidth: 1,
-    globalAlpha: 1,
-  } as unknown as CanvasRenderingContext2D;
-}
 
 describe('buildFunnelTrapezoids', () => {
   it('builds decreasing trapezoids from values', () => {
@@ -40,22 +24,32 @@ describe('buildFunnelTrapezoids', () => {
 });
 
 describe('drawFunnel', () => {
-  it('fills each trapezoid', () => {
+  it('fills each trapezoid and strokes when configured', () => {
     const ctx = createMockContext();
     const traps = buildFunnelTrapezoids({
       data: [{ name: 'A' }, { name: 'B' }],
       values: [100, 50],
       names: ['A', 'B'],
       colors: ['#f00', '#0f0'],
+      cellOverrides: [{ stroke: '#111', strokeWidth: 2 }],
       plotX: 10,
       plotY: 10,
       plotWidth: 100,
       plotHeight: 200,
+      stroke: '#222',
+      strokeWidth: 1,
     });
 
-    drawFunnel({ ctx, trapezoids: traps, hoveredIndex: null, hoverOpacity: 0.4 });
+    drawFunnel({ ctx, trapezoids: traps, hoveredIndex: 0, hoverOpacity: 0.4 });
     expect(ctx.fill).toHaveBeenCalledTimes(2);
+    expect(ctx.stroke).toHaveBeenCalled();
     expect(ctx.restore).toHaveBeenCalled();
+  });
+
+  it('returns early for empty trapezoids', () => {
+    const ctx = createMockContext();
+    drawFunnel({ ctx, trapezoids: [], hoveredIndex: null, hoverOpacity: 0.4 });
+    expect(ctx.fill).not.toHaveBeenCalled();
   });
 });
 
