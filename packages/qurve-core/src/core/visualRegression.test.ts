@@ -15,7 +15,9 @@ import { drawSankey, layoutSankey } from './drawSankey';
 
 const FIXTURE_DIR = join(dirname(fileURLToPath(import.meta.url)), '__visual__');
 const UPDATE = process.env.UPDATE_VISUAL_GOLDENS === '1';
-const MAX_DIFF_PIXELS = 0;
+/** Allow tiny AA drift between macOS / Linux @napi-rs/canvas builds. */
+const MAX_DIFF_PIXELS = 48;
+const PIXELMATCH_THRESHOLD = 0.1;
 
 function assertMatchesGolden(name: string, pngBuffer: Buffer) {
   mkdirSync(FIXTURE_DIR, { recursive: true });
@@ -41,7 +43,7 @@ function assertMatchesGolden(name: string, pngBuffer: Buffer) {
     diff.data,
     actual.width,
     actual.height,
-    { threshold: 0 },
+    { threshold: PIXELMATCH_THRESHOLD },
   );
 
   if (mismatched > MAX_DIFF_PIXELS) {
