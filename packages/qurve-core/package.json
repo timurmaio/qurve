@@ -1,6 +1,6 @@
 {
   "name": "@qurve/core",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Framework-agnostic chart renderer and math utilities for Qurve",
   "type": "module",
   "sideEffects": false,
@@ -34,8 +34,19 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@napi-rs/canvas": "^1.0.2",
+    "@types/d3-array": "^3.2.2",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.8",
+    "@types/pixelmatch": "^5.2.6",
+    "@types/pngjs": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.0",
+    "d3-array": "3.2.4",
+    "d3-scale": "4.0.2",
+    "d3-shape": "3.2.0",
     "jsdom": "^29.0.1",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
     "tsdown": "^0.21.4",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0"

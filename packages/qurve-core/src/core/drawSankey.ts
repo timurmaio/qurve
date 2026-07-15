@@ -215,7 +215,8 @@ export function layoutSankey(params: {
   // Sort links by target then source for stable stacking
   const sortedLinks = validLinks
     .map((link, index) => ({ link, index }))
-    .toSorted((a, b) => {
+    .slice()
+    .sort((a, b) => {
       if (a.link.source !== b.link.source) return a.link.source - b.link.source;
       return a.link.target - b.link.target;
     });

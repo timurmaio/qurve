@@ -6,20 +6,24 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-07-15
+
 ### Added
 - `PieChart`, `ScatterChart`, and `ComposedChart` convenience wrappers (Recharts-style aliases of `Chart`).
 - `connectNulls` on `Line` / `Area` — missing y values create path gaps by default; set `connectNulls` to bridge them.
 - Dual Y-axes via `yAxisId` on `YAxis` and series (`Line` / `Bar` / `Area` / `Scatter`).
-
-### Tests
-- Hardened `@qurve/core` unit suite (geometry/edge cases for polar, labels, error bars, treemap, sankey, radial).
-- Core `pnpm test` now enforces coverage thresholds (lines/statements ≥96%, functions ≥99%, branches ≥88%).
 
 ### Changed
 - Core curves: real Steffen/`curveMonotoneX` (d3-compatible), shared path builder for Line + Area; `stepBefore` / `stepAfter`.
 - Core scales: deps-free `scaleLinear`, `ticks` / `niceDomain` (d3-array/d3-scale ports); auto domains use nice boundaries.
 - Hit-tests: RadialBar (angle+radius), Funnel (point-in-trapezoid), Sankey (link ribbons → source node).
 - Canvas hygiene: `save`/`restore` on line path/dots and crosshair.
+
+### Tests
+- Live CI parity vs `d3-shape` / `d3-array` / `d3-scale` for curves and ticks.
+- Canvas PNG visual goldens (monotone line, radial bars, sankey) via `@napi-rs/canvas` + pixelmatch.
+- React wiring contracts: `type`/`connectNulls` → draw*, nice domains → `YAxis`, hit-tests → tooltip payload.
+- Core coverage thresholds raised (branches ≥90%); React package thresholds raised (lines/statements ≥85%, functions ≥80%, branches ≥70%).
 
 ## [0.3.0] - 2026-07-14
 

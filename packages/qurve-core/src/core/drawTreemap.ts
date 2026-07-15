@@ -107,7 +107,8 @@ export function squarify(
 ): void {
   const remaining = items
     .filter((item) => item.value > 0)
-    .toSorted((a, b) => b.value - a.value);
+    .slice()
+    .sort((a, b) => b.value - a.value);
 
   let cx = x;
   let cy = y;
