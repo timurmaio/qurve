@@ -20,17 +20,17 @@ type ChartPalette = {
 };
 
 const FALLBACK_PALETTE: ChartPalette = {
-  grid: "#d8dee8",
-  linePrimary: "#60a5fa",
-  lineSecondary: "#f97316",
-  barPrimary: "#60a5fa",
-  barSecondary: "#f59e0b",
-  areaPrimary: "#60a5fa",
-  areaSecondary: "#34d399",
-  pie1: "#60a5fa",
-  pie2: "#34d399",
-  pie3: "#f59e0b",
-  scatter: "#2563eb",
+  grid: "#c5ced9",
+  linePrimary: "#0f766e",
+  lineSecondary: "#c2410c",
+  barPrimary: "#0d9488",
+  barSecondary: "#d97706",
+  areaPrimary: "#14b8a6",
+  areaSecondary: "#ea580c",
+  pie1: "#0d9488",
+  pie2: "#0284c7",
+  pie3: "#d97706",
+  scatter: "#0f766e",
 };
 
 function cssVar(name: string, fallback: string): string {
@@ -55,78 +55,43 @@ function readPalette(): ChartPalette {
   };
 }
 
-// Logo component — uses original dark logo with mix-blend-mode for clean rendering
-function Logo({ size = 48 }: { size?: number }) {
-  return (
-    <div
-      className="overflow-hidden rounded-lg bg-[var(--surface)] border border-[var(--border)] shadow-[var(--shadow)] rotate-[-3deg] sm:rotate-[-4deg] hover:rotate-[-2deg] transition-transform duration-300 ease-out"
-      style={{ width: size, height: size * 0.43 }}
-    >
-      <img
-        src="/logo.png"
-        alt="Qurve"
-        width={size}
-        height={size * 0.43}
-        className="object-contain"
-        style={{ filter: "invert(1)" }}
-      />
-    </div>
-  );
-}
-
-// Status badge component
-function StatusBadge({
-  status,
+function Mark({
+  size = 40,
+  className = "",
 }: {
-  status: "implemented" | "planned" | "experimental";
+  size?: number;
+  className?: string;
 }) {
-  const styles = {
-    implemented: "bg-[var(--accent)] text-white font-mono tracking-[0.18em]",
-    planned: "bg-[var(--surface-muted)] text-[var(--text-muted)] border border-[var(--border-strong)]",
-    experimental: "bg-amber-100 text-amber-800",
-  };
-
   return (
-    <span
-      className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-medium ${styles[status]}`}
-    >
-      {status}
-    </span>
+    <img
+      src="/logo.png"
+      alt="Qurve"
+      width={size}
+      height={Math.round(size * 0.43)}
+      className={`mark-logo object-contain ${className}`}
+    />
   );
 }
 
-// Primitive card component
-function PrimitiveCard({
+function PrimitiveRow({
   name,
   description,
-  status,
   example,
 }: {
   name: string;
   description: string;
-  status: "implemented" | "planned" | "experimental";
   example?: React.ReactNode;
 }) {
   return (
-    <div className="bg-[var(--surface)] rounded-lg p-6 shadow-[var(--shadow)] border border-transparent hover:border-[var(--border)] hover:-translate-y-px transition-all group flex flex-col h-full">
-      <div className="flex items-start justify-between mb-3">
-        <code className="text-sm font-mono text-[var(--text)] bg-[var(--surface-muted)] px-2 py-1 rounded">
-          {name}
-        </code>
-        <StatusBadge status={status} />
-      </div>
-      <p className="text-[var(--text-muted)] text-sm leading-relaxed flex-grow">{description}</p>
-      {example && (
-        <div className="mt-4 pt-4 border-t border-[var(--border)]">
-          {example}
-        </div>
-      )}
-    </div>
+    <article className="primitive-row">
+      <code className="font-mono text-sm text-[var(--text)] tracking-tight">{name}</code>
+      <p className="text-[var(--text-muted)] text-sm leading-relaxed max-w-prose">{description}</p>
+      {example ? <div className="min-w-0 w-full">{example}</div> : <div />}
+    </article>
   );
 }
 
-// Feature card component — border-left accent
-function FeatureCard({
+function FeatureItem({
   title,
   description,
 }: {
@@ -135,14 +100,22 @@ function FeatureCard({
 }) {
   return (
     <div className="border-l-2 border-[var(--accent)] pl-4">
-      <h4 className="text-sm font-medium text-[var(--text)] mb-1">{title}</h4>
+      <h3 className="text-sm font-medium text-[var(--text)] mb-1">{title}</h3>
       <p className="text-[var(--text-muted)] text-sm leading-relaxed">{description}</p>
     </div>
   );
 }
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="font-display text-xs uppercase tracking-[0.22em] text-[var(--text-muted)] mb-8">
+      {children}
+    </h2>
+  );
+}
+
 // Shared wrapper for responsive chart demos
-function ChartDemo({ height = 140, children }: { height?: number; children: React.ReactNode }) {
+function ChartDemo({ height = 120, children }: { height?: number; children: React.ReactNode }) {
   return (
     <div className="w-full" style={{ height }}>
       <ResponsiveContainer>{children as React.ReactElement}</ResponsiveContainer>
@@ -195,28 +168,6 @@ function LineChartDemo({ palette }: { palette: ChartPalette }) {
           strokeWidth={2}
           dot={false}
         />
-      </Chart>
-    </ChartDemo>
-  );
-}
-
-function MultiLineDemo({ palette }: { palette: ChartPalette }) {
-  const data = useMemo(() => {
-    return Array.from({ length: 15 }, (_, i) => ({
-      name: i + 1,
-      value1: 50 + Math.sin(i * 0.5) * 20,
-      value2: 70 + Math.cos(i * 0.3) * 15,
-    }));
-  }, []);
-
-  return (
-    <ChartDemo>
-      <Chart data={data} margin={{ top: 6, right: 8, left: 8, bottom: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Line dataKey="value1" type="monotone" stroke={palette.linePrimary} dot={false} />
-        <Line dataKey="value2" type="monotone" stroke={palette.lineSecondary} dot={false} />
       </Chart>
     </ChartDemo>
   );
@@ -668,6 +619,37 @@ function BrushDemo({ palette }: { palette: ChartPalette }) {
   );
 }
 
+/** Full-bleed hero visual — the product is the chart. */
+function HeroChart({ palette }: { palette: ChartPalette }) {
+  const data = useMemo(() => {
+    return appleStock.slice(0, 120).map((d, i) => ({
+      day: i + 1,
+      close: d.close,
+    }));
+  }, []);
+
+  return (
+    <div className="h-[min(42vh,320px)] sm:h-[min(48vh,420px)] w-full relative z-0">
+      <ResponsiveContainer>
+        <Chart data={data} margin={{ top: 24, right: 24, left: 8, bottom: 16 }}>
+          <CartesianGrid strokeDasharray="2 6" stroke={palette.grid} vertical={false} />
+          <XAxis dataKey="day" tick={false} tickLine={false} axisLine={false} />
+          <YAxis domain="auto" tick={false} tickLine={false} axisLine={false} width={0} />
+          <Area
+            dataKey="close"
+            fill={palette.areaPrimary}
+            fillOpacity={0.16}
+            stroke={palette.linePrimary}
+            strokeWidth={2.5}
+            name="AAPL"
+          />
+          <Tooltip />
+        </Chart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 // Example: Stock Dashboard — Line + Brush + Tooltip
 function StockDashboardExample({ palette }: { palette: ChartPalette }) {
   const data = useMemo(() => {
@@ -679,10 +661,10 @@ function StockDashboardExample({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <div className="bg-[var(--surface)] rounded-lg p-8 shadow-[var(--shadow)]">
+    <div className="border-t border-[var(--border)] pt-8">
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-[var(--text)] mb-1">Stock Dashboard</h3>
-        <p className="text-xs text-[var(--text-muted)]">Line + CartesianGrid + Tooltip + Brush — 90 data points</p>
+        <h3 className="font-display text-lg text-[var(--text)] mb-1">Stock Dashboard</h3>
+        <p className="text-sm text-[var(--text-muted)]">Line + CartesianGrid + Tooltip + Brush — 90 data points</p>
       </div>
       <div className="h-[220px] mb-6">
         <ResponsiveContainer>
@@ -704,14 +686,14 @@ function StockDashboardExample({ palette }: { palette: ChartPalette }) {
           </Chart>
         </ResponsiveContainer>
       </div>
-      <pre className="text-xs text-[var(--text-muted)] bg-[var(--surface-muted)] p-4 rounded-lg overflow-x-auto font-mono leading-relaxed">{`<Chart data={data}>
+      <pre className="text-xs text-[var(--text-muted)] bg-[var(--surface-muted)]/80 p-4 overflow-x-auto font-mono leading-relaxed border border-[var(--border)]">{`<Chart data={data}>
   <CartesianGrid strokeDasharray="3 3" />
   <XAxis dataKey="day" />
   <YAxis />
   <Line
     dataKey="price"
     type="monotone"
-    stroke="#60a5fa"
+    stroke="#0f766e"
     strokeWidth={2}
     dot={false}
     activeDot={{ r: 5 }}
@@ -740,10 +722,10 @@ function SalesOverviewExample({ palette }: { palette: ChartPalette }) {
   }, []);
 
   return (
-    <div className="bg-[var(--surface)] rounded-lg p-8 shadow-[var(--shadow)]">
+    <div className="border-t border-[var(--border)] pt-8">
       <div className="mb-6">
-        <h3 className="text-sm font-medium text-[var(--text)] mb-1">Sales Overview</h3>
-        <p className="text-xs text-[var(--text-muted)]">Bar + Line + Legend + Tooltip — revenue vs target</p>
+        <h3 className="font-display text-lg text-[var(--text)] mb-1">Sales Overview</h3>
+        <p className="text-sm text-[var(--text-muted)]">Bar + Line + Legend + Tooltip — revenue vs target</p>
       </div>
       <div className="h-[220px] mb-6">
         <ResponsiveContainer>
@@ -772,19 +754,19 @@ function SalesOverviewExample({ palette }: { palette: ChartPalette }) {
           </Chart>
         </ResponsiveContainer>
       </div>
-      <pre className="text-xs text-[var(--text-muted)] bg-[var(--surface-muted)] p-4 rounded-lg overflow-x-auto font-mono leading-relaxed">{`<Chart data={data}>
+      <pre className="text-xs text-[var(--text-muted)] bg-[var(--surface-muted)]/80 p-4 overflow-x-auto font-mono leading-relaxed border border-[var(--border)]">{`<Chart data={data}>
   <CartesianGrid strokeDasharray="3 3" />
   <XAxis dataKey="month" />
   <YAxis />
   <Bar
     dataKey="revenue"
-    fill="#60a5fa"
+    fill="#0d9488"
     radius={4}
     tooltipName="Revenue"
   />
   <Line
     dataKey="target"
-    stroke="#f97316"
+    stroke="#c2410c"
     strokeWidth={2}
     name="Target"
   />
@@ -816,247 +798,243 @@ export default function Home() {
     setPalette(readPalette());
   };
 
+  const primitives = useMemo(
+    () => [
+      {
+        name: "<Chart />",
+        description: "The root container. Manages canvas context and coordinates all child components.",
+        example: <SimpleChartDemo palette={palette} />,
+      },
+      {
+        name: "<Line />",
+        description: "Line series with support for linear, monotone, and step interpolation.",
+        example: <LineChartDemo palette={palette} />,
+      },
+      {
+        name: "<Bar />",
+        description: "Vertical bars with grouping, stacking (stackId), rounded corners, and tooltip support.",
+        example: <BarDemo palette={palette} />,
+      },
+      {
+        name: "<Area />",
+        description: "Filled area series with stacking, custom fill opacity, and per-series tooltip formatting.",
+        example: <AreaDemo palette={palette} />,
+      },
+      {
+        name: "<ResponsiveContainer />",
+        description: "Auto-sizes charts to the parent element via ResizeObserver.",
+        example: <ResponsiveDemo palette={palette} />,
+      },
+      {
+        name: "<Legend />",
+        description: "Built-in legend with click-to-toggle visibility for line, bar, and area series.",
+        example: <LegendDemo palette={palette} />,
+      },
+      {
+        name: "<Pie />",
+        description: "Pie and donut charts with palette-driven slices, outside labels, connector lines, and tooltip hit-testing.",
+        example: <PieDemo palette={palette} />,
+      },
+      {
+        name: "<Scatter />",
+        description: "Point / bubble plots with x/y/z keys, ZAxis sizing, tooltip payloads, and legend toggling.",
+        example: <ScatterDemo palette={palette} />,
+      },
+      {
+        name: "<Radar />",
+        description: "Radar charts with PolarGrid, angle/radius axes, multi-series polygons, and tooltip.",
+        example: <RadarDemo palette={palette} />,
+      },
+      {
+        name: "<RadialBar />",
+        description: "Concentric gauge arcs with optional background track, Cell colors, and tooltip hit-testing.",
+        example: <RadialBarDemo palette={palette} />,
+      },
+      {
+        name: "<Funnel />",
+        description: "Conversion funnel with trapezoid stages, Cell colors, and side labels.",
+        example: <FunnelDemo palette={palette} />,
+      },
+      {
+        name: "<Treemap />",
+        description: "Squarified treemap with nested children, Cell colors, and leaf labels.",
+        example: <TreemapDemo palette={palette} />,
+      },
+      {
+        name: "<Sankey />",
+        description: "Flow diagram with nodes, weighted links, Cell colors, and tooltip on nodes.",
+        example: <SankeyDemo palette={palette} />,
+      },
+      {
+        name: "<Brush />",
+        description: "Interactive range selector with draggable window and handles for x-range zooming.",
+        example: <BrushDemo palette={palette} />,
+      },
+      {
+        name: "Axes",
+        description: "Axis components with automatic tick generation and customizable formatting.",
+        example: <AxisDemo palette={palette} />,
+      },
+      {
+        name: "<CartesianGrid />",
+        description: "Reference grid lines for easier data reading. Configurable stroke patterns.",
+        example: <GridDemo palette={palette} />,
+      },
+      {
+        name: "<Tooltip />",
+        description: "Interactive tooltips with crosshair cursor and value display on hover.",
+        example: <TooltipDemo palette={palette} />,
+      },
+    ],
+    [palette],
+  );
+
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] px-4 sm:px-8 py-16 transition-colors">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <header className="mb-24">
-          <div className="flex items-center justify-between gap-4 mb-10">
-            <div className="flex items-end gap-4">
-              <div className="translate-y-1 sm:translate-y-2">
-                <Logo size={72} />
-              </div>
-              <h1 className="text-xl font-semibold tracking-tight text-[var(--text)]">Qurve</h1>
-            </div>
+    <div className="site-atmosphere text-[var(--text)] transition-colors">
+      <div className="site-content px-4 sm:px-8 pt-8 pb-20">
+        <div className="max-w-5xl mx-auto">
+          {/* Top bar — theme only; brand lives in the hero */}
+          <div className="flex items-center justify-end gap-4 mb-10 anim-rise">
             <button
               type="button"
               onClick={toggleTheme}
-              className="text-sm font-medium px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] hover:border-[var(--accent)] transition-colors"
+              className="cta-secondary py-2 px-3 text-xs tracking-wide"
             >
-              {theme === "dark" ? "Light" : "Dark"} mode
+              {theme === "dark" ? "Light" : "Dark"}
             </button>
           </div>
-          <div className="max-w-2xl">
+
+          {/* Hero — logo as brand, claim, CTA, dominant chart */}
+          <header className="mb-6">
+            <h1 className="anim-rise anim-delay-1">
+              <Mark
+                size={360}
+                className="h-auto w-[min(100%,18rem)] sm:w-[min(100%,22rem)] md:w-[min(100%,26rem)]"
+              />
+            </h1>
             <p
-              className="text-4xl sm:text-5xl font-semibold text-[var(--text)] leading-tight mb-5"
+              className="mt-8 max-w-xl text-xl sm:text-2xl text-[var(--text)] leading-snug anim-rise anim-delay-2"
               style={{ textWrap: "balance" }}
             >
-              Canvas-powered charts that actually{" "}
-              <em className="font-serif font-normal italic">perform</em>.
+              Canvas charts that actually{" "}
+              <em className="not-italic font-display font-semibold text-[var(--accent)]">perform</em>.
             </p>
-            <p className="text-[var(--text-muted)] text-lg leading-relaxed mb-10">
-              A high-performance React charting library. No DOM bloat. No SVG
-              overhead. Just fast, crisp, Recharts-compatible visuals.
+            <p className="mt-3 max-w-lg text-[var(--text-muted)] text-base leading-relaxed anim-rise anim-delay-3">
+              Recharts-compatible API. No DOM bloat. No SVG overhead — just fast, crisp canvas.
             </p>
-            {/* CTA */}
-            <div className="flex flex-wrap items-center gap-3">
-              <code className="text-sm font-mono bg-[var(--accent)] text-white px-4 py-2.5 rounded-lg select-all">
-                npm install qurve
-              </code>
+            <div className="mt-8 flex flex-wrap items-center gap-3 anim-rise anim-delay-4">
+              <code className="cta-primary">npm install qurve</code>
               <a
                 href="https://github.com/tnbt/qurve"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium px-4 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--text)] hover:border-[var(--accent)] transition-colors"
+                className="cta-secondary"
               >
-                View on GitHub
+                GitHub
               </a>
             </div>
+          </header>
+        </div>
+
+        <div className="hero-chart-plane anim-chart mt-10 mb-20">
+          <div className="max-w-6xl mx-auto px-2 sm:px-6">
+            <HeroChart palette={palette} />
           </div>
-        </header>
+        </div>
 
-        <main>
-          {/* Primitives — Implemented */}
-          <section className="mb-16">
-            <h2 className="text-sm uppercase tracking-wider text-[var(--text-muted)] mb-8 font-medium">
-              Primitives
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <PrimitiveCard
-                name="<Chart />"
-                description="The root container. Manages canvas context and coordinates all child components."
-                status="implemented"
-                example={<SimpleChartDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Line />"
-                description="Line series with support for linear, monotone, and step interpolation."
-                status="implemented"
-                example={<LineChartDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Bar />"
-                description="Vertical bars with grouping, stacking (stackId), rounded corners, and tooltip support."
-                status="implemented"
-                example={<BarDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Area />"
-                description="Filled area series with stacking, custom fill opacity, and per-series tooltip formatting."
-                status="implemented"
-                example={<AreaDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<ResponsiveContainer />"
-                description="Auto-sizes charts to the parent element via ResizeObserver."
-                status="implemented"
-                example={<ResponsiveDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Legend />"
-                description="Built-in legend with click-to-toggle visibility for line, bar, and area series."
-                status="implemented"
-                example={<LegendDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Pie />"
-                description="Pie and donut charts with palette-driven slices, outside labels, connector lines, and tooltip hit-testing."
-                status="implemented"
-                example={<PieDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Scatter />"
-                description="Point / bubble plots with x/y/z keys, ZAxis sizing, tooltip payloads, and legend toggling."
-                status="implemented"
-                example={<ScatterDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Radar />"
-                description="Radar charts with PolarGrid, angle/radius axes, multi-series polygons, and tooltip."
-                status="implemented"
-                example={<RadarDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<RadialBar />"
-                description="Concentric gauge arcs with optional background track, Cell colors, and tooltip hit-testing."
-                status="implemented"
-                example={<RadialBarDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Funnel />"
-                description="Conversion funnel with trapezoid stages, Cell colors, and side labels."
-                status="implemented"
-                example={<FunnelDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Treemap />"
-                description="Squarified treemap with nested children, Cell colors, and leaf labels."
-                status="implemented"
-                example={<TreemapDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Sankey />"
-                description="Flow diagram with nodes, weighted links, Cell colors, and tooltip on nodes."
-                status="implemented"
-                example={<SankeyDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Brush />"
-                description="Interactive range selector with draggable window and handles for x-range zooming."
-                status="implemented"
-                example={<BrushDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="Axes"
-                description="Axis components with automatic tick generation and customizable formatting."
-                status="implemented"
-                example={<AxisDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<CartesianGrid />"
-                description="Reference grid lines for easier data reading. Configurable stroke patterns."
-                status="implemented"
-                example={<GridDemo palette={palette} />}
-              />
-              <PrimitiveCard
-                name="<Tooltip />"
-                description="Interactive tooltips with crosshair cursor and value display on hover."
-                status="implemented"
-                example={<TooltipDemo palette={palette} />}
-              />
-            </div>
-          </section>
+        <div className="max-w-5xl mx-auto">
+          <main>
+            {/* Performance — primary differentiator, right after hero */}
+            <section className="mb-24">
+              <SectionLabel>Performance</SectionLabel>
+              <p
+                className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[var(--text)] leading-tight max-w-2xl mb-5"
+                style={{ textWrap: "balance" }}
+              >
+                Same API. Different ceiling.
+              </p>
+              <p className="text-[var(--text-muted)] text-base leading-relaxed mb-8 max-w-xl">
+                Canvas rendering unlocks 100k+ points without SVG DOM cost.
+                Compare Qurve and Recharts side-by-side, or track drop-in compatibility.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/comparison" className="cta-secondary">
+                  Live comparison
+                </Link>
+                <Link to="/are-we-recharts-yet" className="cta-secondary">
+                  Are we Recharts yet?
+                </Link>
+              </div>
+            </section>
 
-          {/* Features */}
-          <section className="mb-20">
-            <h2 className="text-sm uppercase tracking-wider text-[var(--text-muted)] mb-8 font-medium">
-              Features
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[var(--surface)] rounded-lg p-8 shadow-[var(--shadow)]">
-              <FeatureCard
-                title="Recharts-compatible API"
-                description="Drop-in replacement with the same component names and props. Migration is painless."
-              />
-              <FeatureCard
-                title="Canvas Rendering"
-                description="GPU-accelerated drawing. Handles 100k+ data points without breaking a sweat."
-              />
-              <FeatureCard
-                title="Auto-scaling"
-                description="Smart domain calculation from your data. No manual configuration needed."
-              />
-              <FeatureCard
-                title="High-DPI Support"
-                description="Crisp rendering on Retina displays with automatic DPR detection."
-              />
-              <FeatureCard
-                title="TypeScript First"
-                description="Full type safety with detailed prop interfaces and generics."
-              />
-              <FeatureCard
-                title="SSR Compatible"
-                description="Works seamlessly with Next.js and other server-side rendering frameworks."
-              />
-            </div>
-          </section>
+            {/* Primitives — compact rows, not a card wall */}
+            <section className="mb-24">
+              <SectionLabel>Primitives</SectionLabel>
+              <p className="text-[var(--text-muted)] text-sm mb-2 max-w-xl">
+                Compose charts from familiar pieces. Hover a row to focus it.
+              </p>
+              <div className="border-t border-[var(--border)]">
+                {primitives.map((p) => (
+                  <PrimitiveRow
+                    key={p.name}
+                    name={p.name}
+                    description={p.description}
+                    example={p.example}
+                  />
+                ))}
+              </div>
+            </section>
 
-          {/* Example Charts */}
-          <section className="mb-20">
-            <h2 className="text-sm uppercase tracking-wider text-[var(--text-muted)] mb-8 font-medium">
-              Examples
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <StockDashboardExample palette={palette} />
-              <SalesOverviewExample palette={palette} />
-            </div>
-          </section>
+            {/* Features — no wrapping card */}
+            <section className="mb-24">
+              <SectionLabel>Features</SectionLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
+                <FeatureItem
+                  title="Recharts-compatible API"
+                  description="Drop-in replacement with the same component names and props. Migration is painless."
+                />
+                <FeatureItem
+                  title="Canvas Rendering"
+                  description="GPU-accelerated drawing. Handles 100k+ data points without breaking a sweat."
+                />
+                <FeatureItem
+                  title="Auto-scaling"
+                  description="Smart domain calculation from your data. No manual configuration needed."
+                />
+                <FeatureItem
+                  title="High-DPI Support"
+                  description="Crisp rendering on Retina displays with automatic DPR detection."
+                />
+                <FeatureItem
+                  title="TypeScript First"
+                  description="Full type safety with detailed prop interfaces and generics."
+                />
+                <FeatureItem
+                  title="SSR Compatible"
+                  description="Works seamlessly with Next.js and other server-side rendering frameworks."
+                />
+              </div>
+            </section>
 
-          {/* Benchmarks */}
-          <section className="mb-20">
-            <h2 className="text-sm uppercase tracking-wider text-[var(--text-muted)] mb-8 font-medium">
-              Performance
-            </h2>
-            <p className="text-[var(--text-muted)] text-sm leading-relaxed mb-8 max-w-xl">
-              Canvas rendering unlocks a fundamentally different performance ceiling.
-              Open the dedicated comparison page to inspect Qurve and Recharts side-by-side on the same datasets.
-              Check the Recharts compatibility progress for drop-in replacement status.
-            </p>
-            <div className="flex flex-wrap gap-3">
-            <Link
-              to="/comparison"
-              className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:border-[var(--accent)]"
-            >
-              Comparison
-            </Link>
-            <Link
-              to="/are-we-recharts-yet"
-              className="inline-flex items-center rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm font-medium text-[var(--text)] transition-colors hover:border-[var(--accent)]"
-            >
-              Are we Recharts yet?
-            </Link>
-            </div>
-          </section>
-        </main>
+            {/* Examples */}
+            <section className="mb-20">
+              <SectionLabel>Examples</SectionLabel>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+                <StockDashboardExample palette={palette} />
+                <SalesOverviewExample palette={palette} />
+              </div>
+            </section>
+          </main>
 
-        <footer className="mt-24 pt-8 border-t border-[var(--border)]">
-          <div className="flex items-center justify-between">
-            <p className="text-[var(--text-muted)] text-sm">Open source. MIT license.</p>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[var(--success)]" />
-              <span className="text-[var(--text-muted)] text-sm">Canvas ready</span>
+          <footer className="mt-20 pt-8 border-t border-[var(--border)]">
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-[var(--text-muted)] text-sm">Open source. MIT license.</p>
+              <p className="font-mono text-xs tracking-widest uppercase text-[var(--accent)]">
+                Canvas ready
+              </p>
             </div>
-          </div>
-        </footer>
+          </footer>
+        </div>
       </div>
     </div>
   );

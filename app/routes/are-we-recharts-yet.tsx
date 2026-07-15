@@ -64,20 +64,23 @@ function statusBadge(status: Status) {
   switch (status) {
     case "done":
       return (
-        <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-          ✓ Done
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+          <span aria-hidden>✓</span>
+          Done
         </span>
       );
     case "partial":
       return (
-        <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-          ~ Partial
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+          <span aria-hidden>~</span>
+          Partial
         </span>
       );
     case "missing":
       return (
-        <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-600 dark:text-slate-300">
-          — Missing
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-600 dark:text-slate-300">
+          <span aria-hidden>—</span>
+          Missing
         </span>
       );
   }
@@ -161,7 +164,7 @@ export default function AreWeRechartsYet() {
                     <td className="px-4 py-3 font-medium">{item.component}</td>
                     <td className="px-4 py-3 text-[var(--text-muted)]">{item.recharts}</td>
                     <td className="px-4 py-3 text-[var(--text-muted)]">{item.qurve}</td>
-                    <td className="px-4 py-3">{statusBadge(item.status)}</td>
+                    <td className="whitespace-nowrap px-4 py-3">{statusBadge(item.status)}</td>
                     <td className="max-w-xs px-4 py-3 text-[var(--text-muted)]">{item.notes ?? "—"}</td>
                   </tr>
                 ))}
