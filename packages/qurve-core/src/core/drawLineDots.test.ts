@@ -3,6 +3,8 @@ import { drawLineDots, drawActiveDot } from './drawLine';
 
 function createMockContext() {
   return {
+    save: vi.fn(),
+    restore: vi.fn(),
     beginPath: vi.fn(),
     arc: vi.fn(),
     fill: vi.fn(),

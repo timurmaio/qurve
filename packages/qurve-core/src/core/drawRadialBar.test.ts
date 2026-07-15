@@ -138,10 +138,10 @@ describe('drawRadialBars', () => {
 });
 
 describe('findRadialBarIndex', () => {
-  it('returns ring index by distance from center', () => {
+  it('returns ring index by distance and angle', () => {
     const sectors = buildRadialBarSectors({
       data: [{ name: 'A' }, { name: 'B' }],
-      values: [100, 100],
+      values: [100, 50],
       names: ['A', 'B'],
       colors: ['#f00', '#0f0'],
       cx: 100,
@@ -149,12 +149,34 @@ describe('findRadialBarIndex', () => {
       innerRadius: 0,
       outerRadius: 100,
       startAngle: 0,
-      endAngle: 360,
+      endAngle: 180,
       maxValue: 100,
     });
 
-    expect(findRadialBarIndex(sectors, 100, 100 + sectors[0].innerRadius + 1)).toBe(0);
-    expect(findRadialBarIndex(sectors, 100, 100 + sectors[1].innerRadius + 1)).toBe(1);
+    // Right of center (angle ~0°) — inside first ring full sweep and second half-sweep
+    expect(findRadialBarIndex(sectors, 100 + sectors[0].innerRadius + 2, 100)).toBe(0);
+    // Left of center (angle ~180°) — outside the 0→90 half bar of B (50%)
+    expect(findRadialBarIndex(sectors, 100 - sectors[1].innerRadius - 2, 100)).toBeNull();
     expect(findRadialBarIndex(sectors, 100, 250)).toBeNull();
+  });
+
+  it('accepts negative sweep arcs', () => {
+    const sectors = buildRadialBarSectors({
+      data: [{ name: 'A' }],
+      values: [100],
+      names: ['A'],
+      colors: ['#f00'],
+      cx: 100,
+      cy: 100,
+      innerRadius: 20,
+      outerRadius: 80,
+      startAngle: 90,
+      endAngle: -90,
+      maxValue: 100,
+    });
+    // Down from center (angle ~90°)
+    expect(findRadialBarIndex(sectors, 100, 100 + 40)).toBe(0);
+    // Up from center (angle ~-90°) — at end of sweep
+    expect(findRadialBarIndex(sectors, 100, 100 - 40)).toBe(0);
   });
 });

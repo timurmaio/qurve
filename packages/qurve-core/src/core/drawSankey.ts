@@ -313,10 +313,44 @@ export function drawSankey(params: {
   ctx.restore();
 }
 
+function cubicBezier(t: number, p0: number, p1: number, p2: number, p3: number): number {
+  const u = 1 - t;
+  return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
+}
+
+function pointInLinkRibbon(link: SankeyLinkLayout, mouseX: number, mouseY: number): boolean {
+  const { x0, x1, y0, y1, thickness } = link;
+  const minX = Math.min(x0, x1);
+  const maxX = Math.max(x0, x1);
+  if (mouseX < minX || mouseX > maxX || thickness <= 0) return false;
+
+  const midX = (x0 + x1) / 2;
+  // Binary-search t so that bezier X(t) ≈ mouseX (controls: midX,midX).
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 20; i++) {
+    const mid = (lo + hi) / 2;
+    const x = cubicBezier(mid, x0, midX, midX, x1);
+    if (x < mouseX) lo = mid;
+    else hi = mid;
+  }
+  const t = (lo + hi) / 2;
+  const top = cubicBezier(t, y0, y0, y1, y1);
+  const bot = cubicBezier(t, y0 + thickness, y0 + thickness, y1 + thickness, y1 + thickness);
+  const yMin = Math.min(top, bot);
+  const yMax = Math.max(top, bot);
+  return mouseY >= yMin && mouseY <= yMax;
+}
+
+/**
+ * Hit-test nodes first, then link ribbons.
+ * Link hits resolve to the source node index (highlights the related flow).
+ */
 export function findSankeyIndex(
   nodes: SankeyNodeLayout[],
   mouseX: number,
   mouseY: number,
+  links: SankeyLinkLayout[] = [],
 ): number | null {
   for (let i = nodes.length - 1; i >= 0; i--) {
     const node = nodes[i];
@@ -327,6 +361,12 @@ export function findSankeyIndex(
       mouseY <= node.y + node.height
     ) {
       return node.index;
+    }
+  }
+
+  for (let i = links.length - 1; i >= 0; i--) {
+    if (pointInLinkRibbon(links[i], mouseX, mouseY)) {
+      return links[i].source;
     }
   }
   return null;

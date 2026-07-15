@@ -5,6 +5,8 @@ import {
   getRelativePosition,
   PIE_COLORS,
   LayerOrder,
+  createLinearScale,
+  niceDomain,
   type ChartData,
   type DataKey,
   type AxisConfig,
@@ -121,25 +123,6 @@ export type {
   PolarRadiusAxisConfig,
   ZAxisConfig,
 } from '@qurve/core';
-
-function createLinearScale(config: { domain: [number, number]; range: [number, number] }) {
-  const { domain, range } = config;
-  const scale = ((value: number) => {
-    const [d0, d1] = domain;
-    const [r0, r1] = range;
-    if (d1 === d0) return r0;
-    const ratio = (value - d0) / (d1 - d0);
-    return r0 + ratio * (r1 - r0);
-  }) as ((value: number) => number) & {
-    domain: () => [number, number];
-    range: () => [number, number];
-  };
-
-  scale.domain = () => domain;
-  scale.range = () => range;
-
-  return scale;
-}
 
 function applyDomainPadding(
   domain: [number, number],
@@ -814,7 +797,10 @@ function useChartModel(params: {
     }
 
     const range: [number, number] = xAxis?.reversed ? [innerWidth, 0] : [0, innerWidth];
-    return createLinearScale({ domain: applyDomainPadding(domain, xAxis?.padding, 'x'), range });
+    const padded = applyDomainPadding(domain, xAxis?.padding, 'x');
+    const shouldNice =
+      xAxis?.type !== 'time' && (!xAxis?.domain || xAxis.domain === 'auto');
+    return createLinearScale({ domain: shouldNice ? niceDomain(padded, 10) : padded, range });
   }, [data, innerWidth, xAxis]);
 
   const getYScale = useCallback((dataKey?: DataKey, yAxisId: string | number = 0) => {
@@ -860,8 +846,8 @@ function useChartModel(params: {
     const padding = (maxVal - minVal) * 0.1 || 10;
     const domain: [number, number] = [minVal - padding, maxVal + padding];
     const range: [number, number] = axis?.reversed ? [0, innerHeight] : [innerHeight, 0];
-
-    return createLinearScale({ domain: applyDomainPadding(domain, axis?.padding, 'y'), range });
+    const padded = applyDomainPadding(domain, axis?.padding, 'y');
+    return createLinearScale({ domain: niceDomain(padded, 10), range });
   }, [data, innerHeight, yAxes]);
 
   const getZScale = useCallback((value: number): number => {

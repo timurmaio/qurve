@@ -1,12 +1,9 @@
+import { appendCurve, type CurveType } from './curvePath';
+
 export interface AreaPoint {
   x: number;
   y0: number;
   y1: number;
-}
-
-function traceLinear(points: AreaPoint[], readY: (p: AreaPoint) => number, reversed = false): [number, number][] {
-  const source = reversed ? [...points].reverse() : points;
-  return source.map((point) => [point.x, readY(point)]);
 }
 
 export function drawArea(params: {
@@ -18,24 +15,33 @@ export function drawArea(params: {
   strokeWidth: number;
   hoveredIndex: number | null;
   hoverOpacity: number;
+  /** Curve type for the top edge (and bottom when closing). Default linear. */
+  type?: CurveType;
 }): void {
-  const { ctx, points, fill, fillOpacity, stroke, strokeWidth, hoveredIndex, hoverOpacity } = params;
+  const {
+    ctx,
+    points,
+    fill,
+    fillOpacity,
+    stroke,
+    strokeWidth,
+    hoveredIndex,
+    hoverOpacity,
+    type = 'linear',
+  } = params;
   if (points.length === 0) return;
 
-  const top = traceLinear(points, (point) => point.y1);
-  const bottom = traceLinear(points, (point) => point.y0, true);
+  const top = points.map((p) => ({ x: p.x, y: p.y1 }));
+  const bottom = [...points].reverse().map((p) => ({ x: p.x, y: p.y0 }));
 
   ctx.save();
   ctx.globalAlpha = hoveredIndex === null ? 1 : hoverOpacity;
 
   ctx.beginPath();
-  ctx.moveTo(top[0][0], top[0][1]);
-  for (let index = 1; index < top.length; index++) {
-    ctx.lineTo(top[index][0], top[index][1]);
-  }
-  for (let index = 0; index < bottom.length; index++) {
-    ctx.lineTo(bottom[index][0], bottom[index][1]);
-  }
+  ctx.moveTo(top[0].x, top[0].y);
+  appendCurve(ctx, top, type);
+  ctx.lineTo(bottom[0].x, bottom[0].y);
+  appendCurve(ctx, bottom, type);
   ctx.closePath();
 
   ctx.globalAlpha = (hoveredIndex === null ? 1 : hoverOpacity) * fillOpacity;
@@ -47,10 +53,8 @@ export function drawArea(params: {
     ctx.strokeStyle = stroke;
     ctx.lineWidth = strokeWidth;
     ctx.beginPath();
-    ctx.moveTo(top[0][0], top[0][1]);
-    for (let index = 1; index < top.length; index++) {
-      ctx.lineTo(top[index][0], top[index][1]);
-    }
+    ctx.moveTo(top[0].x, top[0].y);
+    appendCurve(ctx, top, type);
     ctx.stroke();
   }
 

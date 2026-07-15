@@ -1,3 +1,5 @@
+import { ticks } from './ticks';
+
 function buildAxisFont(fontSize: number, fontFamily: string, fontWeight?: string | number): string {
   const weight = fontWeight != null ? String(fontWeight) : '';
   const parts = [weight, `${fontSize}px`, fontFamily].filter(Boolean);
@@ -5,13 +7,11 @@ function buildAxisFont(fontSize: number, fontFamily: string, fontWeight?: string
 }
 
 function createTicks(min: number, max: number, tickCount: number): number[] {
-  const safeCount = Math.max(2, tickCount);
-  const step = (max - min) / (safeCount - 1);
-  const ticks: number[] = [];
-  for (let i = 0; i < safeCount; i++) {
-    ticks.push(min + step * i);
-  }
-  return ticks;
+  const nice = ticks(min, max, Math.max(2, tickCount));
+  if (nice.length >= 2) return nice;
+  // Degenerate domain: fall back to endpoints.
+  if (min === max) return [min];
+  return [min, max];
 }
 
 export function drawXAxis(params: {

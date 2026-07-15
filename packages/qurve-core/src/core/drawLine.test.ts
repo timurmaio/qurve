@@ -3,6 +3,8 @@ import { drawLinePath } from './drawLine';
 
 function createMockContext() {
   return {
+    save: vi.fn(),
+    restore: vi.fn(),
     beginPath: vi.fn(),
     moveTo: vi.fn(),
     lineTo: vi.fn(),

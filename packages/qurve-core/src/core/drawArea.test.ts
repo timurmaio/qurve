@@ -15,6 +15,7 @@ function createMockContext() {
     strokeStyle: '#000',
     lineWidth: 1,
     globalAlpha: 1,
+    bezierCurveTo: vi.fn(),
   } as unknown as CanvasRenderingContext2D;
 }
 
@@ -95,23 +96,24 @@ describe('drawArea', () => {
     expect(ctx.stroke).not.toHaveBeenCalled();
   });
 
-  it('draws stroke with hover opacity when hoveredIndex is set', () => {
+  it('draws monotone area without throwing', () => {
     const ctx = createMockContext();
-
     drawArea({
       ctx,
       points: [
         { x: 0, y0: 20, y1: 10 },
-        { x: 10, y0: 30, y1: 15 },
+        { x: 10, y0: 30, y1: 5 },
+        { x: 20, y0: 25, y1: 12 },
       ],
       fill: '#333',
-      fillOpacity: 0.5,
+      fillOpacity: 0.2,
       stroke: '#111',
-      strokeWidth: 2,
-      hoveredIndex: 0,
-      hoverOpacity: 0.4,
+      strokeWidth: 1,
+      hoveredIndex: null,
+      hoverOpacity: 0.5,
+      type: 'monotone',
     });
-
-    expect(ctx.stroke).toHaveBeenCalled();
+    expect(ctx.fill).toHaveBeenCalled();
+    expect(ctx.bezierCurveTo).toHaveBeenCalled();
   });
 });

@@ -17,6 +17,10 @@ export type {
 
 // Core drawing functions
 export { drawLinePath, drawLineDots, drawActiveDot } from './core/drawLine';
+export type { CurveType } from './core/curvePath';
+export { appendCurve } from './core/curvePath';
+export { ticks, tickStep, tickIncrement, niceDomain } from './core/ticks';
+export { scaleLinear, createLinearScale, type LinearScale } from './core/scaleLinear';
 export { drawBars, type BarRect, type CellOverride } from './core/drawBar';
 export { drawArea, type AreaPoint } from './core/drawArea';
 export { drawPieSlices, type PieSliceGeometry, type PieDrawSlice } from './core/drawPie';

@@ -185,7 +185,25 @@ export function buildRadialBarSectors(params: {
   return sectors;
 }
 
-/** Hit-test: which radial bar ring contains the point (by distance from center). */
+/** True if `angle` lies on the numeric sweep from start→end (same span as drawing). */
+function isAngleInSweep(angle: number, start: number, end: number): boolean {
+  const span = end - start;
+  if (Math.abs(span) >= 360 - 1e-9) return true;
+  if (Math.abs(span) < 1e-9) return false;
+
+  let delta = angle - start;
+  if (span > 0) {
+    while (delta < 0) delta += 360;
+    while (delta > 360) delta -= 360;
+    return delta <= span + 1e-9;
+  }
+
+  while (delta > 0) delta -= 360;
+  while (delta < -360) delta += 360;
+  return delta >= span - 1e-9;
+}
+
+/** Hit-test: ring by radius and angle along the drawn sweep. */
 export function findRadialBarIndex(
   sectors: RadialBarSector[],
   mouseX: number,
@@ -196,9 +214,13 @@ export function findRadialBarIndex(
   const dx = mouseX - cx;
   const dy = mouseY - cy;
   const dist = Math.sqrt(dx * dx + dy * dy);
+  const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
 
-  for (const sector of sectors) {
-    if (dist >= sector.innerRadius && dist <= sector.outerRadius) {
+  // Prefer outermost ring first (higher index) so overlapping edges resolve stably.
+  for (let i = sectors.length - 1; i >= 0; i--) {
+    const sector = sectors[i];
+    if (dist < sector.innerRadius || dist > sector.outerRadius) continue;
+    if (isAngleInSweep(angle, sector.startAngle, sector.endAngle)) {
       return sector.index;
     }
   }

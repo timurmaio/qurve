@@ -22,7 +22,8 @@ export function drawCrosshair(params: {
   const strokeWidth = typeof cursor === 'object' ? cursor.strokeWidth ?? defaults.strokeWidth : defaults.strokeWidth;
   const dash = typeof cursor === 'object' ? cursor.strokeDasharray ?? defaults.strokeDasharray : defaults.strokeDasharray;
 
-  ctx.setLineDash(dash.split(' ').map(Number));
+  ctx.save();
+  ctx.setLineDash(dash.split(/\s+/).map(Number).filter((n) => Number.isFinite(n)));
   ctx.strokeStyle = stroke;
   ctx.lineWidth = strokeWidth;
 
@@ -35,6 +36,5 @@ export function drawCrosshair(params: {
   ctx.moveTo(margin.left, point.y);
   ctx.lineTo(margin.left + innerWidth, point.y);
   ctx.stroke();
-
-  ctx.setLineDash([]);
+  ctx.restore();
 }

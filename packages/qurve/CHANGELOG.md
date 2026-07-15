@@ -15,6 +15,12 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Hardened `@qurve/core` unit suite (geometry/edge cases for polar, labels, error bars, treemap, sankey, radial).
 - Core `pnpm test` now enforces coverage thresholds (lines/statements ≥96%, functions ≥99%, branches ≥88%).
 
+### Changed
+- Core curves: real Steffen/`curveMonotoneX` (d3-compatible), shared path builder for Line + Area; `stepBefore` / `stepAfter`.
+- Core scales: deps-free `scaleLinear`, `ticks` / `niceDomain` (d3-array/d3-scale ports); auto domains use nice boundaries.
+- Hit-tests: RadialBar (angle+radius), Funnel (point-in-trapezoid), Sankey (link ribbons → source node).
+- Canvas hygiene: `save`/`restore` on line path/dots and crosshair.
+
 ## [0.3.0] - 2026-07-14
 
 ### Added

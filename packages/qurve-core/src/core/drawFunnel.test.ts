@@ -54,7 +54,7 @@ describe('drawFunnel', () => {
 });
 
 describe('findFunnelIndex', () => {
-  it('hits by y band', () => {
+  it('hits by point-in-trapezoid', () => {
     const traps = buildFunnelTrapezoids({
       data: [{ name: 'A' }, { name: 'B' }],
       values: [100, 50],
@@ -66,8 +66,10 @@ describe('findFunnelIndex', () => {
       plotHeight: 200,
     });
 
-    expect(findFunnelIndex(traps, 50)).toBe(0);
-    expect(findFunnelIndex(traps, 150)).toBe(1);
-    expect(findFunnelIndex(traps, 250)).toBeNull();
+    expect(findFunnelIndex(traps, 50, traps[0].y + 1)).toBe(0);
+    expect(findFunnelIndex(traps, 50, traps[1].y + 1)).toBe(1);
+    expect(findFunnelIndex(traps, 50, 250)).toBeNull();
+    // Outside trapezoid width
+    expect(findFunnelIndex(traps, -100, traps[0].y + 1)).toBeNull();
   });
 });

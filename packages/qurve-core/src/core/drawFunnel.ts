@@ -121,13 +121,19 @@ export function drawFunnel(params: {
   }
 }
 
-/** Hit-test funnel by Y band. */
+/** Hit-test funnel by point-in-trapezoid. */
 export function findFunnelIndex(
   trapezoids: FunnelTrapezoid[],
+  mouseX: number,
   mouseY: number,
 ): number | null {
   for (const trap of trapezoids) {
-    if (mouseY >= trap.y && mouseY <= trap.y + trap.height) {
+    if (mouseY < trap.y || mouseY > trap.y + trap.height) continue;
+    const t = trap.height > 0 ? (mouseY - trap.y) / trap.height : 0;
+    const width = trap.topWidth + (trap.bottomWidth - trap.topWidth) * t;
+    const centerX = trap.x + trap.topWidth / 2;
+    const half = width / 2;
+    if (mouseX >= centerX - half && mouseX <= centerX + half) {
       return trap.index;
     }
   }

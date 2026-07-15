@@ -169,7 +169,7 @@ export function Sankey({
 
   useEffect(() => {
     return registerTooltipIndexResolver((mouseX, mouseY) => {
-      return findSankeyIndex(nodesRef.current, mouseX, mouseY);
+      return findSankeyIndex(nodesRef.current, mouseX, mouseY, linksRef.current);
     });
   }, [registerTooltipIndexResolver]);
 

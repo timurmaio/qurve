@@ -158,8 +158,8 @@ export function Funnel({
   ]);
 
   useEffect(() => {
-    return registerTooltipIndexResolver((_mouseX, mouseY) => {
-      return findFunnelIndex(trapsRef.current, mouseY);
+    return registerTooltipIndexResolver((mouseX, mouseY) => {
+      return findFunnelIndex(trapsRef.current, mouseX, mouseY);
     });
   }, [registerTooltipIndexResolver]);
 

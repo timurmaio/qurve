@@ -18,7 +18,7 @@ const LINE_CONSTANTS = {
 
 export interface LineProps {
   dataKey: DataKey;
-  type?: 'linear' | 'monotone' | 'step';
+  type?: 'linear' | 'monotone' | 'step' | 'stepBefore' | 'stepAfter';
   stroke?: string;
   strokeWidth?: number;
   /** When false (default), missing y values break the line. When true, skip gaps and connect. */

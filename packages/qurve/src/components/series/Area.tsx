@@ -38,6 +38,8 @@ export interface AreaProps {
   stroke?: string;
   strokeWidth?: number;
   hoverOpacity?: number;
+  /** Curve type for the area edge. Default `linear`. */
+  type?: 'linear' | 'monotone' | 'step' | 'stepBefore' | 'stepAfter';
   /** When false (default), missing y values break the area. Stacked series treat null as 0. */
   connectNulls?: boolean;
   /** Bind to a YAxis with the same id. Default `0`. */
@@ -55,6 +57,7 @@ export function Area({
   stroke: strokeProp,
   strokeWidth = AREA_CONSTANTS.DEFAULT_STROKE_WIDTH,
   hoverOpacity = AREA_CONSTANTS.DEFAULT_HOVER_OPACITY,
+  type = 'linear',
   connectNulls = false,
   yAxisId = 0,
   name,
@@ -252,6 +255,7 @@ export function Area({
             strokeWidth,
             hoveredIndex: hoveredIndexRef.current,
             hoverOpacity: normalizedHoverOpacity,
+            type,
           });
         }
       } catch (error) {
@@ -268,6 +272,7 @@ export function Area({
     strokeWidth,
     normalizedFillOpacity,
     normalizedHoverOpacity,
+    type,
     connectNulls,
     stackId,
     registerRender,

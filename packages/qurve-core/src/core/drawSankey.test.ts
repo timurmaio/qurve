@@ -130,8 +130,8 @@ describe('drawSankey', () => {
 });
 
 describe('findSankeyIndex', () => {
-  it('hits node rectangles', () => {
-    const { nodes } = layoutSankey({
+  it('hits node rectangles and link ribbons', () => {
+    const { nodes, links } = layoutSankey({
       data: SAMPLE,
       colors: ['#f00', '#0f0', '#00f'],
       plotX: 0,
@@ -143,5 +143,10 @@ describe('findSankeyIndex', () => {
     const node = nodes[0];
     expect(findSankeyIndex(nodes, node.x + 1, node.y + 1)).toBe(0);
     expect(findSankeyIndex(nodes, -5, -5)).toBeNull();
+
+    const link = links[0];
+    const midX = (link.x0 + link.x1) / 2;
+    const midY = (link.y0 + link.y1) / 2 + link.thickness / 2;
+    expect(findSankeyIndex(nodes, midX, midY, links)).toBe(link.source);
   });
 });

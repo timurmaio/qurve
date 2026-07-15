@@ -3,6 +3,8 @@ import { drawCrosshair } from './drawCrosshair';
 
 function createMockContext() {
   return {
+    save: vi.fn(),
+    restore: vi.fn(),
     setLineDash: vi.fn(),
     strokeStyle: '#000',
     lineWidth: 1,
