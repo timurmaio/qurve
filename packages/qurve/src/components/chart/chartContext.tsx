@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback, useMemo, useRef, useEffect, useState, useSyncExternalStore, type Context } from 'react';
+import { createContext, useContext, useReducer, useCallback, useMemo, useRef, useEffect, useLayoutEffect, useState, useSyncExternalStore, type Context } from 'react';
 import {
   normalizeTimeDomain,
   toTimeNumber,
@@ -18,7 +18,7 @@ import {
   type PolarRadiusAxisConfig,
   type ZAxisConfig,
 } from '@qurve/core';
-import { readThemeFromElement, type QurveTheme } from './themeUtils';
+import { readThemeFromElement, themesEqual, type QurveTheme } from './themeUtils';
 
 export interface ChartLayoutContextValue {
   data: ChartData;
@@ -1046,10 +1046,35 @@ export function Chart({
   const containerRef = useRef<HTMLDivElement>(null);
   const [theme, setTheme] = useState<QurveTheme>({});
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = containerRef.current;
-    if (el) setTheme(readThemeFromElement(el));
-  }, []);
+    if (!el || typeof window === 'undefined') return;
+
+    const refresh = () => {
+      const next = readThemeFromElement(el);
+      setTheme((prev) => (themesEqual(prev, next) ? prev : next));
+    };
+
+    refresh();
+
+    const resizeObserver = new ResizeObserver(refresh);
+    resizeObserver.observe(el);
+
+    const mutationObserver = new MutationObserver(refresh);
+    let node: HTMLElement | null = el;
+    while (node) {
+      mutationObserver.observe(node, {
+        attributes: true,
+        attributeFilter: ['style', 'class', 'data-theme'],
+      });
+      node = node.parentElement;
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [width, height]);
 
   const effectiveBg = backgroundColor ?? theme.chartBg ?? '#fff';
 

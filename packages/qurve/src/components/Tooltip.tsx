@@ -23,6 +23,7 @@ import {
   toReverseConfig,
   type TooltipLabel,
 } from '@qurve/core';
+import { tooltipToneForBackground } from './chart/themeUtils';
 
 const TOOLTIP_CONSTANTS = {
   POINT_RADIUS: 6,
@@ -96,7 +97,7 @@ export function Tooltip({
   labelStyle,
   itemStyle,
 }: TooltipProps) {
-  const { data, width, height, margin, innerWidth, innerHeight } = useChartLayoutContext();
+  const { data, width, height, margin, innerWidth, innerHeight, theme } = useChartLayoutContext();
   const { getXScale, getYScale, xAxis } = useChartScaleContext();
   const { ctx, overlayCtx, registerRender, requestRender, requestOverlayRender } = useChartRenderContext();
   const {
@@ -114,6 +115,10 @@ export function Tooltip({
   const isLockedRef = useRef(false);
 
   const reverse = useMemo(() => toReverseConfig(reverseDirection), [reverseDirection]);
+  const tooltipTone = useMemo(
+    () => tooltipToneForBackground(theme.tooltipBg),
+    [theme.tooltipBg],
+  );
 
   useEffect(() => {
     if (!data.length) {
@@ -386,18 +391,19 @@ export function Tooltip({
         <div
           className={contentClassName}
           style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid #e0e0e0',
+            backgroundColor: theme.tooltipBg ?? 'rgba(255, 255, 255, 0.95)',
+            border: tooltipTone.border,
             borderRadius: '8px',
             padding: '10px 12px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            boxShadow: tooltipTone.shadow,
             fontSize: '13px',
-            fontFamily: 'sans-serif',
+            fontFamily: theme.fontFamily ?? 'sans-serif',
+            color: tooltipTone.color,
             ...contentStyle,
           }}
         >
           {tooltipProps.label !== undefined && (
-              <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1a1a1a', ...labelStyle }}>
+              <div style={{ fontWeight: 600, marginBottom: '8px', color: tooltipTone.color, ...labelStyle }}>
               {labelFormatter ? labelFormatter(tooltipProps.label) : formatTooltipLabel(tooltipProps.label, xAxis)}
               </div>
             )}
@@ -420,8 +426,8 @@ export function Tooltip({
                     backgroundColor: item.color ?? '#3b82f6',
                   }}
                 />
-                <span style={{ color: '#666' }}>{nameNode}:</span>
-                <span style={{ fontWeight: 500, color: '#1a1a1a' }}>{valueNode}</span>
+                <span style={{ color: tooltipTone.muted }}>{nameNode}:</span>
+                <span style={{ fontWeight: 500, color: tooltipTone.color }}>{valueNode}</span>
               </div>
             );
           })}

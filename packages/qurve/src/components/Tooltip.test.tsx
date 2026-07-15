@@ -270,4 +270,45 @@ describe('Tooltip', () => {
 
     expect(screen.getByText('10.00')).toBeInTheDocument();
   });
+
+  it('applies dark tooltip tone from --qurve-tooltip-bg CSS variable', async () => {
+    const { container } = render(
+      <div
+        style={{
+          ['--qurve-tooltip-bg' as string]: 'rgba(16, 22, 31, 0.96)',
+          ['--qurve-font-family' as string]: 'Georgia, serif',
+        }}
+      >
+        <Chart data={[{ x: 0, y: 10 }, { x: 1, y: 20 }]} width={320} height={160}>
+          <XAxis dataKey="x" />
+          <YAxis />
+          <Line dataKey="y" name="Revenue" />
+          <Tooltip />
+        </Chart>
+      </div>,
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
+
+    const canvas =
+      container.querySelector('[data-testid="chart-event-canvas"]') ??
+      container.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+    hoverCanvas(canvas as HTMLCanvasElement, 300, 20);
+
+    const value = await screen.findByText('20.00');
+    const panel = value.closest('div');
+    expect(panel).not.toBeNull();
+
+    // Walk up to the styled tooltip content shell
+    let shell: HTMLElement | null = panel;
+    while (shell && !shell.style.backgroundColor) {
+      shell = shell.parentElement;
+    }
+    expect(shell?.style.backgroundColor).toMatch(/16,\s*22,\s*31/);
+    expect(shell?.style.fontFamily).toMatch(/Georgia/);
+    expect(shell?.style.color).toBe('rgb(232, 237, 245)');
+  });
 });
