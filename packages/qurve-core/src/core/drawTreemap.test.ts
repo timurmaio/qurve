@@ -219,3 +219,42 @@ describe('findTreemapIndex', () => {
     expect(findTreemapIndex(rects, -10, -10)).toBeNull();
   });
 });
+
+describe('buildTreemapRects — area conservation', () => {
+  it('leaf areas sum to plot area and stay proportional to values', () => {
+    const plotWidth = 400;
+    const plotHeight = 300;
+    const data = [
+      { name: 'A', value: 60 },
+      { name: 'B', value: 30 },
+      { name: 'C', value: 10 },
+    ];
+    const rects = buildTreemapRects({
+      data,
+      colors: ['#f00', '#0f0', '#00f'],
+      plotX: 10,
+      plotY: 20,
+      plotWidth,
+      plotHeight,
+      padding: 0,
+    });
+
+    const totalArea = rects.reduce((s, r) => s + r.width * r.height, 0);
+    expect(totalArea).toBeCloseTo(plotWidth * plotHeight, 5);
+
+    const valueSum = data.reduce((s, d) => s + d.value, 0);
+    for (const rect of rects) {
+      const expectedShare = rect.value / valueSum;
+      const actualShare = (rect.width * rect.height) / (plotWidth * plotHeight);
+      expect(actualShare).toBeCloseTo(expectedShare, 5);
+    }
+
+    // Leaves stay inside the plot box
+    for (const r of rects) {
+      expect(r.x).toBeGreaterThanOrEqual(10 - 1e-9);
+      expect(r.y).toBeGreaterThanOrEqual(20 - 1e-9);
+      expect(r.x + r.width).toBeLessThanOrEqual(10 + plotWidth + 1e-9);
+      expect(r.y + r.height).toBeLessThanOrEqual(20 + plotHeight + 1e-9);
+    }
+  });
+});

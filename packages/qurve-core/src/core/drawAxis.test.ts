@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { drawXAxis, drawYAxis } from './drawAxis';
+import { ticks } from './ticks';
 
 function createMockContext() {
   return {
@@ -272,5 +273,49 @@ describe('drawAxis', () => {
     });
 
     expect(ctx.font).toBe('11px monospace');
+  });
+
+  it('auto tick labels match ticks(domain, max(2, tickCount))', () => {
+    const ctx = createMockContext();
+    const domain: [number, number] = [0, 100];
+    const tickCount = 5;
+    const expected = ticks(domain[0], domain[1], Math.max(2, tickCount));
+
+    drawYAxis({
+      ctx,
+      scale: (v) => v,
+      domain,
+      margin: { left: 0, top: 0 },
+      innerWidth: 100,
+      innerHeight: 100,
+      position: 'left',
+      stroke: '#666',
+      tick: true,
+      tickLine: false,
+      axisLine: false,
+      tickCount,
+    });
+
+    const labels = vi.mocked(ctx.fillText).mock.calls.map((c) => c[0]);
+    expect(labels).toEqual(expected.map(String));
+  });
+
+  it('falls back to endpoints when domain collapses to one nice tick', () => {
+    const ctx = createMockContext();
+    drawXAxis({
+      ctx,
+      scale: (v) => v,
+      domain: [7, 7],
+      margin: { left: 0, top: 0 },
+      innerWidth: 100,
+      innerHeight: 50,
+      position: 'bottom',
+      stroke: '#666',
+      tick: true,
+      tickLine: false,
+      axisLine: false,
+      tickCount: 5,
+    });
+    expect(vi.mocked(ctx.fillText).mock.calls.map((c) => c[0])).toEqual(['7']);
   });
 });

@@ -30,9 +30,17 @@ describe('pieMath', () => {
     expect(isAngleInArc(120, 300, 20)).toBe(false);
   });
 
-  it('isAngleInArc handles wrapping arc (start > end)', () => {
+  it('isAngleInArc covers wrap, edges, and exterior', () => {
     expect(isAngleInArc(10, 350, 20)).toBe(true);
     expect(isAngleInArc(100, 350, 20)).toBe(false);
+    // Non-wrapping closed interval
+    expect(isAngleInArc(0, 10, 20)).toBe(false);
+    expect(isAngleInArc(10, 10, 20)).toBe(true);
+    expect(isAngleInArc(20, 10, 20)).toBe(true);
+    expect(isAngleInArc(15, 10, 20)).toBe(true);
+    // Wrap across 0°
+    expect(isAngleInArc(0, 270, 90)).toBe(true);
+    expect(isAngleInArc(180, 270, 90)).toBe(false);
   });
 
   it('formats labels by mode', () => {

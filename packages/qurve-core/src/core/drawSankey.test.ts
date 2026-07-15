@@ -129,6 +129,36 @@ describe('drawSankey', () => {
   });
 });
 
+describe('layoutSankey — flow conservation', () => {
+  it('assigns node values as max(inflow, outflow) and keeps link geometry ordered', () => {
+    const { nodes, links } = layoutSankey({
+      data: {
+        nodes: [{ name: 'A' }, { name: 'B' }, { name: 'C' }],
+        links: [
+          { source: 0, target: 1, value: 40 },
+          { source: 0, target: 2, value: 20 },
+          { source: 1, target: 2, value: 30 },
+        ],
+      },
+      colors: ['#f00', '#0f0', '#00f'],
+      plotX: 0,
+      plotY: 0,
+      plotWidth: 300,
+      plotHeight: 200,
+    });
+
+    const byIndex = new Map(nodes.map((n) => [n.index, n]));
+    expect(byIndex.get(0)!.value).toBe(60); // outflow
+    expect(byIndex.get(1)!.value).toBe(40); // max(40 in, 30 out)
+    expect(byIndex.get(2)!.value).toBe(50); // inflow
+    expect(links.reduce((s, l) => s + l.value, 0)).toBe(90);
+    for (const link of links) {
+      expect(link.x0).toBeLessThan(link.x1);
+      expect(link.thickness).toBeGreaterThan(0);
+    }
+  });
+});
+
 describe('findSankeyIndex', () => {
   it('hits node rectangles and link ribbons', () => {
     const { nodes, links } = layoutSankey({
@@ -144,9 +174,26 @@ describe('findSankeyIndex', () => {
     expect(findSankeyIndex(nodes, node.x + 1, node.y + 1)).toBe(0);
     expect(findSankeyIndex(nodes, -5, -5)).toBeNull();
 
+    // Adjacent-column link (first in SAMPLE) — mid-span stays off node columns
     const link = links[0];
     const midX = (link.x0 + link.x1) / 2;
-    const midY = (link.y0 + link.y1) / 2 + link.thickness / 2;
+    const t = 0.5;
+    const u = 1 - t;
+    const ctrlX = midX;
+    const top =
+      u * u * u * link.y0 +
+      3 * u * u * t * link.y0 +
+      3 * u * t * t * link.y1 +
+      t * t * t * link.y1;
+    const midY = top + link.thickness / 2;
+    const onNode = nodes.some(
+      (n) =>
+        midX >= n.x &&
+        midX <= n.x + n.width &&
+        midY >= n.y &&
+        midY <= n.y + n.height,
+    );
+    expect(onNode).toBe(false);
     expect(findSankeyIndex(nodes, midX, midY, links)).toBe(link.source);
   });
 });
