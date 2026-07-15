@@ -45,6 +45,13 @@ export function Demo() {
 }
 ```
 
+## Styling
+
+Qurve charts are styled in three composable layers — CSS variables for chrome, `Chart` `colors` / `backgroundColor` for palettes, and series props / `Cell` / Tooltip for precision.
+
+→ **[STYLING.md](./STYLING.md)** (recipes + dark mode)  
+→ Live guide on the site: `/styling`
+
 ## Included primitives
 
 - `Chart`

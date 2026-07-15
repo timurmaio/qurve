@@ -122,6 +122,14 @@ export default function AreWeRechartsYet() {
             >
               ← Back to Home
             </Link>
+            <div className="mb-3 flex flex-wrap gap-3 text-xs font-medium text-[var(--text-muted)]">
+              <Link to="/styling" className="hover:text-[var(--accent)]">
+                Styling guide
+              </Link>
+              <Link to="/comparison" className="hover:text-[var(--accent)]">
+                Comparison
+              </Link>
+            </div>
             <h1 className="text-3xl font-bold tracking-tight">Are we Recharts yet?</h1>
             <p className="mt-2 max-w-2xl text-[var(--text-muted)]">
               Progress toward a drop-in replacement for Recharts. Same composable API, Canvas rendering for performance.

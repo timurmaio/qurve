@@ -6,6 +6,10 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- Live `/styling` guide with side-by-side recipes; package `STYLING.md`.
+- Tooltip defaults respect `--qurve-tooltip-bg` and `--qurve-font-family`.
+
 ## [0.3.1] - 2026-07-15
 
 ### Added

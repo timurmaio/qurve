@@ -36,6 +36,7 @@ Most React charting libraries render to SVG—and it shows. As your datasets gro
 
 - **Canvas rendering** — Thousands of data points? No problem. Canvas blazes through them.
 - **Visx-style primitives** — Compose charts from low-level building blocks. Customize everything.
+- **Composable styling** — CSS variables, palettes, series props, and `Cell` — see [STYLING.md](./packages/qurve/STYLING.md) and `/styling`.
 - **Zero runtime overhead** — No heavyweight charting engines. Just React + Canvas.
 - **TypeScript-first** — Full type safety out of the box.
 

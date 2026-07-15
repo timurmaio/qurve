@@ -958,6 +958,9 @@ export default function Home() {
                 Compare Qurve and Recharts side-by-side, or track drop-in compatibility.
               </p>
               <div className="flex flex-wrap gap-3">
+                <Link to="/styling" className="cta-secondary">
+                  Styling guide
+                </Link>
                 <Link to="/comparison" className="cta-secondary">
                   Live comparison
                 </Link>
@@ -996,6 +999,10 @@ export default function Home() {
                 <FeatureItem
                   title="Canvas Rendering"
                   description="GPU-accelerated drawing. Handles 100k+ data points without breaking a sweat."
+                />
+                <FeatureItem
+                  title="Composable styling"
+                  description="CSS variables for chrome, Chart colors for palettes, series props and Cell for precision — no ThemeProvider required."
                 />
                 <FeatureItem
                   title="Auto-scaling"
